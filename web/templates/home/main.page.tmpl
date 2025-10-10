@@ -1,0 +1,26 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title" -}}
+  Machine administration
+{{- end}}
+{{define "description"}}Machine system settings{{end}}
+
+{{define "content"}}
+  {{$hostname := .Data.Hostname}}
+  {{$port := .Data.Port}}
+
+  <main>
+    <section class="section content">
+      <div class="container">
+        <h1>Machine administration</h1>
+        <p>
+          Welcome! Here you can adjust system-level settings for your machine's operating system.
+        </p>
+        <h2>About this machine</h2>
+        <p>
+        TODO: show versioning info, machine name, etc.
+        </p>
+      </div>
+    </section>
+  </main>
+{{end}}

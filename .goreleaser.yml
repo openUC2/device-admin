@@ -1,0 +1,133 @@
+version: 2
+
+# gomod:
+#   proxy: true # proxying breaks embedding of files produced by `make buildweb` during release
+before:
+  hooks:
+    - go mod download
+
+builds:
+- id: device-admin
+  main: ./cmd/deviceadmin
+  binary: device-admin
+  mod_timestamp: "{{ .CommitTimestamp }}"
+  flags:
+    - -trimpath
+  ldflags:
+    - -w
+    - -X main.buildSummary={{ .Summary }}
+    - -X main.buildVersion={{ .Version }}
+    - -X main.buildCommitFull={{ .FullCommit }}
+    - -X main.buildCommitShort={{ .ShortCommit }}
+    - -X main.buildCommitDate={{ .CommitDate }}
+    - -X main.buildCommitTimestamp={{ .CommitTimestamp }}
+    - -X main.buildReleaseURL={{ .ReleaseURL }}
+    - -X main.buildRepo={{ .GitURL }}
+    - -X main.buildSystem=goreleaser
+  env:
+    - CGO_ENABLED=0
+  targets:
+    - linux_amd64_v1
+    - linux_arm64
+    # - darwin_amd64_v1
+    # - darwin_arm64
+    # - windows_amd64_v1
+
+archives:
+  - id: device-admin
+    ids: ["device-admin"]
+    name_template: "device-admin_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: zip
+    files:
+      - 'LICENSE*'
+      - 'README*'
+      - 'CHANGELOG*'
+      - 'license*'
+      - 'readme*'
+      - 'changelog*'
+      - 'web/templates/**'
+
+changelog:
+  use: github
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 10
+    - title: Builds
+      regexp: '^.*?build(\([[:word:]]+\))??!?:.+$'
+      order: 20
+    - title: etc
+      order: 30
+  filters:
+    exclude:
+      - '^.*?chore(\([[:word:]]+\))??!?:.+$'
+      - '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      - '^.*?test(\([[:word:]]+\))??!?:.+$'
+      - '^.*?ci(\([[:word:]]+\))??!?:.+$'
+
+release:
+  prerelease: auto
+  footer: |
+    {{ if and .Tag .PreviousTag -}}
+      **Commit history**: [{{ .PreviousTag }}...{{ .Tag }}]({{ .GitURL }}/compare/{{ .Tag }}...{{ .PreviousTag }})
+    {{- else if .PreviousTag -}}
+      **Commit history**: [{{ .PreviousTag }}...{{ .ShortCommit }}]({{ .GitURL }}/compare/{{ .Commit }}...{{ .PreviousTag }})
+    {{- end }}
+
+dockers:
+  # device-admin
+  - id: device-admin-amd64
+    ids:
+      - device-admin
+    dockerfile: "Dockerfile"
+    use: buildx
+    image_templates:
+      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"
+      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-amd64"
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
+    extra_files:
+      - "web/templates"
+  - id: device-admin-arm64v8
+    ids:
+      - device-admin
+    dockerfile: "Dockerfile"
+    use: buildx
+    goarch: arm64
+    image_templates:
+      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-arm64v8"
+      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+    build_flag_templates:
+      - "--pull"
+      - "--platform=linux/arm64/v8"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.name={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source={{.GitURL}}"
+      - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
+    extra_files:
+      - "web/templates"
+
+docker_manifests:
+  # device-admin
+  - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:latest"
+    image_templates:
+      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"
+      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-arm64v8"
+  - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-amd64"
+      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-arm64v8"

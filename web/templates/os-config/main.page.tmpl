@@ -1,0 +1,20 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title"}}OS Configuration{{end}}
+{{define "description"}}Manage operating system configurations{{end}}
+
+{{define "content"}}
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li><a href="/">Admin</a></li>
+        <li class="is-active"><a href="/os-config" aria-current="page">OS Config</a></li>
+      </ul>
+    </nav>
+
+    <section class="section content">
+      <h1>Operating System Configuration</h1>
+      <p>TODO: manage feature flags and pallet upgrades</p>
+    </section>
+  </main>
+{{end}}

@@ -1,0 +1,10 @@
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+.devcontainer/library-scripts/*.sh linguist-detectable=false
+*.page.tmpl linguist-detectable=true
+*.page.tmpl linguist-language=HTML
+*.layout.tmpl linguist-detectable=true
+*.layout.tmpl linguist-language=HTML
+*.partial.tmpl linguist-detectable=true
+*.partial.tmpl linguist-language=HTML

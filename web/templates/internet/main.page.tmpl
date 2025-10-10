@@ -1,0 +1,20 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title"}}Internet{{end}}
+{{define "description"}}Manage configurations for internet access{{end}}
+
+{{define "content"}}
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li><a href="/">Admin</a></li>
+        <li class="is-active"><a href="/internet" aria-current="page">Internet</a></li>
+      </ul>
+    </nav>
+
+    <section class="section content">
+      <h1>Internet Access</h1>
+      <p>TODO: manage Wi-Fi settings and internet access sharing</p>
+    </section>
+  </main>
+{{end}}

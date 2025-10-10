@@ -1,0 +1,23 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title"}}There's a problem{{end}}
+{{define "description"}}We have some trouble.{{end}}
+
+{{define "content"}}
+  <main class="main-container">
+    <section class="section content">
+      <h1>{{.Data.Error.Name}} ({{.Data.Code}})</h1>
+      <p>{{.Data.Error.Description}}</p>
+      {{range $flashMessage := .Data.Messages}}
+        <article class="message is-danger card section-card is-block">
+          <div class="message-header">
+            <p>Error</p>
+          </div>
+          <div class="message-body">
+            {{$flashMessage}}
+          </div>
+        </article>
+      {{end}}
+    </section>
+  </main>
+{{end}}

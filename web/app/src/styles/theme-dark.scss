@@ -1,0 +1,36 @@
+@charset 'utf-8';
+
+// Shared base
+@import 'node_modules/@sargassum-world/styles/global.scss';
+@import 'node_modules/@sargassum-world/styles/typography.vars.scss';
+@import 'node_modules/bulma/sass/utilities/mixins.sass';
+
+// Application-specific parameters
+@import 'styles/app/fonts.scss';
+@import 'styles/app/layout.vars.scss';
+
+// Shared
+@import 'node_modules/@sargassum-world/styles/layout.scss';
+@import 'node_modules/@sargassum-world/styles/colors-base.vars.scss';
+@import 'node_modules/bulma/sass/utilities/initial-variables.sass';
+
+// Theme colors
+@import 'node_modules/@sargassum-world/styles/colors-dark.vars.scss';
+
+// Shared
+@import 'node_modules/@sargassum-world/styles/theme.vars.scss';
+
+// Bulma imports
+@import 'node_modules/bulma/bulma.sass';
+
+// Anti-FOUC mechanism
+@import 'styles/app/fouc-post.scss';
+
+// Overrides & components
+@import 'node_modules/@sargassum-world/styles/theme-overrides.scss';
+@import 'node_modules/@sargassum-world/styles/components.scss';
+
+// Overrides only for dark mode
+.icon img {
+  filter: invert(1);
+}
