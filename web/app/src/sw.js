@@ -1,11 +1,11 @@
-import { ExpirationPlugin } from "workbox-expiration";
+import { ExpirationPlugin } from 'workbox-expiration';
 import {
-	offlineFallback,
-	staticResourceCache,
-	warmStrategyCache,
-} from "workbox-recipes";
-import { registerRoute, setDefaultHandler } from "workbox-routing";
-import { CacheFirst, NetworkOnly } from "workbox-strategies";
+  offlineFallback,
+  staticResourceCache,
+  warmStrategyCache,
+} from 'workbox-recipes';
+import { registerRoute, setDefaultHandler } from 'workbox-routing';
+import { CacheFirst, NetworkOnly } from 'workbox-strategies';
 
 const cacheFirst = new CacheFirst();
 
@@ -18,35 +18,35 @@ registerRoute(/app\/.*/, cacheFirst);
 // Favicon (served with max-age cache-control header)
 
 const faviconCacheFirst = new CacheFirst({
-	cacheName: "favicon-cache",
-	plugins: [
-		new ExpirationPlugin({
-			maxAgeSeconds: 1 * 24 * 60 * 60,
-		}),
-	],
+  cacheName: 'favicon-cache',
+  plugins: [
+    new ExpirationPlugin({
+      maxAgeSeconds: 1 * 24 * 60 * 60,
+    }),
+  ],
 });
 warmStrategyCache({
-	urls: ["/favicon.ico"],
-	strategy: faviconCacheFirst,
+  urls: ['/favicon.ico'],
+  strategy: faviconCacheFirst,
 });
 registerRoute(/favicon\.ico/, faviconCacheFirst);
 
 // Fonts (served with max-age cache-control header)
 
 const fontCacheFirst = new CacheFirst({
-	cacheName: "font-cache",
-	plugins: [
-		new ExpirationPlugin({
-			maxAgeSeconds: 90 * 24 * 60 * 60,
-		}),
-	],
+  cacheName: 'font-cache',
+  plugins: [
+    new ExpirationPlugin({
+      maxAgeSeconds: 90 * 24 * 60 * 60,
+    }),
+  ],
 });
 warmStrategyCache({
-	urls: [
-		"/fonts/atkinson-hyperlegible-latin-400-normal.woff2",
-		"/fonts/atkinson-hyperlegible-latin-700-normal.woff2",
-	],
-	strategy: fontCacheFirst,
+  urls: [
+    '/fonts/atkinson-hyperlegible-latin-400-normal.woff2',
+    '/fonts/atkinson-hyperlegible-latin-700-normal.woff2',
+  ],
+  strategy: fontCacheFirst,
 });
 registerRoute(/fonts\/.*/, fontCacheFirst);
 
@@ -54,9 +54,9 @@ registerRoute(/fonts\/.*/, fontCacheFirst);
 
 setDefaultHandler(new NetworkOnly());
 warmStrategyCache({
-	urls: ["/app/offline"],
-	strategy: cacheFirst,
+  urls: ['/app/offline'],
+  strategy: cacheFirst,
 });
 offlineFallback({
-	pageFallback: "/app/offline",
+  pageFallback: '/app/offline',
 });
