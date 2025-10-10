@@ -77,7 +77,7 @@ build: install
 
 .PHONY: buildall
 buildall: ## goreleaser --snapshot --skip=publish --clean
-buildall: install buildweb buildnoweb
+buildall: install buildweb build
 
 .PHONY: release
 release: ## goreleaser --clean
