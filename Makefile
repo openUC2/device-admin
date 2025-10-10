@@ -71,9 +71,13 @@ diff: ## git diff
 
 .PHONY: build
 build: ## goreleaser --snapshot --skip=publish --clean
-build: install buildweb
+build: install
 	$(call print-target)
 	go tool goreleaser --snapshot --skip=publish --clean
+
+.PHONY: buildall
+buildall: ## goreleaser --snapshot --skip=publish --clean
+buildall: install buildweb buildnoweb
 
 .PHONY: release
 release: ## goreleaser --clean

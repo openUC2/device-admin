@@ -30,7 +30,7 @@ func (h *Handlers) Register(er godest.EchoRouter, em godest.Embeds) {
 	assets.NewTemplated(h.r).Register(er)
 	home.New(h.r).Register(er)
 	identity.New(h.r).Register(er)
-	internet.New(h.r).Register(er)
+	internet.New(h.r, h.globals.NetworkManager).Register(er)
 	remote.New(h.r).Register(er)
 	osconfig.New(h.r).Register(er)
 }

@@ -64,4 +64,4 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Release test
-        run: make build
+        run: make buildall

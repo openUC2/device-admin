@@ -40,7 +40,7 @@ Once you have device-admin, you can run it as follows on a Raspberry Pi:
 ./device-admin
 ```
 
-Then you can view the landing page at <http://localhost:3000> . Note that if you are running it on a
+Then you can view the landing page at <http://localhost:3001> . Note that if you are running it on a
 computer other than the Raspberry Pi with ImSwitch OS, then you will need to set some environment
 variables (see below) to non-default values.
 
@@ -54,7 +54,7 @@ Before you start the server for the first time, you'll need to generate the weba
 
 Because the build pipeline builds Docker images, you will need to either have Docker Desktop or (on Ubuntu) to have installed QEMU (either with qemu-user-static from apt or by running [tonistiigi/binfmt](https://hub.docker.com/r/tonistiigi/binfmt)). You will need a version of Docker with buildx support.
 
-To execute the full build pipeline, run `make`; to build the docker images, run `make build` (make sure you've already run `make install`). Note that `make build` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_window_amd64/device-admin.exe` or `./dist/device-admin_linux_amd64/device-admin`)
+To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_window_amd64/device-admin.exe` or `./dist/device-admin_linux_amd64/device-admin`)
 
 ### Environment Variables
 

@@ -161,7 +161,7 @@ func (s *Server) Register(e *echo.Echo) error {
 
 // Running
 
-const port = 3000 // TODO: configure this with env var
+const port = 3001 // TODO: configure this with env var
 
 func (s *Server) Run(e *echo.Echo) error {
 	s.Globals.Base.Logger.Info("starting device-portal server")

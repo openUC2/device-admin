@@ -7,6 +7,7 @@ import (
 	"github.com/sargassum-world/godest/clientcache"
 
 	"github.com/openUC2/device-admin/internal/app/deviceadmin/conf"
+	"github.com/openUC2/device-admin/internal/clients/networkmanager"
 	"github.com/openUC2/device-admin/internal/clients/templates"
 )
 
@@ -20,7 +21,8 @@ type Globals struct {
 	Config conf.Config
 	Base   *BaseGlobals
 
-	Templates *templates.Client
+	Templates      *templates.Client
+	NetworkManager *networkmanager.Client
 }
 
 func NewBaseGlobals(config conf.Config, l godest.Logger) (g *BaseGlobals, err error) {
@@ -46,6 +48,12 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 		return nil, errors.Wrap(err, "couldn't set up templates config")
 	}
 	g.Templates = templates.NewClient(templatesConfig)
+
+	networkManagerConfig, err := networkmanager.GetConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "couldn't set up networkmanager config")
+	}
+	g.NetworkManager = networkmanager.NewClient(networkManagerConfig, g.Base.Logger)
 
 	return g, nil
 }

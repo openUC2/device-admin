@@ -26,6 +26,7 @@ func NewTemplated(r godest.TemplateRenderer) *TemplatedHandlers {
 
 func (h *TemplatedHandlers) Register(er godest.EchoRouter) {
 	er.GET(AppURLPrefix+"app.webmanifest", h.getWebmanifest())
+	er.GET(AppURLPrefix+"offline", h.getOffline())
 }
 
 func RegisterStatic(er godest.EchoRouter, em godest.Embeds) {
