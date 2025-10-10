@@ -29,6 +29,12 @@
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
+    "Href" "/identity"
+    "Name" "Identity" "MetaPath" .Meta.Path
+  }}
+  {{
+    template "shared/nav/navlink.partial.tmpl" dict
+    "Display" true
     "Href" "/internet"
     "Name" "Internet" "MetaPath" .Meta.Path
   }}
@@ -42,7 +48,7 @@
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
     "Href" "/os-config"
-    "Name" "OS Config" "MetaPath" .Meta.Path
+    "Name" "OS" "MetaPath" .Meta.Path
   }}
 {{end}}
 
