@@ -17,7 +17,7 @@ func New(r godest.TemplateRenderer) *Handlers {
 }
 
 func (h *Handlers) Register(er godest.EchoRouter) {
-	er.GET("/identity", h.HandleIdentityGet())
+	er.GET(h.r.BasePath+"identity", h.HandleIdentityGet())
 }
 
 type IdentityViewData struct{}

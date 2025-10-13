@@ -26,7 +26,7 @@ func New(r godest.TemplateRenderer, globals *client.Globals) *Handlers {
 }
 
 func (h *Handlers) Register(er godest.EchoRouter, em godest.Embeds) {
-	assets.RegisterStatic(er, em)
+	assets.RegisterStatic(h.r.BasePath, er, em)
 	assets.NewTemplated(h.r).Register(er)
 	home.New(h.r).Register(er)
 	identity.New(h.r).Register(er)

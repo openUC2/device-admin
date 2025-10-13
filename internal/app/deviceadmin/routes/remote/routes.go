@@ -17,7 +17,7 @@ func New(r godest.TemplateRenderer) *Handlers {
 }
 
 func (h *Handlers) Register(er godest.EchoRouter) {
-	er.GET("/remote", h.HandleRemoteGet())
+	er.GET(h.r.BasePath+"remote", h.HandleRemoteGet())
 }
 
 type RemoteViewData struct{}

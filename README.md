@@ -90,6 +90,17 @@ TEMPLATES_PATH=custom-templates ./device-admin
 TEMPLATES_PATH=custom-templates make run
 ```
 
+#### HTTP Server
+
+You can override the default port (`3001`) or base path (`/`) of the HTTP server with the `HTTP_PORT` and `HTTP_BASEPATH` environment variables, respectively. For example, you could run the web server on port 3002 with base path `/admin/panel/` by running the following command:
+```
+# If you downloaded a device-admin binary:
+HTTP_PORT=3002-templates HTTP_BASEPATH="/admin/panel/" ./device-admin
+# If you are developing the project:
+HTTP_PORT=3002-templates HTTP_BASEPATH="/admin/panel/" make run
+```
+Note that `HTTP_BASEPATH` should end with a trailing slash.
+
 ## Licensing
 
 Except where otherwise indicated, source code provided here is covered by the following information:

@@ -53,6 +53,7 @@ func NewServer(config conf.Config, logger godest.Logger) (s *Server, err error) 
 	); err != nil {
 		return nil, errors.Wrap(err, "couldn't make template renderer")
 	}
+	s.Renderer.BasePath = s.Globals.Config.HTTP.BasePath
 
 	s.Handlers = routes.New(s.Renderer, s.Globals)
 	return s, err
@@ -161,8 +162,6 @@ func (s *Server) Register(e *echo.Echo) error {
 
 // Running
 
-const port = 3001 // TODO: configure this with env var
-
 func (s *Server) Run(e *echo.Echo) error {
 	s.Globals.Base.Logger.Info("starting device-portal server")
 
@@ -172,7 +171,7 @@ func (s *Server) Run(e *echo.Echo) error {
 	// by calling the Close method.
 	eg, _ := errgroup.WithContext(context.Background())
 	eg.Go(func() error {
-		address := fmt.Sprintf(":%d", port)
+		address := fmt.Sprintf(":%d", s.Globals.Config.HTTP.Port)
 		s.Globals.Base.Logger.Infof("starting http server on %s", address)
 		return e.Start(address)
 	})

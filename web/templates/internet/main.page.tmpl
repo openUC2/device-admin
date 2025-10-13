@@ -7,29 +7,31 @@
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
       <ul>
-        <li><a href="/">Admin</a></li>
-        <li class="is-active"><a href="/internet" aria-current="page">Internet</a></li>
+        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
+        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Internet</a></li>
       </ul>
     </nav>
 
     <section class="section content">
       <h1>Internet Access</h1>
       <p>TODO: manage Wi-Fi settings and internet access sharing</p>
+      <h2>Network interfaces</h2>
+      <p>TODO: display info about network interfaces</p>
       <h2>Ethernet</h2>
       <p>TODO: display whether ethernet is connected to anything</p>
       <h2>Wi-Fi</h2>
-      <turbo-frame id="/internet/wifi/networks">
-        <div class="field is-grouped">
+      <turbo-frame id="{{.Meta.BasePath}}internet/wifi/networks">
+        <div class="field has-addons">
           <div class="control" data-form-submission-target="submitter">
             <form
-              action="/internet/wifi/networks"
+              action="{{.Meta.BasePath}}internet/wifi/networks"
               method="POST"
               data-controller="form-submission"
               data-action="submit->form-submission#submit"
             >
               <input type="hidden" name="state" value="refreshed">
               <input
-                class="button is-light"
+                class="button is-primary"
                 type="submit"
                 value="Rescan networks"
                 data-form-submission-target="submit"
@@ -38,7 +40,7 @@
           </div>
           <div class="control">
             <form
-              action="/internet/wifi/network"
+              action="{{.Meta.BasePath}}internet/wifi/network"
               method="POST"
               data-controller="form-submission"
               data-action="submit->form-submission#submit"

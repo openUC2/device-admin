@@ -5,9 +5,9 @@
   <meta name="description" content="{{block "description" .}}{{end}}">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#556b2f">
-  <meta name="action-cable-url" content="/cable">
+  <meta name="action-cable-url" content="{{.Meta.BasePath}}cable">
 
-  <title>{{block "title" .}}{{end}} | Sargassum Live</title>
+  <title>{{block "title" .}}{{end}} | Machine Administration</title>
 
   <style type="text/css">{{.Inlines.CSS.BundleEager}}</style>
   <noscript><link rel="stylesheet" href="{{appHashed "theme-light.css"}}"></noscript>
@@ -15,13 +15,13 @@
     id="light-theme"
     as="style"
     rel="preload"
-    href="{{appHashed "theme-light.css"}}"
+    href="{{.Meta.BasePath}}{{appHashed "theme-light.css"}}"
   >
   <link
     id="dark-theme"
     as="style"
     rel="preload"
-    href="{{appHashed "theme-dark.css"}}"
+    href="{{.Meta.BasePath}}{{appHashed "theme-dark.css"}}"
   >
   <script>{{.Inlines.JS.BundleEager}}</script>
   {{block "nav/navbar.assets" .}}{{end}}
@@ -30,23 +30,23 @@
     rel="preload"
     as="font"
     type="font/woff2"
-    href="/fonts/atkinson-hyperlegible-latin-400-normal.woff2"
+    href="{{.Meta.BasePath}}fonts/atkinson-hyperlegible-latin-400-normal.woff2"
     crossorigin
   >
   <link
     rel="preload"
     as="font"
     type="font/woff2"
-    href="/fonts/atkinson-hyperlegible-latin-700-normal.woff2"
+    href="{{.Meta.BasePath}}fonts/atkinson-hyperlegible-latin-700-normal.woff2"
     crossorigin
   >
-  <link rel="preload" as="script" href="{{appHashed "bundle-deferred.js"}}">
-  <link rel="icon" href="{{staticHashed "icon.png"}}" type="image/png">
-  <link rel="icon alternate" href="/favicon.ico" size="any">
-  <link rel="apple-touch-icon" href="{{staticHashed "apple-touch-icon.png"}}">
+  <link rel="preload" as="script" href="{{.Meta.BasePath}}{{appHashed "bundle-deferred.js"}}">
+  <link rel="icon" href="{{.Meta.BasePath}}{{staticHashed "icon.png"}}" type="image/png">
+  <link rel="icon alternate" href="{{.Meta.BasePath}}favicon.ico" size="any">
+  <link rel="apple-touch-icon" href="{{.Meta.BasePath}}{{staticHashed "apple-touch-icon.png"}}">
   <!-- TODO: add shortcuts to the web application manifest -->
-  <link rel="manifest" href="/app/app.webmanifest">
-  <script defer src="{{appHashed "bundle-deferred.js"}}" data-turbo-track="reload"></script>
+  <link rel="manifest" href="{{.Meta.BasePath}}app/app.webmanifest">
+  <script defer src="{{.Meta.BasePath}}{{appHashed "bundle-deferred.js"}}" data-turbo-track="reload"></script>
 </head>
 
 <body>

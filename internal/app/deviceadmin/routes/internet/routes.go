@@ -26,8 +26,8 @@ func New(r godest.TemplateRenderer, nmc *networkmanager.Client) *Handlers {
 }
 
 func (h *Handlers) Register(er godest.EchoRouter) {
-	er.GET("/internet", h.HandleInternetGet())
-	er.POST("/internet/wifi/networks", h.HandleWiFiNetworksPost())
+	er.GET(h.r.BasePath+"internet", h.HandleInternetGet())
+	er.POST(h.r.BasePath+"internet/wifi/networks", h.HandleWiFiNetworksPost())
 }
 
 type InternetViewData struct {
@@ -72,7 +72,7 @@ func (h *Handlers) HandleWiFiNetworksPost() echo.HandlerFunc {
 				return err
 			}
 			// Redirect user
-			return c.Redirect(http.StatusSeeOther, "/internet")
+			return c.Redirect(http.StatusSeeOther, h.r.BasePath+"internet")
 		}
 	}
 }

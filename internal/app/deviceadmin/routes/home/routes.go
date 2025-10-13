@@ -20,7 +20,10 @@ func New(r godest.TemplateRenderer) *Handlers {
 }
 
 func (h *Handlers) Register(er godest.EchoRouter) {
-	er.GET("/", h.HandleHomeGet())
+	er.GET(h.r.BasePath, h.HandleHomeGet())
+	if h.r.BasePath != "/" {
+		er.GET(strings.TrimSuffix(h.r.BasePath, "/"), h.HandleHomeGet())
+	}
 }
 
 type HomeViewData struct {

@@ -1,8 +1,7 @@
-import { existsSync, mkdirSync, writeFileSync } from "fs";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
-import replace from "@rollup/plugin-replace";
 import terser from "@rollup/plugin-terser";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import copy from "rollup-plugin-copy";
 import css from "rollup-plugin-css-only";
 import scss from "rollup-plugin-scss";
@@ -24,7 +23,7 @@ function themeGenerator(theme) {
 			scss({
 				includePaths: ["node_modules", "src"],
 				runtime: sass,
-				output: (styles, styleNodes) => {
+				output: (styles, _) => {
 					if (!existsSync(buildDir)) {
 						mkdirSync(buildDir, { recursive: true });
 					}
@@ -82,47 +81,10 @@ function bundleGenerator(type, appName, context) {
 	};
 }
 
-function swGenerator() {
-	return {
-		input: "src/sw.js",
-		output: {
-			sourcemap: !production,
-			format: "iife",
-			name: "serviceWorker",
-			file: `${buildDir}/sw.js`,
-		},
-		plugins: [
-			// If you have external dependencies installed from
-			// npm, you'll most likely need these plugins. In
-			// some cases you'll need additional configuration -
-			// consult the documentation for details:
-			// https://github.com/rollup/plugins/tree/master/packages/commonjs
-			resolve({
-				browser: true,
-			}),
-			commonjs(),
-			replace({
-				preventAssignment: true,
-				"process.env.NODE_ENV": JSON.stringify(
-					production ? "production" : "development",
-				),
-			}),
-
-			// If we're building for production (npm run build
-			// instead of npm run dev), minify
-			production && terser(),
-		],
-		watch: {
-			clearScreen: false,
-		},
-	};
-}
-
 export default [
 	themeGenerator("eager", undefined),
 	themeGenerator("light"),
 	themeGenerator("dark"),
 	bundleGenerator("eager", "appEager"),
 	bundleGenerator("deferred", "app", "window"),
-	swGenerator(),
 ];

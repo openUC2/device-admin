@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	AppURLPrefix    = "/app/"
-	StaticURLPrefix = "/static/"
-	FontsURLPrefix  = "/fonts/"
+	AppURLPrefix    = "app/"
+	StaticURLPrefix = "static/"
+	FontsURLPrefix  = "fonts/"
 )
 
 type TemplatedHandlers struct {
@@ -25,11 +25,11 @@ func NewTemplated(r godest.TemplateRenderer) *TemplatedHandlers {
 }
 
 func (h *TemplatedHandlers) Register(er godest.EchoRouter) {
-	er.GET(AppURLPrefix+"app.webmanifest", h.getWebmanifest())
-	er.GET(AppURLPrefix+"offline", h.getOffline())
+	er.GET(h.r.BasePath+AppURLPrefix+"app.webmanifest", h.getWebmanifest())
+	er.GET(h.r.BasePath+AppURLPrefix+"offline", h.getOffline())
 }
 
-func RegisterStatic(er godest.EchoRouter, em godest.Embeds) {
+func RegisterStatic(basePath string, er godest.EchoRouter, em godest.Embeds) {
 	const (
 		day  = 24 * time.Hour
 		week = 7 * day
@@ -37,12 +37,19 @@ func RegisterStatic(er godest.EchoRouter, em godest.Embeds) {
 	)
 
 	// TODO: serve sw.js with an ETag!
-	er.GET("/sw.js", echo.WrapHandler(godest.HandleFS("/", em.AppFS, week)))
-	er.GET("/favicon.ico", echo.WrapHandler(godest.HandleFS("/", em.StaticFS, week)))
-	er.GET(FontsURLPrefix+"*", echo.WrapHandler(godest.HandleFS(FontsURLPrefix, em.FontsFS, year)))
 	er.GET(
-		StaticURLPrefix+"*",
-		echo.WrapHandler(godest.HandleFSFileRevved(StaticURLPrefix, em.StaticHFS)),
+		basePath+"favicon.ico", echo.WrapHandler(godest.HandleFS(basePath, em.StaticFS, week)),
 	)
-	er.GET(AppURLPrefix+"*", echo.WrapHandler(godest.HandleFSFileRevved(AppURLPrefix, em.AppHFS)))
+	er.GET(
+		basePath+FontsURLPrefix+"*",
+		echo.WrapHandler(godest.HandleFS(basePath+FontsURLPrefix, em.FontsFS, year)),
+	)
+	er.GET(
+		basePath+StaticURLPrefix+"*",
+		echo.WrapHandler(godest.HandleFSFileRevved(basePath+StaticURLPrefix, em.StaticHFS)),
+	)
+	er.GET(
+		basePath+AppURLPrefix+"*",
+		echo.WrapHandler(godest.HandleFSFileRevved(basePath+AppURLPrefix, em.AppHFS)),
+	)
 }
