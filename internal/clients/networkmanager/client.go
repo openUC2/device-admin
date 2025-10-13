@@ -30,6 +30,7 @@ type AccessPoint struct {
 	Strength  uint8  // %
 	LastSeen  int32  // sec
 	Mode      WifiMode
+	RSN       RSNFlags // for WPA2 & WPA3
 }
 
 type WifiMode string
@@ -41,6 +42,36 @@ const (
 	WifiModeAP      = "hotspot"
 	WifiModeMesh    = "mesh"
 )
+
+type RSNFlags uint32
+
+func (f RSNFlags) IsNone() bool {
+	return f == 0
+}
+
+func (f RSNFlags) SupportsPairCCMP() bool {
+	return f&0x8 > 0
+}
+
+func (f RSNFlags) SupportsGroupCCMP() bool {
+	return f&0x80 > 0
+}
+
+func (f RSNFlags) SupportsPSK() bool {
+	return f&0x100 > 0
+}
+
+func (f RSNFlags) SupportsSAE() bool {
+	return f&0x400 > 0
+}
+
+func (f RSNFlags) SupportsOWE() bool {
+	return f&0x800 > 0
+}
+
+func (f RSNFlags) SupportsEAPSuiteB192() bool {
+	return f&0x2000 > 0
+}
 
 func (c *Client) ScanNetworks(ctx context.Context) (networks map[string][]AccessPoint, err error) {
 	const iface = "wlan0"
@@ -113,24 +144,35 @@ func (c *Client) getAccessPoint(apo dbus.BusObject) (ap AccessPoint, err error) 
 
 	var rawMode uint32
 	if err = apo.StoreProperty(nmName+".AccessPoint.Mode", &rawMode); err != nil {
-		return AccessPoint{}, errors.Wrap(err, "couldn't query NetworkManager for signal strength")
+		return AccessPoint{}, errors.Wrap(err, "couldn't query NetworkManager for Wi-Fi mode")
 	}
-	switch rawMode {
-	default:
-		return AccessPoint{}, errors.Wrapf(err, "unknown 802.11 mode %d", rawMode)
-	case 0:
-		ap.Mode = WifiModeUnknown
-	case 1:
-		ap.Mode = WifiModeAdhoc
-	case 2: //nolint:mnd // the relationship is clear on the next line
-		ap.Mode = WifiModeInfra
-	case 3: //nolint:mnd // the relationship is clear on the next line
-		ap.Mode = WifiModeAP
-	case 4: //nolint:mnd // the relationship is clear on the next line
-		ap.Mode = WifiModeMesh
+	if ap.Mode, err = parseWifiMode(rawMode); err != nil {
+		return AccessPoint{}, errors.Wrap(err, "couldn't parse NetworkManager Wi-Fi mode")
 	}
 
+	if err = apo.StoreProperty(nmName+".AccessPoint.RsnFlags", &rawMode); err != nil {
+		return AccessPoint{}, errors.Wrap(err, "couldn't query NetworkManager for WPA flags")
+	}
+	ap.RSN = RSNFlags(rawMode)
+
 	return ap, err
+}
+
+func parseWifiMode(rawMode uint32) (WifiMode, error) {
+	switch rawMode {
+	default:
+		return "", errors.Errorf("unknown 802.11 mode %d", rawMode)
+	case 0:
+		return WifiModeUnknown, nil
+	case 1:
+		return WifiModeAdhoc, nil
+	case 2: //nolint:mnd // the relationship is clear on the next line
+		return WifiModeInfra, nil
+	case 3: //nolint:mnd // the relationship is clear on the next line
+		return WifiModeAP, nil
+	case 4: //nolint:mnd // the relationship is clear on the next line
+		return WifiModeMesh, nil
+	}
 }
 
 func (c *Client) RescanNetworks(ctx context.Context) (err error) {
