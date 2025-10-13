@@ -15,48 +15,93 @@
     <section class="section content">
       <h1>Internet Access</h1>
       <p>TODO: manage Wi-Fi settings and internet access sharing</p>
-      <h2>Network interfaces</h2>
-      <p>TODO: display info about network interfaces</p>
-      <h2>Ethernet</h2>
-      <p>TODO: display whether ethernet is connected to anything</p>
+    </section>
+    <section class="section content">
       <h2>Wi-Fi</h2>
+      <p>TODO: make a toggle for whether to automatically connect to the preferred external network</p>
+      <h3>External network</h3>
+      <p>TODO: report whether a preferred network is registered</p>
+      <h4 class="is-inline">Detected networks</h4>
       <turbo-frame id="{{.Meta.BasePath}}internet/wifi/networks">
-        <div class="field has-addons">
-          <div class="control" data-form-submission-target="submitter">
-            <form
-              action="{{.Meta.BasePath}}internet/wifi/networks"
-              method="POST"
-              data-controller="form-submission"
-              data-action="submit->form-submission#submit"
-            >
-              <input type="hidden" name="state" value="refreshed">
+        <form
+          action="{{.Meta.BasePath}}internet/wifi/networks"
+          method="POST"
+          data-controller="form-submission"
+          data-action="submit->form-submission#submit"
+          class="mt-4 mb-3"
+        >
+          <input type="hidden" name="state" value="refreshed">
+          <div class="field">
+            <div class="control" data-form-submission-target="submitter">
               <input
                 class="button is-primary"
                 type="submit"
                 value="Rescan networks"
                 data-form-submission-target="submit"
               >
-            </form>
+            </div>
           </div>
-          <div class="control">
-            <form
-              action="{{.Meta.BasePath}}internet/wifi/network"
-              method="POST"
-              data-controller="form-submission"
-              data-action="submit->form-submission#submit"
-            >
-              <input type="hidden" name="state" value="connected">
-              <div class="select">
-                <select>
-                  {{range $ssid := .Data.SSIDs}}
-                    <option>{{$ssid}}</option>
-                  {{end}}
-                </select>
-              </div>
-            </form>
-          </div>
+        </form>
+        <div class="table-container block mb-5">
+          <table class="table is-narrow is-hoverable">
+            <thead>
+              <tr>
+                <th>SSID</th>
+                <th>Strength</th>
+                <th>Freq (GHz)</th>
+                <th>Mode</th>
+                <th>Scan Freshness</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{range $ssid := .Data.AvailableSSIDs}}
+                {{$accessPoints := index $.Data.AvailableAPs $ssid}}
+                {{range $index, $accessPoint := $accessPoints}}
+                  <tr>
+                    {{if eq $index 0}}
+                      <th rowspan="{{len $accessPoints}}">
+                        {{if $ssid}}
+                          {{$ssid}}
+                        {{else}}
+                          <span class="tag is-warning">Unknown</span>
+                        {{end}}
+                    {{end}}
+                    <td><progress
+                      class="
+                        {{if ge $accessPoint.Strength 70}}
+                          is-success
+                        {{else if ge $accessPoint.Strength 40}}
+                          is-warning
+                        {{else}}
+                          is-danger
+                        {{end}}
+                        progress
+                      "
+                      value="{{$accessPoint.Strength}}"
+                      max="100"
+                    >
+                      {{$accessPoint.Strength}}
+                    </progress></td>
+                    <td>{{divf $accessPoint.Frequency 1000}}</td>
+                    <td>{{$accessPoint.Mode}}</td>
+                    <td>{{round (divf $accessPoint.LastSeen 60) 1}}</td>
+                  </tr>
+                {{end}}
+              {{end}}
+            </tbody>
+          </table>
         </div>
       </turbo-frame>
+      <h4>Preferred network</h4>
+      <p>TODO: make a form to set details about the preferred network</p>
+    </section>
+    <section class="section content">
+      <h2>Ethernet</h2>
+      <p>TODO: display whether ethernet is connected to anything</p>
+    </section>
+    <section class="section content">
+      <h2>Network interfaces</h2>
+      <p>TODO: display info about network interfaces</p>
     </section>
   </main>
 {{end}}

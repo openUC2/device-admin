@@ -2,8 +2,12 @@
 package internet
 
 import (
+	"cmp"
+	"context"
 	"fmt"
+	"maps"
 	"net/http"
+	"slices"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -31,7 +35,9 @@ func (h *Handlers) Register(er godest.EchoRouter) {
 }
 
 type InternetViewData struct {
-	SSIDs []string
+	// TODO: figure out the current SSID, if it exists
+	AvailableSSIDs []string
+	AvailableAPs   map[string][]networkmanager.AccessPoint
 }
 
 func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
@@ -39,7 +45,7 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries
-		internetViewData, err := getInternetViewData(h.nmc)
+		internetViewData, err := getInternetViewData(c.Request().Context(), h.nmc)
 		if err != nil {
 			return err
 		}
@@ -48,11 +54,27 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 	}
 }
 
-func getInternetViewData(nmc *networkmanager.Client) (vd InternetViewData, err error) {
-	vd.SSIDs, err = nmc.ScanNetworks()
-	if err != nil {
+func getInternetViewData(
+	ctx context.Context, nmc *networkmanager.Client,
+) (vd InternetViewData, err error) {
+	if vd.AvailableAPs, err = nmc.ScanNetworks(ctx); err != nil {
 		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
 	}
+	for ssid, aps := range vd.AvailableAPs {
+		if len(aps) == 0 {
+			delete(vd.AvailableAPs, ssid)
+			continue
+		}
+		slices.SortFunc(aps, func(a, b networkmanager.AccessPoint) int {
+			return cmp.Compare(b.Strength, a.Strength)
+		})
+		vd.AvailableAPs[ssid] = aps
+	}
+
+	vd.AvailableSSIDs = slices.SortedFunc(maps.Keys(vd.AvailableAPs), func(a, b string) int {
+		return cmp.Compare(vd.AvailableAPs[b][0].Strength, vd.AvailableAPs[a][0].Strength)
+	})
+
 	return vd, nil
 }
 
@@ -68,7 +90,8 @@ func (h *Handlers) HandleWiFiNetworksPost() echo.HandlerFunc {
 				"invalid Wi-Fi networks state %s", state,
 			))
 		case "refreshed":
-			if err := h.nmc.RescanNetworks(); err != nil {
+			// Note: this function call will block until the scan finishes:
+			if err := h.nmc.RescanNetworks(c.Request().Context()); err != nil {
 				return err
 			}
 			// Redirect user
