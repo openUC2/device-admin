@@ -64,17 +64,6 @@
             </li>
           {{end}}
           <li>
-            <abbr title="whether the device is allowed to automatically connect to a known network">
-              Autoconnect
-              {{- /* make template ignore the line break */ -}}
-            </abbr>?
-            {{if $device.Autoconnect}}
-              <span class="tag is-success">yes</span>
-            {{else}}
-              <span class="tag is-info">no</span>
-            {{end}}
-          </li>
-          <li>
             {{$ipv4ConnectivityInfo := $device.IPv4Connectivity.Info}}
             {{$ipv6ConnectivityInfo := $device.IPv4Connectivity.Info}}
             Connectivity:
@@ -143,6 +132,17 @@
               {{- /* make template ignore the line break */ -}}
             </abbr>?
             {{if $device.Managed}}
+              <span class="tag is-success">yes</span>
+            {{else}}
+              <span class="tag is-info">no</span>
+            {{end}}
+          </li>
+          <li>
+            <abbr title="whether the device is allowed to automatically connect to a known network">
+              Autoconnect
+              {{- /* make template ignore the line break */ -}}
+            </abbr>?
+            {{if $device.Autoconnect}}
               <span class="tag is-success">yes</span>
             {{else}}
               <span class="tag is-info">no</span>

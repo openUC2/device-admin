@@ -52,14 +52,7 @@
       </turbo-frame>
       <h4>Preferred network</h4>
       <p>TODO: make a form to set details about the preferred network</p>
-    </section>
-    <section class="section content">
-      <h2>Ethernet</h2>
-      <p>TODO: display whether ethernet is connected to anything</p>
-    </section>
-    <section class="section content">
-      <h2>Network devices</h2>
-      <h3>Wi-Fi devices</h3>
+      <h3>Devices</h3>
       {{range $device := .Data.WifiDevices}}
         {{
           template "internet/device-card.partial.tmpl" dict
@@ -68,7 +61,10 @@
           "Meta" $.Meta
         }}
       {{end}}
-      <h3>Ethernet devices</h3>
+    </section>
+    <section class="section content">
+      <h2>Ethernet</h2>
+      <h3>Devices</h3>
       {{range $device := .Data.EthernetDevices}}
         {{
           template "internet/device-card.partial.tmpl" dict
@@ -77,7 +73,9 @@
           "Meta" $.Meta
         }}
       {{end}}
-      <h3>Other devices</h3>
+    </section>
+    <section class="section content">
+      <h2>Other network devices</h2>
       <p>
         Note: "bridge" and "<abbrev title="virtual Ethernet">veth</abbrev>" devices are excluded
         from this list.
