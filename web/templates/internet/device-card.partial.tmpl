@@ -1,0 +1,182 @@
+{{$device := (get . "Device")}}
+{{$collapseAll := (get . "CollapseAll")}}
+{{$Meta := (get . "Meta")}}
+
+{{$interface := or $device.IpInterface $device.ControlInterface}}
+<turbo-frame id="{{$Meta.BasePath}}internet/wifi/devices/{{$interface}}">
+  <article class="panel entity-panel" id="device-{{$interface}}">
+    <header class="panel-heading">{{$interface}}</header>
+
+    <details
+      data-accordion-item
+      class="panel-block accordion-item"
+      {{if not $collapseAll}}
+        open
+      {{end}}
+    >
+      <summary class="accordion-header level">
+        Basic status
+        {{template "shared/accordion-icon.partial.tmpl"}}
+      </summary>
+      <div class="accordion-content">
+        <ul class="mt-0">
+          <li>
+            {{$typeInfo := $device.Type.Info}}
+            Type:
+            <span class="tag is-{{$typeInfo.Level}}">
+              {{if $typeInfo.Details}}
+                <abbr title="{{$typeInfo.Details}}">{{$typeInfo.Short}}</abbr>
+              {{else}}
+                {{$typeInfo.Short}}
+              {{end}}
+            </span>
+          </li>
+          <li>
+            {{$stateInfo := $device.State.Info}}
+            State:
+            <span class="tag is-{{$stateInfo.Level}}">
+              {{if $stateInfo.Details}}
+                <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
+              {{else}}
+                {{$stateInfo.Short}}
+              {{end}}
+            </span>
+            {{if $device.FirmwareMissing}}
+              <span class="tag is-warning">
+                <abbr title="device likely missing firmware needed for operation">missing firmware?</abbr>
+              </span>
+            {{end}}
+            {{if $device.NMPluginMissing}}
+              <span class="tag is-warning">
+                <abbr title="NetworkManager plugin for device likely missing or misconfigured">missing nm plugin?</abbr>
+              </span>
+            {{end}}
+          </li>
+          {{if $device.StateReason}}
+            {{$stateReasonInfo := $device.StateReason.Info}}
+            <li>
+              State reason:
+              {{if $stateReasonInfo.Details}}
+                <abbr title="{{$stateReasonInfo.Details}}">{{$stateReasonInfo.Short}}</abbr>
+              {{else}}
+                {{$stateReasonInfo.Short}}
+              {{end}}
+            </li>
+          {{end}}
+          <li>
+            <abbr title="whether the device is allowed to automatically connect to a known network">
+              Autoconnect
+              {{- /* make template ignore the line break */ -}}
+            </abbr>?
+            {{if $device.Autoconnect}}
+              <span class="tag is-success">yes</span>
+            {{else}}
+              <span class="tag is-info">no</span>
+            {{end}}
+          </li>
+          <li>
+            {{$ipv4ConnectivityInfo := $device.IPv4Connectivity.Info}}
+            {{$ipv6ConnectivityInfo := $device.IPv4Connectivity.Info}}
+            Connectivity:
+            {{if eq $ipv4ConnectivityInfo $ipv6ConnectivityInfo}}
+              <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
+                {{if $ipv4ConnectivityInfo.Details}}
+                  <abbr title="{{$ipv4ConnectivityInfo.Details}}">{{$ipv4ConnectivityInfo.Short}}</abbr>
+                {{else}}
+                  {{$ipv4ConnectivityInfo.Short}}
+                {{end}}
+              </span>
+            {{else}}
+              <span class="tag is-white scoped-status">
+                <span>IPv4:</span>
+                <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
+                  {{if $ipv4ConnectivityInfo.Details}}
+                    <abbr title="{{$ipv4ConnectivityInfo.Details}}">{{$ipv4ConnectivityInfo.Short}}</abbr>
+                  {{else}}
+                    {{$ipv4ConnectivityInfo.Short}}
+                  {{end}}
+                </span>
+              </span>
+              <span class="tag is-white scoped-status">
+                <span>IPv6:</span>
+                <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
+                  {{if $ipv6ConnectivityInfo.Details}}
+                    <abbr title="{{$ipv6ConnectivityInfo.Details}}">{{$ipv6ConnectivityInfo.Short}}</abbr>
+                  {{else}}
+                    {{$ipv6ConnectivityInfo.Short}}
+                  {{end}}
+                </span>
+              </span>
+            {{end}}
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details data-accordion-item class="panel-block accordion-item">
+      <summary class="accordion-header level">
+        Addresses
+        {{template "shared/accordion-icon.partial.tmpl"}}
+      </summary>
+      <div class="accordion-content">
+        <ul class="mt-0">
+          {{if $device.HardwareAddress}}
+            <li>
+              MAC address:
+              <span class="tag mac-address">{{$device.HardwareAddress}}</span>
+            </li>
+          {{end}}
+        </ul>
+      </div>
+    </details>
+
+    <details data-accordion-item class="panel-block accordion-item">
+      <summary class="accordion-header level">
+        Advanced information
+        {{template "shared/accordion-icon.partial.tmpl"}}
+      </summary>
+      <div class="accordion-content">
+        <ul class="mt-0">
+          <li>
+            <abbr title="whether this device is managed by NetworkManager">
+              Managed
+              {{- /* make template ignore the line break */ -}}
+            </abbr>?
+            {{if $device.Managed}}
+              <span class="tag is-success">yes</span>
+            {{else}}
+              <span class="tag is-info">no</span>
+            {{end}}
+          </li>
+          {{if and $device.Driver (not (eq $device.Driver "unknown"))}}
+            <li>Driver: {{$device.Driver}}</li>
+            <li>Driver version: {{$device.DriverVersion}}</li>
+          {{end}}
+          {{if and $device.FirmwareVersion (not (eq $device.FirmwareVersion "N/A"))}}
+            <li>Firmware version: {{$device.FirmwareVersion}}</li>
+          {{end}}
+          {{if not $device.InterfaceFlags.HasNone}}
+            <li>
+              Interface flags:
+              {{if $device.InterfaceFlags.IsUp}}
+                <span class="tag is-success">
+                  {{- /* make template ignore the line break */ -}}
+                  <abbr title="enabled from the administrative point of view">up</abbr>
+                  {{- /* make template ignore the line break */ -}}
+                </span>
+              {{end}}
+              {{if $device.InterfaceFlags.IsLowerUp}}
+                <span class="tag is-success">
+                  {{- /* make template ignore the line break */ -}}
+                  <abbr title="physical link is up">physical up</abbr>
+                  {{- /* make template ignore the line break */ -}}
+                </span>
+              {{end}}
+            </li>
+          {{end}}
+        </ul>
+      </div>
+    </details>
+
+  </article>
+</turbo-frame>

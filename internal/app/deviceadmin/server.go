@@ -163,7 +163,7 @@ func (s *Server) Register(e *echo.Echo) error {
 // Running
 
 func (s *Server) Run(e *echo.Echo) error {
-	s.Globals.Base.Logger.Info("starting device-portal server")
+	s.Globals.Base.Logger.Info("starting device-admin server")
 
 	// The echo http server can't be canceled by context cancelation, so the API shouldn't promise to
 	// stop blocking execution on context cancelation - so we use the background context here. The

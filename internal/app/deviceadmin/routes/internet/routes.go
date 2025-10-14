@@ -38,6 +38,10 @@ type InternetViewData struct {
 	// TODO: figure out the current SSID, if it exists
 	AvailableSSIDs []string
 	AvailableAPs   map[string][]networkmanager.AccessPoint
+
+	WifiDevices     []networkmanager.Device
+	EthernetDevices []networkmanager.Device
+	OtherDevices    []networkmanager.Device
 }
 
 func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
@@ -45,7 +49,7 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries
-		internetViewData, err := getInternetViewData(c.Request().Context(), h.nmc)
+		internetViewData, err := getInternetViewData(c.Request().Context())
 		if err != nil {
 			return err
 		}
@@ -54,10 +58,10 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 	}
 }
 
-func getInternetViewData(
-	ctx context.Context, nmc *networkmanager.Client,
-) (vd InternetViewData, err error) {
-	if vd.AvailableAPs, err = nmc.ScanNetworks(ctx); err != nil {
+const iface = "wlan0"
+
+func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
+	if vd.AvailableAPs, err = networkmanager.ScanNetworks(ctx, iface); err != nil {
 		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
 	}
 	for ssid, aps := range vd.AvailableAPs {
@@ -75,6 +79,21 @@ func getInternetViewData(
 		return cmp.Compare(vd.AvailableAPs[b][0].Strength, vd.AvailableAPs[a][0].Strength)
 	})
 
+	allDevices, err := networkmanager.GetDevices(ctx)
+	if err != nil {
+		return vd, errors.Wrap(err, "couldn't list network devices")
+	}
+	for _, device := range allDevices {
+		switch device.Type.Info().Short {
+		default:
+			vd.OtherDevices = append(vd.OtherDevices, device)
+		case "wifi":
+			vd.WifiDevices = append(vd.WifiDevices, device)
+		case "ethernet":
+			vd.EthernetDevices = append(vd.EthernetDevices, device)
+		}
+	}
+
 	return vd, nil
 }
 
@@ -91,7 +110,7 @@ func (h *Handlers) HandleWiFiNetworksPost() echo.HandlerFunc {
 			))
 		case "refreshed":
 			// Note: this function call will block until the scan finishes:
-			if err := h.nmc.RescanNetworks(c.Request().Context()); err != nil {
+			if err := networkmanager.RescanNetworks(c.Request().Context(), iface); err != nil {
 				return err
 			}
 			// Redirect user

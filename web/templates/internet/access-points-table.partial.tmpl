@@ -1,0 +1,68 @@
+{{$availableSSIDs := (get . "AvailableSSIDs")}}
+{{$availableAPs := (get . "AvailableAPs")}}
+
+<table class="table is-narrow is-hoverable">
+  <thead>
+    <tr>
+      <th>SSID</th>
+      <th>Strength</th>
+      <th>Freq (GHz)</th>
+      <th>Mode</th>
+      <th>Security</th>
+      <th>Scan Freshness</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range $ssid := $availableSSIDs}}
+      {{$accessPoints := index $availableAPs $ssid}}
+      {{range $index, $accessPoint := $accessPoints}}
+        <tr>
+          {{if eq $index 0}}
+            <th rowspan="{{len $accessPoints}}">
+              {{if $ssid}}
+                {{$ssid}}
+              {{else}}
+                <span class="tag is-warning">Unknown</span>
+              {{end}}
+          {{end}}
+          <td><progress
+            class="
+              {{if ge $accessPoint.Strength 70}}
+                is-success
+              {{else if ge $accessPoint.Strength 40}}
+                is-warning
+              {{else}}
+                is-danger
+              {{end}}
+              progress
+            "
+            value="{{$accessPoint.Strength}}"
+            max="100"
+          >
+            {{$accessPoint.Strength}}
+          </progress></td>
+          <td>{{divf $accessPoint.Frequency 1000}}</td>
+          <td>{{$accessPoint.Mode}}</td>
+          <td>
+            {{if $accessPoint.RSN.IsNone}}
+              <span class="tag is-warning">None</span>
+            {{end}}
+            {{if $accessPoint.RSN.SupportsPSK}}
+              <span class="tag is-success">WPA2 PSK</span>
+            {{end}}
+            {{if $accessPoint.RSN.SupportsSAE}}
+              <span class="tag is-success">WPA3 SAE</span>
+            {{end}}
+            {{if $accessPoint.RSN.SupportsOWE}}
+              <span class="tag is-success">WPA3 OWE</span>
+            {{end}}
+            {{if $accessPoint.RSN.SupportsEAPSuiteB192}}
+              <span class="tag is-success">WPA3 Enterprise Suite-B 192-bit mode</span>
+            {{end}}
+          </td>
+          <td>{{round (divf $accessPoint.LastSeen 60) 1}}</td>
+        </tr>
+      {{end}}
+    {{end}}
+  </tbody>
+</table>

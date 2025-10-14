@@ -43,71 +43,11 @@
           </div>
         </form>
         <div class="table-container block mb-5">
-          <table class="table is-narrow is-hoverable">
-            <thead>
-              <tr>
-                <th>SSID</th>
-                <th>Strength</th>
-                <th>Freq (GHz)</th>
-                <th>Mode</th>
-                <th>Security</th>
-                <th>Scan Freshness</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{range $ssid := .Data.AvailableSSIDs}}
-                {{$accessPoints := index $.Data.AvailableAPs $ssid}}
-                {{range $index, $accessPoint := $accessPoints}}
-                  <tr>
-                    {{if eq $index 0}}
-                      <th rowspan="{{len $accessPoints}}">
-                        {{if $ssid}}
-                          {{$ssid}}
-                        {{else}}
-                          <span class="tag is-warning">Unknown</span>
-                        {{end}}
-                    {{end}}
-                    <td><progress
-                      class="
-                        {{if ge $accessPoint.Strength 70}}
-                          is-success
-                        {{else if ge $accessPoint.Strength 40}}
-                          is-warning
-                        {{else}}
-                          is-danger
-                        {{end}}
-                        progress
-                      "
-                      value="{{$accessPoint.Strength}}"
-                      max="100"
-                    >
-                      {{$accessPoint.Strength}}
-                    </progress></td>
-                    <td>{{divf $accessPoint.Frequency 1000}}</td>
-                    <td>{{$accessPoint.Mode}}</td>
-                    <td>
-                      {{if $accessPoint.RSN.IsNone}}
-                        <span class="tag is-warning">None</span>
-                      {{end}}
-                      {{if $accessPoint.RSN.SupportsPSK}}
-                        <span class="tag is-success">WPA2 PSK</span>
-                      {{end}}
-                      {{if $accessPoint.RSN.SupportsSAE}}
-                        <span class="tag is-success">WPA3 SAE</span>
-                      {{end}}
-                      {{if $accessPoint.RSN.SupportsOWE}}
-                        <span class="tag is-success">WPA3 OWE</span>
-                      {{end}}
-                      {{if $accessPoint.RSN.SupportsEAPSuiteB192}}
-                        <span class="tag is-success">WPA3 Enterprise Suite-B 192-bit mode</span>
-                      {{end}}
-                    </td>
-                    <td>{{round (divf $accessPoint.LastSeen 60) 1}}</td>
-                  </tr>
-                {{end}}
-              {{end}}
-            </tbody>
-          </table>
+          {{
+            template "internet/access-points-table.partial.tmpl" dict
+            "AvailableSSIDs" .Data.AvailableSSIDs
+            "AvailableAPs" .Data.AvailableAPs
+          }}
         </div>
       </turbo-frame>
       <h4>Preferred network</h4>
@@ -118,8 +58,46 @@
       <p>TODO: display whether ethernet is connected to anything</p>
     </section>
     <section class="section content">
-      <h2>Network interfaces</h2>
-      <p>TODO: display info about network interfaces</p>
+      <h2>Network devices</h2>
+      <h3>Wi-Fi devices</h3>
+      {{range $device := .Data.WifiDevices}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "CollapseAll" false
+          "Meta" $.Meta
+        }}
+      {{end}}
+      <h3>Ethernet devices</h3>
+      {{range $device := .Data.EthernetDevices}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "CollapseAll" false
+          "Meta" $.Meta
+        }}
+      {{end}}
+      <h3>Other devices</h3>
+      <p>
+        Note: "bridge" and "<abbrev title="virtual Ethernet">veth</abbrev>" devices are excluded
+        from this list.
+      </p>
+      {{range $device := .Data.OtherDevices}}
+        {{$interface := or $device.IpInterface $device.ControlInterface}}
+        {{$typeInfo := $device.Type.Info}}
+        {{if or
+          (eq $typeInfo.Short "bridge")
+          (eq $typeInfo.Short "veth")
+        }}
+          {{continue}}
+        {{end}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "CollapseAll" true
+          "Meta" $.Meta
+        }}
+      {{end}}
     </section>
   </main>
 {{end}}
