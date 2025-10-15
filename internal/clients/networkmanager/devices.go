@@ -48,17 +48,17 @@ var deviceStateInfo = map[DeviceState]EnumInfo{
 	10: {
 		Short:   "unmanaged",
 		Details: "recognized, but not managed",
-		Level:   "info",
+		Level:   "warning",
 	},
 	20: {
 		Short:   "unavailable",
 		Details: "managed, but not available for use",
-		Level:   "info",
+		Level:   "warning",
 	},
 	30: {
 		Short:   "disconnected",
 		Details: "can be activated, but currently idle",
-		Level:   "info",
+		Level:   "warning",
 	},
 	40: {
 		Short:   "prepare",
@@ -631,17 +631,17 @@ var deviceConnectivityStateInfo = map[DeviceConnectivityState]EnumInfo{
 	0: {
 		Short:   "unknown",
 		Details: "connectivity checks disabled or not run yet; internet might be available",
-		Level:   "info",
+		Level:   "warning",
 	},
 	1: {
 		Short:   "none",
 		Details: "network connection unavailable, no default route to the internet",
-		Level:   "info",
+		Level:   "warning",
 	},
 	2: {
 		Short:   "captive portal",
 		Details: "blocked by a captive portal",
-		Level:   "info",
+		Level:   "warning",
 	},
 	3: {
 		Short:   "limited",
@@ -703,8 +703,10 @@ type Device struct {
 	State            DeviceState
 	StateReason      DeviceStateReason
 	// TODO: describe the active connection
-	// TODO: describe IPv4 & IPv6 configs; these have IP addresses
-	// TODO: describe IPv4 & IPv6 DHCP configs
+	IPv4Config      IPConfig
+	IPv6Config      IPConfig
+	DHCPv4Config    DHCPConfig
+	DHCPv6Config    DHCPConfig
 	Managed         bool
 	Autoconnect     bool
 	FirmwareMissing bool
@@ -715,6 +717,7 @@ type Device struct {
 	IPv6Connectivity DeviceConnectivityState
 	InterfaceFlags   DeviceInterfaceFlags
 	HardwareAddress  string
+	Wifi             WifiDevice
 }
 
 func GetDevices(ctx context.Context) (devs []Device, err error) {
@@ -727,7 +730,7 @@ func GetDevices(ctx context.Context) (devs []Device, err error) {
 		return nil, errors.Wrap(err, "couldn't query for devices")
 	}
 	for _, devPath := range devPaths {
-		dev, err := dumpDevice(bus.Object(nmName, devPath))
+		dev, err := dumpDevice(bus.Object(nmName, devPath), bus)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump device %s", devPath)
 		}
@@ -760,7 +763,7 @@ func findDevice(
 	return bus.Object(nmName, devPath), bus, nil
 }
 
-func dumpDevice(devo dbus.BusObject) (dev Device, err error) {
+func dumpDevice(devo dbus.BusObject, bus *dbus.Conn) (dev Device, err error) {
 	if err = devo.StoreProperty(nmName+".Device.Interface", &dev.ControlInterface); err != nil {
 		return Device{}, errors.Wrap(err, "couldn't query for control interface")
 	}
@@ -792,6 +795,15 @@ func dumpDevice(devo dbus.BusObject) (dev Device, err error) {
 	}
 	if dev, err = dumpDeviceFlags(devo, dev); err != nil {
 		return Device{}, err
+	}
+	if dev, err = dumpDeviceIPConfigs(devo, bus, dev); err != nil {
+		return Device{}, err
+	}
+
+	if dev.Type.Info().Short == "wifi" {
+		if dev.Wifi, err = dumpWifiDevice(devo, bus); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't dump Wi-Fi device")
+		}
 	}
 
 	return dev, nil
@@ -851,10 +863,59 @@ func dumpDeviceFlags(devo dbus.BusObject, dev Device) (Device, error) {
 		return Device{}, errors.Wrap(err, "couldn't query flag for missing NetworkManager plugin")
 	}
 
-	if err = devo.StoreProperty(nmName+".Device.InterfaceFlags", &rawFlags); err != nil {
-		return Device{}, errors.Wrap(err, "couldn't query for interface flags")
+	if dev.State.Info().Short == "activated" {
+		if err = devo.StoreProperty(nmName+".Device.InterfaceFlags", &rawFlags); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't query for interface flags")
+		}
+		dev.InterfaceFlags = DeviceInterfaceFlags(rawFlags)
 	}
-	dev.InterfaceFlags = DeviceInterfaceFlags(rawFlags)
+
+	return dev, nil
+}
+
+func dumpDeviceIPConfigs(devo dbus.BusObject, bus *dbus.Conn, dev Device) (Device, error) {
+	var err error
+
+	var configPath dbus.ObjectPath
+	if err = devo.StoreProperty(nmName+".Device.Ip4Config", &configPath); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for IPv4 config")
+	}
+	if configPath != "/" {
+		if dev.IPv4Config, err = dumpIPConfig(bus.Object(nmName, configPath), ipv4Version); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't dump IPv4 config")
+		}
+	}
+
+	if err = devo.StoreProperty(nmName+".Device.Ip6Config", &configPath); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for IPv6 config")
+	}
+	if configPath != "/" {
+		if dev.IPv6Config, err = dumpIPConfig(bus.Object(nmName, configPath), ipv6Version); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't dump IPv6 config")
+		}
+	}
+
+	if err = devo.StoreProperty(nmName+".Device.Dhcp4Config", &configPath); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for DHCPv4 config")
+	}
+	if configPath != "/" {
+		if dev.DHCPv4Config, err = dumpDHCPConfig(
+			bus.Object(nmName, configPath), ipv4Version,
+		); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't dump DHCPv4 config")
+		}
+	}
+
+	if err = devo.StoreProperty(nmName+".Device.Dhcp6Config", &configPath); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for DHCPv6 config")
+	}
+	if configPath != "/" {
+		if dev.DHCPv6Config, err = dumpDHCPConfig(
+			bus.Object(nmName, configPath), ipv6Version,
+		); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't dump DHCPv6 config")
+		}
+	}
 
 	return dev, nil
 }

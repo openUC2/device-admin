@@ -1,0 +1,23 @@
+{{$dhcpConfig := (get . "IPConfig")}}
+
+{{if $dhcpConfig.Options}}
+  <p><abbrev title="configuration options returned by the DHCP server">Options</abbrev>:</p>
+  <ul class="mt-0">
+    {{range $key, $value := $dhcpConfig.Options}}
+      <li>
+        <p>
+          {{$key}}:
+          {{if eq $key "domain_name"}}
+            <span class="tag domain-name">{{$value}}</span>
+          {{else if isIPAddr $value}}
+            <span class="tag ip-address">{{$value}}</span>
+          {{else}}
+            {{$value}}
+          {{end}}
+        </p>
+      </li>
+    {{else}}
+      <li><span class="tag is-warning">none</span></li>
+    {{end}}
+  </ul>
+{{end}}

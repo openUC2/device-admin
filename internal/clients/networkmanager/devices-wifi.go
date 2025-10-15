@@ -1,108 +1,112 @@
 package networkmanager
 
 import (
-	"context"
+	"fmt"
 	"time"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/pkg/errors"
 )
 
-// Wi-Fi devices
+type DeviceWifiCaps uint32
 
-type WifiCaps uint32
-
-func (c WifiCaps) HasNone() bool {
+func (c DeviceWifiCaps) HasNone() bool {
 	return c == 0
 }
 
-func (c WifiCaps) SupportsCCMP() bool {
+func (c DeviceWifiCaps) SupportsCCMP() bool {
 	return c&0x8 > 0
 }
 
-func (c WifiCaps) SupportsRSN() bool {
+func (c DeviceWifiCaps) SupportsRSN() bool {
 	return c&0x20 > 0
 }
 
-func (c WifiCaps) SupportsAP() bool {
+func (c DeviceWifiCaps) SupportsAP() bool {
 	return c&0x40 > 0
 }
 
-func (c WifiCaps) SupportsAdhoc() bool {
+func (c DeviceWifiCaps) SupportsAdhoc() bool {
 	return c&0x80 > 0
 }
 
-func (c WifiCaps) Supports2GHz() bool {
+func (c DeviceWifiCaps) Supports2GHz() bool {
 	return (c&0x100 > 0) && (c&0x200 > 0)
 }
 
-func (c WifiCaps) Supports5GHz() bool {
+func (c DeviceWifiCaps) Supports5GHz() bool {
 	return (c&0x100 > 0) && (c&0x400 > 0)
 }
 
-func (c WifiCaps) Supports6GHz() bool {
+func (c DeviceWifiCaps) Supports6GHz() bool {
 	return (c&0x100 > 0) && (c&0x800 > 0)
 }
 
-func (c WifiCaps) SupportsMesh() bool {
+func (c DeviceWifiCaps) SupportsMesh() bool {
 	return c&0x1000 > 0
 }
 
-func (c WifiCaps) SupportsIBSSRSN() bool {
+func (c DeviceWifiCaps) SupportsIBSSRSN() bool {
 	return c&0x2000 > 0
 }
 
-type WifiMode string
+type DeviceWifiMode uint32
 
-const (
-	WifiModeUnknown = "unknown"
-	WifiModeAdhoc   = "ad-hoc"
-	WifiModeInfra   = "access point"
-	WifiModeAP      = "hotspot"
-	WifiModeMesh    = "mesh"
-)
+var deviceWifiModeInfo = map[DeviceWifiMode]EnumInfo{
+	0: {
+		Short: "unknown",
+		Level: "warning",
+	},
+	1: {
+		Short:   "ad-hoc",
+		Details: "part of an Ad-Hoc 802.11 network without a central coordinating access point",
+		Level:   "info",
+	},
+	2: {
+		Short: "infrastructure",
+		Level: "success",
+	},
+	3: {
+		Short:   "hotspot",
+		Details: "this device is acting as an access point/hotspot",
+		Level:   "info",
+	},
+	4: {
+		Short:   "mesh",
+		Details: "802.11s mesh point",
+		Level:   "info",
+	},
+}
+
+func (s DeviceWifiMode) Info() EnumInfo {
+	info, ok := deviceWifiModeInfo[s]
+	if !ok {
+		return EnumInfo{
+			Short:   "unknown",
+			Details: fmt.Sprintf("mode (%d) was reported but could not be determined", s),
+			Level:   "error",
+		}
+	}
+	return info
+}
 
 type WifiDevice struct {
-	Device
-	Mode     WifiMode
-	Caps     WifiCaps
+	Mode     DeviceWifiMode
 	ActiveAP AccessPoint
+	Caps     DeviceWifiCaps
 	LastScan time.Duration
 }
 
-func GetWifiDevice(ctx context.Context, ipInterface string) (dev WifiDevice, err error) {
-	devo, bus, err := findDevice(ctx, ipInterface)
-	if err != nil {
-		return WifiDevice{}, err
-	}
-
-	if dev, err = dumpWifiDevice(devo, bus); err != nil {
-		return WifiDevice{}, errors.Wrapf(err, "couldn't inspect device %s", ipInterface)
-	}
-	return dev, nil
+func (d WifiDevice) HasData() bool {
+	return d != WifiDevice{}
 }
 
 func dumpWifiDevice(devo dbus.BusObject, bus *dbus.Conn) (dev WifiDevice, err error) {
-	if dev.Device, err = dumpDevice(devo); err != nil {
-		return WifiDevice{}, errors.Wrap(
-			err, "couldn't query for generic device properties",
-		)
-	}
-
 	var rawMode uint32
 	if err = devo.StoreProperty(nmName+".Device.Wireless.Mode", &rawMode); err != nil {
 		return WifiDevice{}, errors.Wrap(err, "couldn't query for Wi-Fi mode")
 	}
-	if dev.Mode, err = parseWifiMode(rawMode); err != nil {
-		return WifiDevice{}, errors.Wrap(err, "couldn't parse NetworkManager Wi-Fi mode")
-	}
-
-	if err = devo.StoreProperty(
-		nmName+".Device.Wireless.WirelessCapabilities", &rawMode,
-	); err != nil {
-		return WifiDevice{}, errors.Wrap(err, "couldn't query for capabilities")
-	}
-	dev.Caps = WifiCaps(rawMode)
+	dev.Mode = DeviceWifiMode(rawMode)
 
 	var apPath dbus.ObjectPath
 	if err = devo.StoreProperty(nmName+".Device.Wireless.ActiveAccessPoint", &apPath); err != nil {
@@ -112,6 +116,13 @@ func dumpWifiDevice(devo dbus.BusObject, bus *dbus.Conn) (dev WifiDevice, err er
 		return WifiDevice{}, errors.Wrapf(err, "couldn't query for access point %s", apPath)
 	}
 
+	if err = devo.StoreProperty(
+		nmName+".Device.Wireless.WirelessCapabilities", &rawMode,
+	); err != nil {
+		return WifiDevice{}, errors.Wrap(err, "couldn't query for capabilities")
+	}
+	dev.Caps = DeviceWifiCaps(rawMode)
+
 	if dev.LastScan, err = parseLastScan(devo); err != nil {
 		return WifiDevice{}, errors.Wrap(err, "couldn't query for last scan")
 	}
@@ -119,25 +130,8 @@ func dumpWifiDevice(devo dbus.BusObject, bus *dbus.Conn) (dev WifiDevice, err er
 	return dev, nil
 }
 
-func parseWifiMode(rawMode uint32) (WifiMode, error) {
-	switch rawMode {
-	default:
-		return "", errors.Errorf("unknown 802.11 mode %d", rawMode)
-	case 0:
-		return WifiModeUnknown, nil
-	case 1:
-		return WifiModeAdhoc, nil
-	case 2: //nolint:mnd // the relationship is clear on the next line
-		return WifiModeInfra, nil
-	case 3: //nolint:mnd // the relationship is clear on the next line
-		return WifiModeAP, nil
-	case 4: //nolint:mnd // the relationship is clear on the next line
-		return WifiModeMesh, nil
-	}
-}
-
 func parseLastScan(dev dbus.BusObject) (timestamp time.Duration, err error) {
-	var rawTimestamp int64
+	var rawTimestamp int32
 	if err = dev.StoreProperty(nmName+".Device.Wireless.LastScan", &rawTimestamp); err != nil {
 		return 0, errors.Wrapf(err, "couldn't query for time of last scan of access points")
 	}

@@ -1,0 +1,87 @@
+{{$wifi := (get . "Wifi")}}
+
+<p>
+  {{$modeInfo := $wifi.Mode.Info}}
+  Mode:
+  <span class="tag is-{{$modeInfo.Level}}">
+    {{if eq $modeInfo.Short "infrastructure"}}
+      <abbr title="this device is an 802.11 client (or maybe a station)">{{$modeInfo.Short}}</abbr>
+    {{else if $modeInfo.Details}}
+      <abbr title="{{$modeInfo.Details}}">{{$modeInfo.Short}}</abbr>
+    {{else}}
+      {{$modeInfo.Short}}
+    {{end}}
+  </span>
+</p>
+
+<p>
+  <abbr title="active access point">Network</abbr>:
+  {{if $wifi.ActiveAP.HasData}}
+    {{$wifi.ActiveAP.SSID}}
+  {{else}}
+    <span class="tag is-warning">none</span>
+  {{end}}
+</p>
+
+<p>
+  Capabilities:
+  {{if $wifi.Caps.HasNone}}
+    <span class="tag is-warning">none</span>
+  {{end}}
+  {{if $wifi.Caps.SupportsRSN}}
+    <span class="tag is-success">
+      <abbr title="support for WPA2/RSN authentication">WPA2</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.Supports2GHz}}
+    <span class="tag is-success">
+      <abbr title="support for 2.4 GHz frequencies">2.4 GHz</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.Supports5GHz}}
+    <span class="tag is-success">
+      <abbr title="support for 5 GHz frequencies">5 GHz</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.Supports6GHz}}
+    <span class="tag is-success">
+      <abbr title="support for 6 GHz frequencies">6 GHz</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.SupportsAP}}
+    <span class="tag is-success">
+      <abbr title="support for Access Point mode">AP</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.SupportsCCMP}}
+    <span class="tag is-success">
+      <abbr title="support for AES/CCMP encryption">AES/CCMP</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.SupportsAdhoc}}
+    <span class="tag is-info">
+      <abbr title="support for Ad-Hoc mode">ad-hoc</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.SupportsMesh}}
+    <span class="tag is-info">
+      <abbr title="support for acting as a mesh point">mesh</abbr>
+    </span>
+  {{end}}
+  {{if $wifi.Caps.SupportsIBSSRSN}}
+    <span class="tag is-info">
+      <abbr title="support for WPA2/RSN in an IBSS network">WPA2 IBSS</abbr>
+    </span>
+  {{end}}
+</p>
+
+<p>
+  <abbr title="time (minutes since boot) of the last finished network scan">Last scan</abbr>:
+  {{if eq $wifi.LastScan -1}}
+    <span class="tag is-warning">
+      <abbr title="device never scanned for access points">never</abbr>
+    </span>
+  {{else}}
+    {{round (divf $wifi.LastScan.Seconds 60) 1}}
+  {{end}}
+</p>

@@ -7,9 +7,13 @@
       <th>SSID</th>
       <th>Strength</th>
       <th>Freq (GHz)</th>
-      <th>Mode</th>
-      <th>Security</th>
-      <th>Scan Freshness</th>
+      <th><abbr title="802.11 mode">Mode</abbr></th>
+      <th><abbr title="security/authentication flags and requirements">Security</abbr></th>
+      <th>
+        <abbr title="time (minutes since boot) that the access point was last found in scan results">
+          Last Seen
+        </abbr>
+      </th>
     </tr>
   </thead>
   <tbody>
@@ -42,7 +46,18 @@
             {{$accessPoint.Strength}}
           </progress></td>
           <td>{{divf $accessPoint.Frequency 1000}}</td>
-          <td>{{$accessPoint.Mode}}</td>
+          <td>
+            {{$modeInfo := $accessPoint.Mode.Info}}
+            <span class="tag is-{{$modeInfo.Level}}">
+              {{if eq $modeInfo.Short "infrastructure"}}
+                <abbr title="the usual kind of Wi-Fi network">{{$modeInfo.Short}}</abbr>
+              {{else if $modeInfo.Details}}
+                <abbr title="{{$modeInfo.Details}}">{{$modeInfo.Short}}</abbr>
+              {{else}}
+                {{$modeInfo.Short}}
+              {{end}}
+            </span>
+          </td>
           <td>
             {{if $accessPoint.RSN.IsNone}}
               <span class="tag is-warning">None</span>
@@ -60,7 +75,15 @@
               <span class="tag is-success">WPA3 Enterprise Suite-B 192-bit mode</span>
             {{end}}
           </td>
-          <td>{{round (divf $accessPoint.LastSeen 60) 1}}</td>
+          <td>
+            {{if eq $accessPoint.LastSeen -1}}
+              <span class="tag is-warning">
+                <abbr title="access point has never been found in scan results">never</abbr>
+              </span>
+            {{else}}
+              {{round (divf $accessPoint.LastSeen.Seconds 60) 1}}
+            {{end}}
+          </td>
         </tr>
       {{end}}
     {{end}}

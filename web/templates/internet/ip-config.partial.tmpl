@@ -1,0 +1,65 @@
+{{$ipConfig := (get . "IPConfig")}}
+
+<p>Addresses:</p>
+<ul class="mt-0">
+  {{range $ipAddress := $ipConfig.Addresses}}
+    <li>
+      <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+      {{if not $ipAddress.Prefix.IsSingleIP}}
+        <p>
+          <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+          <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+        </p>
+      {{end}}
+      {{range $key, $value := $ipAddress.Attributes}}
+        <p>
+          {{title $key}}:
+          {{if isIPAddr $value}}
+            <span class="tag ip-address">{{$value}}</span>
+          {{else}}
+            {{$value}}
+          {{end}}
+        </p>
+      {{end}}
+    </li>
+  {{else}}
+    <li><span class="tag is-warning">none</span></li>
+  {{end}}
+</ul>
+
+{{if $ipConfig.Routes}}
+  <p>Routes:</p>
+  <ul class="mt-0">
+    {{range $ipRoute := $ipConfig.Routes}}
+      <li>
+        <p><span class="tag ip-subnet">{{$ipRoute.Destination}}</span></p>
+        {{if not (eq $ipRoute.NextHop.String "invalid IP")}}
+          <p>Next hop: <span class="tag ip-subnet">{{$ipRoute.NextHop}}</span></p>
+        {{end}}
+        {{if $ipRoute.Metric}}
+          <p>
+            <abbrev title="cost of route (lower value means higher priority)">Metric</abbrev>:
+            {{$ipRoute.Metric}}
+          </p>
+        {{end}}
+        {{range $key, $value := $ipRoute.Attributes}}
+          <p>
+            {{title $key}}:
+            {{if isIPAddr $value}}
+              <span class="tag ip-address">{{$value}}</span>
+            {{else}}
+              {{$value}}
+            {{end}}
+          </p>
+        {{end}}
+      </li>
+    {{else}}
+      <li><span class="tag is-warning">none</span></li>
+    {{end}}
+  </ul>
+{{end}}
+
+{{if $ipConfig.Gateway}}
+  <abbrev title="gateway to other networks, typically for internet access">Gateway</abbrev>:
+  <span class="tag ip-subnet">{{$ipConfig.Gateway}}</span>
+{{end}}

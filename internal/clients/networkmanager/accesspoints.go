@@ -12,9 +12,13 @@ type AccessPoint struct {
 	SSID      string
 	Frequency uint32 // MHz
 	Strength  uint8  // %
-	LastSeen  int32  // sec
-	Mode      WifiMode
+	LastSeen  time.Duration
+	Mode      DeviceWifiMode
 	RSN       RSNFlags // for WPA2 & WPA3
+}
+
+func (ap AccessPoint) HasData() bool {
+	return ap != AccessPoint{}
 }
 
 // RSNFlags
@@ -91,17 +95,20 @@ func dumpAccessPoint(apo dbus.BusObject) (ap AccessPoint, err error) {
 		return AccessPoint{}, errors.Wrap(err, "couldn't query for signal strength")
 	}
 
-	if err = apo.StoreProperty(nmName+".AccessPoint.LastSeen", &ap.LastSeen); err != nil {
+	var rawLastSeen int32
+	if err = apo.StoreProperty(nmName+".AccessPoint.LastSeen", &rawLastSeen); err != nil {
 		return AccessPoint{}, errors.Wrap(err, "couldn't query for signal strength")
+	}
+	ap.LastSeen = time.Duration(rawLastSeen) * time.Second
+	if rawLastSeen == -1 {
+		ap.LastSeen = -1
 	}
 
 	var rawMode uint32
 	if err = apo.StoreProperty(nmName+".AccessPoint.Mode", &rawMode); err != nil {
 		return AccessPoint{}, errors.Wrap(err, "couldn't query for Wi-Fi mode")
 	}
-	if ap.Mode, err = parseWifiMode(rawMode); err != nil {
-		return AccessPoint{}, errors.Wrap(err, "couldn't parse NetworkManager Wi-Fi mode")
-	}
+	ap.Mode = DeviceWifiMode(rawMode)
 
 	if err = apo.StoreProperty(nmName+".AccessPoint.RsnFlags", &rawMode); err != nil {
 		return AccessPoint{}, errors.Wrap(err, "couldn't query for WPA flags")

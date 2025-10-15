@@ -1,0 +1,60 @@
+{{$dnsConfig := (get . "DNSConfig")}}
+
+{{if $dnsConfig.Nameservers}}
+  <p>Name servers:</p>
+  <ul class="mt-0">
+    {{range $nameserver := $dnsConfig.Nameservers}}
+      <li>
+        <p><span class="tag ip-address">{{$nameserver}}</span></p>
+      </li>
+    {{else}}
+      <li><span class="tag is-warning">none</span></li>
+    {{end}}
+  </ul>
+{{end}}
+
+{{if $dnsConfig.Domains}}
+  <p><abbrev title="domains which this address belongs to">Domains</abbrev>:</p>
+  <ul class="mt-0">
+    {{range $domain := $dnsConfig.Domains}}
+      <li>
+        <p><span class="tag domain-name">{{$domain}}</span></p>
+      </li>
+    {{else}}
+      <li><span class="tag is-warning">none</span></li>
+    {{end}}
+  </ul>
+{{end}}
+
+{{if $dnsConfig.Searches}}
+  <p>Searches:</p>
+  <ul class="mt-0">
+    {{range $dnsSearch := $dnsConfig.Searches}}
+      <li>
+        <p>{{$dnsSearch}}</p>
+      </li>
+    {{else}}
+      <li><span class="tag is-warning">none</span></li>
+    {{end}}
+  </ul>
+{{end}}
+
+{{if $dnsConfig.Options}}
+  <p><abbrev title="options modifying the behavior of the DNS resolver">Resolver options</abbrev>:</p>
+  <ul class="mt-0">
+    {{range $dnsOption := $dnsConfig.Options}}
+      <li>
+        <p>{{$dnsOption}}</p>
+      </li>
+    {{else}}
+      <li><span class="tag is-warning">none</span></li>
+    {{end}}
+  </ul>
+{{end}}
+
+{{if $dnsConfig.Priority}}
+  <p>
+    <abbrev title="relative priority of servers">Server Priority</abbrev>:
+    {{$dnsConfig.Priority}}
+  </p>
+{{end}}

@@ -11,5 +11,6 @@ func FuncMap(h HashedNamers) template.FuncMap {
 		"queryEscape":  url.QueryEscape,
 		"appHashed":    h.AppHashed,
 		"staticHashed": h.StaticHashed,
+		"isIPAddr":     IsIPAddr,
 	}
 }
