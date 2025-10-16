@@ -8,46 +8,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DeviceWifiCaps uint32
-
-func (c DeviceWifiCaps) HasNone() bool {
-	return c == 0
+type WifiDevice struct {
+	Mode     DeviceWifiMode
+	ActiveAP AccessPoint
+	Caps     DeviceWifiCaps
+	LastScan time.Duration
 }
 
-func (c DeviceWifiCaps) SupportsCCMP() bool {
-	return c&0x8 > 0
-}
-
-func (c DeviceWifiCaps) SupportsRSN() bool {
-	return c&0x20 > 0
-}
-
-func (c DeviceWifiCaps) SupportsAP() bool {
-	return c&0x40 > 0
-}
-
-func (c DeviceWifiCaps) SupportsAdhoc() bool {
-	return c&0x80 > 0
-}
-
-func (c DeviceWifiCaps) Supports2GHz() bool {
-	return (c&0x100 > 0) && (c&0x200 > 0)
-}
-
-func (c DeviceWifiCaps) Supports5GHz() bool {
-	return (c&0x100 > 0) && (c&0x400 > 0)
-}
-
-func (c DeviceWifiCaps) Supports6GHz() bool {
-	return (c&0x100 > 0) && (c&0x800 > 0)
-}
-
-func (c DeviceWifiCaps) SupportsMesh() bool {
-	return c&0x1000 > 0
-}
-
-func (c DeviceWifiCaps) SupportsIBSSRSN() bool {
-	return c&0x2000 > 0
+func (d WifiDevice) HasData() bool {
+	return d != WifiDevice{}
 }
 
 type DeviceWifiMode uint32
@@ -90,15 +59,46 @@ func (s DeviceWifiMode) Info() EnumInfo {
 	return info
 }
 
-type WifiDevice struct {
-	Mode     DeviceWifiMode
-	ActiveAP AccessPoint
-	Caps     DeviceWifiCaps
-	LastScan time.Duration
+type DeviceWifiCaps uint32
+
+func (c DeviceWifiCaps) HasNone() bool {
+	return c == 0
 }
 
-func (d WifiDevice) HasData() bool {
-	return d != WifiDevice{}
+func (c DeviceWifiCaps) SupportsCCMP() bool {
+	return c&0x8 > 0
+}
+
+func (c DeviceWifiCaps) SupportsRSN() bool {
+	return c&0x20 > 0
+}
+
+func (c DeviceWifiCaps) SupportsAP() bool {
+	return c&0x40 > 0
+}
+
+func (c DeviceWifiCaps) SupportsAdhoc() bool {
+	return c&0x80 > 0
+}
+
+func (c DeviceWifiCaps) Supports2GHz() bool {
+	return (c&0x100 > 0) && (c&0x200 > 0)
+}
+
+func (c DeviceWifiCaps) Supports5GHz() bool {
+	return (c&0x100 > 0) && (c&0x400 > 0)
+}
+
+func (c DeviceWifiCaps) Supports6GHz() bool {
+	return (c&0x100 > 0) && (c&0x800 > 0)
+}
+
+func (c DeviceWifiCaps) SupportsMesh() bool {
+	return c&0x1000 > 0
+}
+
+func (c DeviceWifiCaps) SupportsIBSSRSN() bool {
+	return c&0x2000 > 0
 }
 
 func dumpWifiDevice(devo dbus.BusObject, bus *dbus.Conn) (dev WifiDevice, err error) {

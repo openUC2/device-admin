@@ -10,6 +10,35 @@ import (
 	"github.com/pkg/errors"
 )
 
+type Device struct {
+	ControlInterface string
+	IpInterface      string
+	Driver           string
+	DriverVersion    string
+	FirmwareVersion  string
+	Caps             DeviceCaps
+	State            DeviceState
+	StateReason      DeviceStateReason
+	ActiveConn       ActiveConn
+	IPv4Config       IPConfig
+	IPv6Config       IPConfig
+	DHCPv4Config     DHCPConfig
+	DHCPv6Config     DHCPConfig
+	Managed          bool
+	Autoconnect      bool
+	FirmwareMissing  bool
+	NMPluginMissing  bool
+	Type             DeviceType
+	AvailableConns   []ConnProfileSettingsConnection
+	IPv4Connectivity IPConnectivityState
+	IPv6Connectivity IPConnectivityState
+	InterfaceFlags   DeviceInterfaceFlags
+	HardwareAddress  string
+
+	// Device type-dependent sections:
+	Wifi WifiDevice
+}
+
 type DeviceCaps uint32
 
 func (c DeviceCaps) HasNone() bool {
@@ -625,9 +654,9 @@ func (s DeviceType) Info() EnumInfo {
 	return info
 }
 
-type DeviceConnectivityState uint32
+type IPConnectivityState uint32
 
-var deviceConnectivityStateInfo = map[DeviceConnectivityState]EnumInfo{
+var deviceConnectivityStateInfo = map[IPConnectivityState]EnumInfo{
 	0: {
 		Short:   "unknown",
 		Details: "connectivity checks disabled or not run yet; internet might be available",
@@ -655,7 +684,7 @@ var deviceConnectivityStateInfo = map[DeviceConnectivityState]EnumInfo{
 	},
 }
 
-func (s DeviceConnectivityState) Info() EnumInfo {
+func (s IPConnectivityState) Info() EnumInfo {
 	info, ok := deviceConnectivityStateInfo[s]
 	if !ok {
 		return EnumInfo{
@@ -669,55 +698,28 @@ func (s DeviceConnectivityState) Info() EnumInfo {
 
 type DeviceInterfaceFlags uint32
 
-func (c DeviceInterfaceFlags) HasNone() bool {
-	return c == 0
+func (f DeviceInterfaceFlags) HasNone() bool {
+	return f == 0
 }
 
-func (c DeviceInterfaceFlags) IsUp() bool {
-	return c&0x1 > 0
+func (f DeviceInterfaceFlags) IsUp() bool {
+	return f&0x1 > 0
 }
 
-func (c DeviceInterfaceFlags) IsLowerUp() bool {
-	return c&0x2 > 0
+func (f DeviceInterfaceFlags) IsLowerUp() bool {
+	return f&0x2 > 0
 }
 
-func (c DeviceInterfaceFlags) IsPromiscuous() bool {
-	return c&0x4 > 0
+func (f DeviceInterfaceFlags) IsPromiscuous() bool {
+	return f&0x4 > 0
 }
 
-func (c DeviceInterfaceFlags) HasCarrier() bool {
-	return c&0x10000 > 0
+func (f DeviceInterfaceFlags) HasCarrier() bool {
+	return f&0x10000 > 0
 }
 
-func (c DeviceInterfaceFlags) LLDPClient() bool {
-	return c&0x20000 > 0
-}
-
-type Device struct {
-	ControlInterface string
-	IpInterface      string
-	Driver           string
-	DriverVersion    string
-	FirmwareVersion  string
-	Caps             DeviceCaps
-	State            DeviceState
-	StateReason      DeviceStateReason
-	// TODO: describe the active connection
-	IPv4Config      IPConfig
-	IPv6Config      IPConfig
-	DHCPv4Config    DHCPConfig
-	DHCPv6Config    DHCPConfig
-	Managed         bool
-	Autoconnect     bool
-	FirmwareMissing bool
-	NMPluginMissing bool
-	Type            DeviceType
-	// TODO: describe available connections
-	IPv4Connectivity DeviceConnectivityState
-	IPv6Connectivity DeviceConnectivityState
-	InterfaceFlags   DeviceInterfaceFlags
-	HardwareAddress  string
-	Wifi             WifiDevice
+func (f DeviceInterfaceFlags) LLDPClient() bool {
+	return f&0x20000 > 0
 }
 
 func GetDevices(ctx context.Context) (devs []Device, err error) {
@@ -730,7 +732,7 @@ func GetDevices(ctx context.Context) (devs []Device, err error) {
 		return nil, errors.Wrap(err, "couldn't query for devices")
 	}
 	for _, devPath := range devPaths {
-		dev, err := dumpDevice(bus.Object(nmName, devPath), bus)
+		dev, err := dumpDevice(ctx, bus.Object(nmName, devPath), bus)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump device %s", devPath)
 		}
@@ -763,21 +765,25 @@ func findDevice(
 	return bus.Object(nmName, devPath), bus, nil
 }
 
-func dumpDevice(devo dbus.BusObject, bus *dbus.Conn) (dev Device, err error) {
+func dumpDevice(ctx context.Context, devo dbus.BusObject, bus *dbus.Conn) (dev Device, err error) {
 	if err = devo.StoreProperty(nmName+".Device.Interface", &dev.ControlInterface); err != nil {
 		return Device{}, errors.Wrap(err, "couldn't query for control interface")
 	}
 	if err = devo.StoreProperty(nmName+".Device.IpInterface", &dev.IpInterface); err != nil {
 		return Device{}, errors.Wrap(err, "couldn't query for data interface")
 	}
-	if err = devo.StoreProperty(nmName+".Device.Driver", &dev.Driver); err != nil {
-		return Device{}, errors.Wrap(err, "couldn't query for driver")
+	if dev, err = dumpDeviceSupportInfo(devo, dev); err != nil {
+		return Device{}, err
 	}
-	if err = devo.StoreProperty(nmName+".Device.DriverVersion", &dev.DriverVersion); err != nil {
-		return Device{}, errors.Wrap(err, "couldn't query for driver version")
+
+	var activeConnPath dbus.ObjectPath
+	if err = devo.StoreProperty(nmName+".Device.ActiveConnection", &activeConnPath); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for active connection")
 	}
-	if err = devo.StoreProperty(nmName+".Device.FirmwareVersion", &dev.FirmwareVersion); err != nil {
-		return Device{}, errors.Wrap(err, "couldn't query for firmware version")
+	if activeConnPath != "/" {
+		if dev.ActiveConn, err = dumpActiveConn(bus.Object(nmName, activeConnPath), bus); err != nil {
+			return Device{}, errors.Wrap(err, "couldn't query for active connection")
+		}
 	}
 
 	var rawEnum uint32
@@ -799,11 +805,30 @@ func dumpDevice(devo dbus.BusObject, bus *dbus.Conn) (dev Device, err error) {
 	if dev, err = dumpDeviceIPConfigs(devo, bus, dev); err != nil {
 		return Device{}, err
 	}
+	if dev, err = dumpDeviceAvailableConnProfiles(ctx, devo, bus, dev); err != nil {
+		return Device{}, err
+	}
 
 	if dev.Type.Info().Short == "wifi" {
 		if dev.Wifi, err = dumpWifiDevice(devo, bus); err != nil {
 			return Device{}, errors.Wrap(err, "couldn't dump Wi-Fi device")
 		}
+	}
+
+	return dev, nil
+}
+
+func dumpDeviceSupportInfo(devo dbus.BusObject, dev Device) (Device, error) {
+	var err error
+
+	if err = devo.StoreProperty(nmName+".Device.Driver", &dev.Driver); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for driver")
+	}
+	if err = devo.StoreProperty(nmName+".Device.DriverVersion", &dev.DriverVersion); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for driver version")
+	}
+	if err = devo.StoreProperty(nmName+".Device.FirmwareVersion", &dev.FirmwareVersion); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for firmware version")
 	}
 
 	return dev, nil
@@ -832,11 +857,11 @@ func dumpDeviceStateInfo(devo dbus.BusObject, dev Device) (Device, error) {
 	if err = devo.StoreProperty(nmName+".Device.Ip4Connectivity", &rawEnum); err != nil {
 		return Device{}, errors.Wrap(err, "couldn't query for IPv4 connectivity")
 	}
-	dev.IPv4Connectivity = DeviceConnectivityState(rawEnum)
+	dev.IPv4Connectivity = IPConnectivityState(rawEnum)
 	if err = devo.StoreProperty(nmName+".Device.Ip6Connectivity", &rawEnum); err != nil {
 		return Device{}, errors.Wrap(err, "couldn't query for IPv6 connectivity")
 	}
-	dev.IPv6Connectivity = DeviceConnectivityState(rawEnum)
+	dev.IPv6Connectivity = IPConnectivityState(rawEnum)
 
 	return dev, nil
 }
@@ -917,5 +942,33 @@ func dumpDeviceIPConfigs(devo dbus.BusObject, bus *dbus.Conn, dev Device) (Devic
 		}
 	}
 
+	return dev, nil
+}
+
+func dumpDeviceAvailableConnProfiles(
+	ctx context.Context, devo dbus.BusObject, bus *dbus.Conn, dev Device,
+) (Device, error) {
+	var err error
+
+	var connProfilePaths []dbus.ObjectPath
+	if err = devo.StoreProperty(
+		nmName+".Device.AvailableConnections", &connProfilePaths,
+	); err != nil {
+		return Device{}, errors.Wrap(err, "couldn't query for available connections")
+	}
+	for _, connProfilePath := range connProfilePaths {
+		if connProfilePath == "/" {
+			continue
+		}
+		connProfile, err := dumpConnProfile(ctx, bus.Object(nmName, connProfilePath))
+		if err != nil {
+			return Device{}, errors.Wrap(err, "couldn't dump connection profile")
+		}
+		dev.AvailableConns = append(dev.AvailableConns, connProfile.Settings.Connection)
+	}
+
+	slices.SortFunc(dev.AvailableConns, func(a, b ConnProfileSettingsConnection) int {
+		return cmp.Compare(a.ID, b.ID)
+	})
 	return dev, nil
 }

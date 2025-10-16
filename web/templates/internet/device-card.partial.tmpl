@@ -26,6 +26,22 @@
       </div>
     </details>
 
+    {{if $device.ActiveConn.HasData}}
+      <details data-accordion-item class="panel-block accordion-item">
+        <summary class="accordion-header level">
+          Connection profiles
+          {{template "shared/accordion-icon.partial.tmpl"}}
+        </summary>
+        <div class="accordion-content">
+          {{
+            template "internet/device-connections.partial.tmpl" dict
+            "ActiveConn" $device.ActiveConn
+            "AvailableConns" $device.AvailableConns
+          }}
+        </div>
+      </details>
+    {{end}}
+
     {{if $device.Wifi.HasData}}
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">

@@ -8,6 +8,17 @@ import (
 	"github.com/pkg/errors"
 )
 
+type IPConfig struct {
+	Addresses []IPAddress
+	Gateway   string
+	Routes    []IPRoute
+	DNS       DNSConfig
+}
+
+func (c IPConfig) HasData() bool {
+	return len(c.Addresses)+len(c.Routes) > 0 || c.Gateway != "" || c.DNS.HasData()
+}
+
 type IPAddress struct {
 	Prefix     netip.Prefix
 	Attributes map[string]string
@@ -30,17 +41,6 @@ type DNSConfig struct {
 
 func (c DNSConfig) HasData() bool {
 	return len(c.Nameservers)+len(c.Domains)+len(c.Searches)+len(c.Options) > 0
-}
-
-type IPConfig struct {
-	Addresses []IPAddress
-	Gateway   string
-	Routes    []IPRoute
-	DNS       DNSConfig
-}
-
-func (c IPConfig) HasData() bool {
-	return len(c.Addresses)+len(c.Routes) > 0 || c.Gateway != "" || c.DNS.HasData()
 }
 
 const (

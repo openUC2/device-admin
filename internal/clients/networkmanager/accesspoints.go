@@ -53,8 +53,6 @@ func (f RSNFlags) SupportsEAPSuiteB192() bool {
 	return f&0x2000 > 0
 }
 
-// Client
-
 func ScanNetworks(
 	ctx context.Context, iface string,
 ) (networks map[string][]AccessPoint, err error) {
