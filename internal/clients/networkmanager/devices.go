@@ -968,6 +968,18 @@ func dumpDeviceAvailableConnProfiles(
 	}
 
 	slices.SortFunc(dev.AvailableConns, func(a, b ConnProfileSettingsConnection) int {
+		switch {
+		case a.Autoconnect && !b.Autoconnect: // list autoconnect profiles first
+			return -1
+		case b.Autoconnect && !a.Autoconnect:
+			return 1
+		}
+		if c := cmp.Compare(a.AutoconnectPriority, b.AutoconnectPriority); c != 0 {
+			return -1 * c // higher priorities should go first
+		}
+		if c := cmp.Compare(a.Timestamp.Unix(), b.Timestamp.Unix()); c != 0 {
+			return -1 * c // higher timestamps should go first
+		}
 		return cmp.Compare(a.ID, b.ID)
 	})
 	return dev, nil

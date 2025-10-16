@@ -32,6 +32,21 @@ func New(r godest.TemplateRenderer, nmc *networkmanager.Client) *Handlers {
 func (h *Handlers) Register(er godest.EchoRouter) {
 	er.GET(h.r.BasePath+"internet", h.HandleInternetGet())
 	er.POST(h.r.BasePath+"internet/wifi/networks", h.HandleWiFiNetworksPost())
+	er.GET(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesGetByUUID())
+}
+
+func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
+	t := "internet/main.page.tmpl"
+	h.r.MustHave(t)
+	return func(c echo.Context) error {
+		// Run queries
+		vd, err := getInternetViewData(c.Request().Context())
+		if err != nil {
+			return err
+		}
+		// Produce output
+		return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
+	}
 }
 
 type InternetViewData struct {
@@ -42,20 +57,6 @@ type InternetViewData struct {
 	WifiDevices     []networkmanager.Device
 	EthernetDevices []networkmanager.Device
 	OtherDevices    []networkmanager.Device
-}
-
-func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
-	t := "internet/main.page.tmpl"
-	h.r.MustHave(t)
-	return func(c echo.Context) error {
-		// Run queries
-		internetViewData, err := getInternetViewData(c.Request().Context())
-		if err != nil {
-			return err
-		}
-		// Produce output
-		return h.r.CacheablePage(c.Response(), c.Request(), t, internetViewData, struct{}{})
-	}
 }
 
 const iface = "wlan0"

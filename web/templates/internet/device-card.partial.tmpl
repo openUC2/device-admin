@@ -34,9 +34,10 @@
         </summary>
         <div class="accordion-content">
           {{
-            template "internet/device-connections.partial.tmpl" dict
+            template "internet/device-conn-profiles.partial.tmpl" dict
             "ActiveConn" $device.ActiveConn
             "AvailableConns" $device.AvailableConns
+            "Meta" $Meta
           }}
         </div>
       </details>

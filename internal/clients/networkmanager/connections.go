@@ -4,8 +4,10 @@ import (
 	"cmp"
 	"context"
 	"fmt"
+	"math"
 	"net/netip"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/godbus/dbus/v5"
@@ -17,7 +19,7 @@ import (
 
 type ActiveConn struct {
 	ID               string
-	UUID             string
+	UUID             uuid.UUID
 	Type             string
 	DeviceInterfaces []string
 	State            ActiveConnState
@@ -28,7 +30,7 @@ type ActiveConn struct {
 }
 
 func (c ActiveConn) HasData() bool {
-	return c.ID != "" || c.UUID != "" || c.Type != ""
+	return c.ID != "" || c.UUID != uuid.UUID{} || c.Type != ""
 }
 
 type ActiveConnState uint32
@@ -116,9 +118,15 @@ func dumpActiveConn(conno dbus.BusObject, bus *dbus.Conn) (conn ActiveConn, err 
 	if err = conno.StoreProperty(connName+".Id", &conn.ID); err != nil {
 		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection ID")
 	}
-	if err = conno.StoreProperty(connName+".Uuid", &conn.UUID); err != nil {
+
+	var rawUUID string
+	if err = conno.StoreProperty(connName+".Uuid", &rawUUID); err != nil {
 		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection UUID")
 	}
+	if conn.UUID, err = uuid.Parse(rawUUID); err != nil {
+		return ActiveConn{}, errors.Wrapf(err, "couldn't parse connection UUID %s", rawUUID)
+	}
+
 	if err = conno.StoreProperty(connName+".Type", &conn.Type); err != nil {
 		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection type")
 	}
@@ -136,12 +144,6 @@ func dumpActiveConn(conno dbus.BusObject, bus *dbus.Conn) (conn ActiveConn, err 
 		)
 	}
 	conn.StateFlags = ConnectionActivationStateFlags(rawFlags)
-
-	// var rawString string
-	// if err = conno.StoreProperty(nmName+".Connection.Active.Connection", &rawString); err != nil {
-	// 	return ActiveConn{}, errors.Wrap(err, "couldn't query for connection path")
-	// }
-	// fmt.Println("Connection", rawString)
 
 	if err = conno.StoreProperty(connName+".Default", &conn.IsIPv4Default); err != nil {
 		return ActiveConn{}, errors.Wrap(
@@ -239,13 +241,13 @@ type ConnProfileSettingsConnection struct {
 	InterfaceName       string
 	// IPPingAddresses     []netip.Addr
 	// IPPingTimeout       time.Duration
-	StableID            string
-	Timestamp           time.Time
-	Type                string
-	UUID                uuid.UUID
-	WaitActivationDelay time.Duration
-	WaitDeviceTimeout   time.Duration
-	Zone                string
+	StableID  string
+	Timestamp time.Time
+	Type      string // TODO: turn this into a string enum
+	UUID      uuid.UUID
+	// WaitActivationDelay time.Duration
+	// WaitDeviceTimeout   time.Duration
+	Zone string
 }
 
 type ConnProfileSettings80211Wireless struct {
@@ -287,6 +289,35 @@ type ConnProfileSettingsIPv6 struct {
 	Method      string // TODO: change this to a string enum
 }
 
+func GetConnProfile(ctx context.Context, uid uuid.UUID) (conn ConnProfile, err error) {
+	conno, _, err := findConnProfile(ctx, uid)
+	if err != nil {
+		return ConnProfile{}, errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid)
+	}
+	if conn, err = dumpConnProfile(ctx, conno); err != nil {
+		return ConnProfile{}, errors.Wrapf(err, "couldn't dump connection profile with uuid %s", uid)
+	}
+	return conn, nil
+}
+
+func findConnProfile(
+	ctx context.Context, uid uuid.UUID,
+) (dev dbus.BusObject, bus *dbus.Conn, err error) {
+	nm, bus, err := getNetworkManagerSettings(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var connPath dbus.ObjectPath
+	if err = nm.CallWithContext(
+		ctx, nmName+".Settings.GetConnectionByUuid", 0, uid.String(),
+	).Store(&connPath); err != nil {
+		return nil, nil, errors.Wrapf(err, "couldn't query for connection profile with uuid %s", uid)
+	}
+
+	return bus.Object(nmName, connPath), bus, nil
+}
+
 func dumpConnProfile(ctx context.Context, conno dbus.BusObject) (conn ConnProfile, err error) {
 	const connName = nmName + ".Settings.Connection"
 
@@ -325,7 +356,7 @@ func dumpConnProfileSettings(
 	if settings.Connection, err = dumpConnProfileSettingsConnection(
 		rawSettings["connection"],
 	); err != nil {
-		return ConnProfileSettings{}, errors.Wrap(err, "couldn't query for connection ID")
+		return ConnProfileSettings{}, errors.Wrap(err, "couldn't parse 'connection' section")
 	}
 
 	return settings, nil
@@ -334,8 +365,92 @@ func dumpConnProfileSettings(
 func dumpConnProfileSettingsConnection(
 	rawSettings map[string]dbus.Variant,
 ) (s ConnProfileSettingsConnection, err error) {
-	if err = rawSettings["id"].Store(&s.ID); err != nil {
-		return ConnProfileSettingsConnection{}, errors.Wrap(err, "couldn't query for connection ID")
+	if s.AuthRetries, err = ensureVar[int32](
+		rawSettings, "auth-retries", "auth retries", false, -1,
+	); err != nil {
+		return s, err
 	}
+	if s.ID, err = ensureVar(rawSettings, "id", "ID", true, ""); err != nil {
+		return s, err
+	}
+
+	if s.InterfaceName, err = ensureVar(rawSettings, "interface-name", "", true, ""); err != nil {
+		return s, err
+	}
+	if s.Type, err = ensureVar(rawSettings, "type", "", true, ""); err != nil {
+		return s, err
+	}
+	if s.StableID, err = ensureVar(rawSettings, "stable-id", "stable ID", false, ""); err != nil {
+		return s, err
+	}
+
+	rawUint, err := ensureVar[uint64](rawSettings, "timestamp", "", false, 0)
+	if err != nil {
+		return s, err
+	}
+	if rawUint > math.MaxInt64 {
+		// TODO: log a warning!
+	} else {
+		s.Timestamp = time.Unix(int64(rawUint), 0)
+	}
+
+	rawUUID, err := ensureVar(rawSettings, "uuid", "UUID", true, "")
+	if err != nil {
+		return s, err
+	}
+	if s.UUID, err = uuid.Parse(rawUUID); err != nil {
+		return s, errors.Wrapf(err, "couldn't parse UUID %s", rawUUID)
+	}
+
+	if s.Zone, err = ensureVar(rawSettings, "zone", "", false, ""); err != nil {
+		return s, err
+	}
+
+	if s, err = dumpConnProfileSettingsConnectionAutoconnect(rawSettings, s); err != nil {
+		return s, err
+	}
+
+	return s, nil
+}
+
+func ensureVar[T any](
+	rawSettings map[string]dbus.Variant, key, errorName string, required bool, defaultResult T,
+) (result T, err error) {
+	if errorName == "" {
+		errorName = strings.ReplaceAll(key, "-", " ")
+	}
+
+	variant, ok := rawSettings[key]
+	if !ok {
+		if !required {
+			return defaultResult, nil
+		}
+		return result, errors.Errorf("no %s", errorName)
+	}
+	if err = variant.Store(&result); err != nil {
+		return result, errors.Wrapf(err, "%s has unexpected type %T", errorName, variant.Value())
+	}
+	return result, nil
+}
+
+func dumpConnProfileSettingsConnectionAutoconnect(
+	rawSettings map[string]dbus.Variant, s ConnProfileSettingsConnection,
+) (ConnProfileSettingsConnection, error) {
+	var err error
+
+	if s.Autoconnect, err = ensureVar(rawSettings, "autoconnect", "", false, true); err != nil {
+		return s, err
+	}
+	if s.AutoconnectPriority, err = ensureVar[int32](
+		rawSettings, "autoconnect-priority", "", false, 0,
+	); err != nil {
+		return s, err
+	}
+	if s.AutoconnectRetries, err = ensureVar[int32](
+		rawSettings, "autoconnect-retries", "", false, -1,
+	); err != nil {
+		return s, err
+	}
+
 	return s, nil
 }

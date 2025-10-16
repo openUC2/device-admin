@@ -1,11 +1,17 @@
 {{$activeConn := (get . "ActiveConn")}}
 {{$availableConns := (get . "AvailableConns")}}
+{{$Meta := (get . "Meta")}}
 
 {{if $activeConn.HasData}}
   <h4>
     <abbr title="the NetworkManager connection profile being used for the device">Active</abbr>
   </h4>
-  <p>ID: {{$activeConn.ID}} (TODO: turn this into a link to a connection viewer/editor page)</p>
+  <p>
+    ID:
+    <a href="{{$Meta.BasePath}}internet/connection-profiles/{{$activeConn.UUID}}" target="_top">
+      {{$activeConn.ID}}
+    </a>
+  </p>
   <p>
     {{$stateInfo := $activeConn.State.Info}}
     State:
@@ -80,7 +86,7 @@
     <ul class="mt-0">
       {{range $conn := $availableConns}}
         <li>
-          {{$conn.ID}} (TODO: turn this into a link to a connection viewer/editor page)
+          <a href="{{$Meta.BasePath}}internet/connection-profiles/{{$conn.UUID}}" target="_top">{{$conn.ID}}</a>
         </li>
       {{end}}
     </ul>

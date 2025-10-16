@@ -33,4 +33,14 @@ func getNetworkManager(ctx context.Context) (nm dbus.BusObject, bus *dbus.Conn, 
 	return bus.Object(nmName, "/org/freedesktop/NetworkManager"), bus, nil
 }
 
+func getNetworkManagerSettings(ctx context.Context) (nm dbus.BusObject, bus *dbus.Conn, err error) {
+	if bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
+		return nil, bus, errors.Wrap(
+			err, "couldn't connect to SystemBus bus to query NetworkManager settings",
+		)
+	}
+
+	return bus.Object(nmName, "/org/freedesktop/NetworkManager/Settings"), bus, nil
+}
+
 const nmName = "org.freedesktop.NetworkManager"

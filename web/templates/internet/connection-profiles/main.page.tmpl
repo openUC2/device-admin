@@ -1,0 +1,140 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title"}}Connection profile: {{.Data.ConnProfile.Settings.Connection.ID}}{{end}}
+{{define "description"}}Manage network connection profile{{end}}
+
+{{define "content"}}
+  {{$id := .Data.ConnProfile.Settings.Connection.ID}}
+  {{$internetPagePath := dir (dir .Meta.Path)}}
+
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
+        <li><a href="{{dir (dir .Meta.Path)}}" aria-current="page">Internet</a></li>
+        <li><a href="{{dir (dir .Meta.Path)}}" aria-current="page">Connection profiles</a></li>
+        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$id}}</a></li>
+      </ul>
+    </nav>
+
+    <section class="section content">
+      <h1>Connection profile: {{$id}}</h1>
+      <p>
+        You can <a href="/admin/fs-su/files{{.Data.ConnProfile.Filename}}" target="_blank">view and edit this file</a>
+        directly using the system file manager. TODO: detect if it's a symbolic link into somewhere
+        in /run or /var/run, and if so, add a warning that direct edits to the file won't be
+        persisted across reboots; instead, such a file will need to be configured using Forklift
+        through feature flags in the appropriate package deployments in the "OS" section of the
+        Machine Administration panel.
+      </p>
+      <p>
+        TODO: add a button to make NetworkManager reload the profile, and also add a button to
+        non-persistently activate the profile.
+      </p>
+    </section>
+
+    <section class="section content">
+      {{$conn := .Data.ConnProfile.Settings.Connection}}
+      <h2>Connection</h2>
+      <p>
+        ID:
+        {{if $conn.ID}}
+          {{$conn.ID}}
+        {{else}}
+          <span class="tag is-error">none</span>
+        {{end}}
+      </p>
+      <p>
+        UUID:
+        {{if $conn.UUID.String}}
+          {{$conn.UUID.String}}
+        {{else}}
+          <span class="tag is-error">none</span>
+        {{end}}
+      </p>
+      {{if $conn.StableID}}
+        <p>Stable ID: {{$conn.StableID}}</p>
+      {{end}}
+      <p>
+        Type:
+        {{if $conn.Type}}
+          {{$conn.Type}}
+        {{else}}
+          <span class="tag is-error">none</span>
+        {{end}}
+      </p>
+      <p>
+        <abbr title="the interface which this connection is allowed for">Network interface</abbr>:
+        {{if $conn.InterfaceName}}
+          <a href="{{$internetPagePath}}#device-{{$conn.InterfaceName}}" target="_top">{{$conn.InterfaceName}}</a>
+        {{else}}
+          <span class="tag is-info">any appropriate interface</span>
+        {{end}}
+      </p>
+      <p>
+        <abbr title="when the connection was last successfully fully activated">Last activated:</abbr>
+        {{if $conn.Timestamp.IsZero}}
+          <span class="tag is-info">never, or unknown</span>
+        {{else}}
+          <abbr title="at {{dateInZone "2006-01-2 15:04 MST" $conn.Timestamp "UTC"}}">
+            {{durationRound (ago $conn.Timestamp)}} ago
+          </abbr>
+        {{end}}
+      </p>
+      <p>
+        <abbr title="firewall trust level">Zone</abbr>:
+        {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
+          {{$conn.Zone}}
+        {{else}}
+          <span class="tag is-info">the firewall's default zone</span>
+        {{end}}
+      </p>
+      <!--
+      <p>
+        <abbr title="number of retries for authentication before giving up">Auth retries</abbr>:
+        {{if eq $conn.AuthRetries -1}}
+          <span class="tag is-info"><abbr title="if not set, defaults to 3 times">global default</abbr></span>
+        {{else if eq $conn.AuthRetries 0}}
+          <span class="tag is-info">indefinitely</span>
+        {{else}}
+        {{end}}
+      </p>
+      -->
+      <h3>Autoconnect</h3>
+      <p>
+        Enabled:
+        {{if $conn.Autoconnect}}
+          yes
+        {{else}}
+          no
+        {{end}}
+      </p>
+      <p>
+        <abbr title="higher-priority profiles are preferred; when two profiles have equal priority, the most-recently used profile is chosen">
+          Priority
+        </abbr>:
+        {{$conn.AutoconnectPriority}}
+      </p>
+      <p>
+        <abbr title="total number of times to try autoconnecting before giving up">Retries</abbr>:
+        {{if eq $conn.AutoconnectRetries -1}}
+          <span class="tag is-info"><abbr title="if not set, defaults to 4 times">global default</abbr></span>
+        {{else if eq $conn.AutoconnectRetries 0}}
+          <span class="tag is-info">indefinitely</span>
+        {{else}}
+          <span class="tag is-info">{{$conn.AutoconnectRetries}}</span>
+        {{end}}
+      </p>
+    </section>
+
+    <section class="section content">
+      <h2>Wi-Fi</h2>
+      <h2>Wi-Fi Security</h2>
+    </section>
+
+    <section class="section content">
+      <h2>IPv4</h2>
+      <h2>IPv6</h2>
+    </section>
+  </main>
+{{end}}
