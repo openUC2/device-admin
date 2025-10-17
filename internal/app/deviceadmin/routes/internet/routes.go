@@ -33,6 +33,8 @@ func (h *Handlers) Register(er godest.EchoRouter) {
 	er.GET(h.r.BasePath+"internet", h.HandleInternetGet())
 	er.POST(h.r.BasePath+"internet/wifi/networks", h.HandleWiFiNetworksPost())
 	er.GET(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesGetByUUID())
+	er.POST(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesPostByUUID())
+	er.POST(h.r.BasePath+"internet/connection-profiles", h.HandleConnProfilesPost())
 }
 
 func (h *Handlers) HandleInternetGet() echo.HandlerFunc {

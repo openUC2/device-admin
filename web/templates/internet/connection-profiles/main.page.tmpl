@@ -1,6 +1,6 @@
 {{template "shared/base.layout.tmpl" .}}
 
-{{define "title"}}Connection profile: {{.Data.ConnProfile.Settings.Connection.ID}}{{end}}
+{{define "title"}}{{.Data.ConnProfile.Settings.Connection.ID}} | Connection profiles {{end}}
 {{define "description"}}Manage network connection profile{{end}}
 
 {{define "content"}}
@@ -27,10 +27,59 @@
         through feature flags in the appropriate package deployments in the "OS" section of the
         Machine Administration panel.
       </p>
+      <h2>Activation</h2>
       <p>
-        TODO: add a button to make NetworkManager reload the profile, and also add a button to
-        non-persistently activate the profile.
+        Status:
+        {{if not .Data.Active}}
+          {{/*i.e. .Data.Active is nil*/}}
+          <span class="tag is-warning">unknown</span>
+        {{else if not .Data.Active.HasData}}
+          <span class="tag is-info">inactive</span>
+        {{else}}
+          <span class="tag is-success">active</span> on {{.Data.Active.DeviceInterfaces | join ", "}}
+        {{end}}
       </p>
+      <p>TODO: if active, display some more info about the active connection</p>
+      <div class="field is-grouped">
+        <div class="control">
+          <form
+            action="{{.Meta.BasePath}}internet/connection-profiles"
+            method="POST"
+            data-controller="form-submission"
+            data-action="submit->form-submission#submit"
+            data-form-submission-target="submitter"
+            class="mt-4 mb-3"
+          >
+            <input type="hidden" name="state" value="reloaded">
+            <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+            <input
+              class="button is-primary"
+              type="submit"
+              value="Reload all profiles"
+              data-form-submission-target="submit"
+            >
+          </form>
+        </div>
+        <div class="control">
+          <form
+            action="{{.Meta.Path}}"
+            method="POST"
+            data-controller="form-submission"
+            data-action="submit->form-submission#submit"
+            data-form-submission-target="submitter"
+            class="mt-4 mb-3"
+          >
+            <input type="hidden" name="state" value="activated-transiently">
+            <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+            <input
+              class="button is-primary"
+              type="submit"
+              value="{{if .Data.Active.HasData}}Reactivate profile{{else}}Activate profile until next boot{{end}}"
+              data-form-submission-target="submit"
+            >
+          </form>
+        </div>
+      </div>
     </section>
 
     <section class="section content">
@@ -127,14 +176,70 @@
       </p>
     </section>
 
-    <section class="section content">
-      <h2>Wi-Fi</h2>
-      <h2>Wi-Fi Security</h2>
-    </section>
+    {{if eq $conn.Type "802-11-wireless"}}
+      <section class="section content">
+        <h2>Wi-Fi</h2>
+        <h2>Wi-Fi Security</h2>
+      </section>
+    {{end}}
 
     <section class="section content">
       <h2>IPv4</h2>
+        {{$ipv4 := .Data.ConnProfile.Settings.IPv4}}
+        <p>Addresses:</p>
+        <ul class="mt-0">
+          {{range $ipAddress := $ipv4.Addresses}}
+            <li>
+              <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+              {{if not $ipAddress.Prefix.IsSingleIP}}
+                <p>
+                  <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+                  <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+                </p>
+              {{end}}
+              {{range $key, $value := $ipAddress.Attributes}}
+                <p>
+                  {{title $key}}:
+                  {{if isIPAddr $value}}
+                    <span class="tag ip-address">{{$value}}</span>
+                  {{else}}
+                    {{$value}}
+                  {{end}}
+                </p>
+              {{end}}
+            </li>
+          {{else}}
+            <li><span class="tag is-abbrev">none</span></li>
+          {{end}}
+        </ul>
       <h2>IPv6</h2>
+        {{$ipv6 := .Data.ConnProfile.Settings.IPv6}}
+        <p>Addresses:</p>
+        <ul class="mt-0">
+          {{range $ipAddress := $ipv6.Addresses}}
+            <li>
+              <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+              {{if not $ipAddress.Prefix.IsSingleIP}}
+                <p>
+                  <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+                  <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+                </p>
+              {{end}}
+              {{range $key, $value := $ipAddress.Attributes}}
+                <p>
+                  {{title $key}}:
+                  {{if isIPAddr $value}}
+                    <span class="tag ip-address">{{$value}}</span>
+                  {{else}}
+                    {{$value}}
+                  {{end}}
+                </p>
+              {{end}}
+            </li>
+          {{else}}
+            <li><span class="tag is-abbrev">none</span></li>
+          {{end}}
+        </ul>
     </section>
   </main>
 {{end}}

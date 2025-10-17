@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"net/netip"
 	"slices"
 	"strings"
 	"time"
@@ -191,6 +190,31 @@ func dumpActiveConnDevices(
 	return interfaces, nil
 }
 
+func ListActiveConns(
+	ctx context.Context,
+) (conns map[string]ActiveConn, err error) { // keyed by UUID strings
+	nm, bus, err := getNetworkManager(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var connPaths []dbus.ObjectPath
+	if err = nm.StoreProperty(nmName+".ActiveConnections", &connPaths); err != nil {
+		return nil, errors.Wrap(err, "couldn't query for active connections")
+	}
+
+	conns = make(map[string]ActiveConn)
+	for _, connPath := range connPaths {
+		conn, err := dumpActiveConn(bus.Object(nmName, connPath), bus)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't dump active connection %s", connPath)
+		}
+		conns[conn.UUID.String()] = conn
+	}
+
+	return conns, nil
+}
+
 // ConnProfile
 
 type ConnProfile struct {
@@ -279,18 +303,19 @@ type ConnProfileSettings80211WirelessSecurity struct {
 }
 
 type ConnProfileSettingsIPv4 struct {
-	AddressData  []netip.Prefix
-	Method       string // TODO: change this to a string enum
-	NeverDefault bool
+	Addresses    []IPAddress
+	Method       string // TODO: change this to a string enum // TODO
+	NeverDefault bool   // TODO
 }
 
 type ConnProfileSettingsIPv6 struct {
-	AddrGenMode int32  // TODO: change this to an int32 enum
-	Method      string // TODO: change this to a string enum
+	Addresses   []IPAddress
+	AddrGenMode int32  // TODO: change this to an int32 enum // TODO
+	Method      string // TODO: change this to a string enum // TODO
 }
 
-func GetConnProfile(ctx context.Context, uid uuid.UUID) (conn ConnProfile, err error) {
-	conno, _, err := findConnProfile(ctx, uid)
+func GetConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conn ConnProfile, err error) {
+	conno, err := findConnProfileByUUID(ctx, uid)
 	if err != nil {
 		return ConnProfile{}, errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid)
 	}
@@ -300,22 +325,20 @@ func GetConnProfile(ctx context.Context, uid uuid.UUID) (conn ConnProfile, err e
 	return conn, nil
 }
 
-func findConnProfile(
-	ctx context.Context, uid uuid.UUID,
-) (dev dbus.BusObject, bus *dbus.Conn, err error) {
+func findConnProfileByUUID(ctx context.Context, uid uuid.UUID) (dev dbus.BusObject, err error) {
 	nm, bus, err := getNetworkManagerSettings(ctx)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	var connPath dbus.ObjectPath
 	if err = nm.CallWithContext(
 		ctx, nmName+".Settings.GetConnectionByUuid", 0, uid.String(),
 	).Store(&connPath); err != nil {
-		return nil, nil, errors.Wrapf(err, "couldn't query for connection profile with uuid %s", uid)
+		return nil, errors.Wrapf(err, "couldn't query for connection profile with uuid %s", uid)
 	}
 
-	return bus.Object(nmName, connPath), bus, nil
+	return bus.Object(nmName, connPath), nil
 }
 
 func dumpConnProfile(ctx context.Context, conno dbus.BusObject) (conn ConnProfile, err error) {
@@ -344,22 +367,32 @@ func dumpConnProfile(ctx context.Context, conno dbus.BusObject) (conn ConnProfil
 
 func dumpConnProfileSettings(
 	ctx context.Context, conno dbus.BusObject,
-) (settings ConnProfileSettings, err error) {
+) (s ConnProfileSettings, err error) {
 	var rawSettings map[string]map[string]dbus.Variant
 	if err = conno.CallWithContext(
 		ctx, nmName+".Settings.Connection.GetSettings", 0,
 	).Store(&rawSettings); err != nil {
-		return ConnProfileSettings{}, errors.Wrap(err, "couldn't get settings")
+		return s, errors.Wrap(err, "couldn't get settings")
 	}
-	// fmt.Printf("%+v\n", rawSettings)
 
-	if settings.Connection, err = dumpConnProfileSettingsConnection(
+	if s.Connection, err = dumpConnProfileSettingsConnection(
 		rawSettings["connection"],
 	); err != nil {
-		return ConnProfileSettings{}, errors.Wrap(err, "couldn't parse 'connection' section")
+		return s, errors.Wrap(err, "couldn't parse 'connection' section")
 	}
 
-	return settings, nil
+	if s.IPv4, err = dumpConnProfileSettingsIPv4(
+		rawSettings["ipv4"],
+	); err != nil {
+		return s, errors.Wrap(err, "couldn't parse 'ipv4' section")
+	}
+	if s.IPv6, err = dumpConnProfileSettingsIPv6(
+		rawSettings["ipv6"],
+	); err != nil {
+		return s, errors.Wrap(err, "couldn't parse 'ipv6' section")
+	}
+
+	return s, nil
 }
 
 func dumpConnProfileSettingsConnection(
@@ -453,4 +486,79 @@ func dumpConnProfileSettingsConnectionAutoconnect(
 	}
 
 	return s, nil
+}
+
+func dumpConnProfileSettingsIPv4(
+	rawSettings map[string]dbus.Variant,
+) (s ConnProfileSettingsIPv4, err error) {
+	rawObjs, err := ensureVar[[]map[string]dbus.Variant](rawSettings, "address-data", "", false, nil)
+	if err != nil {
+		return s, nil
+	}
+	for _, obj := range rawObjs {
+		address, err := parseIPAddress(obj)
+		if err != nil {
+			return s, errors.Wrapf(err, "couldn't parse IP address %+v", address)
+		}
+		s.Addresses = append(s.Addresses, address)
+	}
+
+	return s, nil
+}
+
+func dumpConnProfileSettingsIPv6(
+	rawSettings map[string]dbus.Variant,
+) (s ConnProfileSettingsIPv6, err error) {
+	rawObjs, err := ensureVar[[]map[string]dbus.Variant](rawSettings, "address-data", "", false, nil)
+	if err != nil {
+		return s, nil
+	}
+	for _, obj := range rawObjs {
+		address, err := parseIPAddress(obj)
+		if err != nil {
+			return s, errors.Wrapf(err, "couldn't parse IP address %+v", address)
+		}
+		s.Addresses = append(s.Addresses, address)
+	}
+
+	return s, nil
+}
+
+func ReloadConnProfiles(ctx context.Context) error {
+	nm, _, err := getNetworkManagerSettings(ctx)
+	if err != nil {
+		return err
+	}
+
+	var status bool
+	if err = nm.CallWithContext(
+		ctx, nmName+".Settings.ReloadConnections", 0,
+	).Store(&status); err != nil {
+		return errors.Wrap(err, "couldn't reload connection profiles")
+	}
+	if !status {
+		return errors.New("reload of connection profiles encountered an unexpected failure")
+	}
+
+	return nil
+}
+
+func ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {
+	nm, _, err := getNetworkManager(ctx)
+	if err != nil {
+		return err
+	}
+	conno, err := findConnProfileByUUID(ctx, uid)
+	if err != nil {
+		return errors.Wrap(err, "couldn't find connection profile to activate")
+	}
+
+	var activeConn dbus.ObjectPath
+	if err = nm.CallWithContext(
+		ctx, nmName+".ActivateConnection", 0, conno.Path(), dbus.ObjectPath("/"), dbus.ObjectPath("/"),
+	).Store(&activeConn); err != nil {
+		return errors.Wrapf(err, "couldn't activate connection profile with UUID %s", uid)
+	}
+
+	return nil
 }
