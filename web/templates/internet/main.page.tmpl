@@ -97,5 +97,15 @@
         }}
       {{end}}
     </section>
+
+    <section class="section content">
+    <h2>Connection profiles</h2>
+    <ul>
+      {{range $connProfile := .Data.ConnProfiles}}
+        <li>
+          <a href="{{$.Meta.Path}}/connection-profiles/{{$connProfile.UUID}}">{{$connProfile.ID}}</a>
+        </li>
+      {{end}}
+    </ul>
   </main>
 {{end}}

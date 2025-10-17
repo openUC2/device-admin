@@ -59,6 +59,8 @@ type InternetViewData struct {
 	WifiDevices     []networkmanager.Device
 	EthernetDevices []networkmanager.Device
 	OtherDevices    []networkmanager.Device
+
+	ConnProfiles []networkmanager.ConnProfileSettingsConnection
 }
 
 const iface = "wlan0"
@@ -95,6 +97,14 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 		case "ethernet":
 			vd.EthernetDevices = append(vd.EthernetDevices, device)
 		}
+	}
+
+	connProfiles, err := networkmanager.ListConnProfiles(ctx)
+	if err != nil {
+		return vd, errors.Wrap(err, "couldn't list connection profiles")
+	}
+	for _, connProfile := range connProfiles {
+		vd.ConnProfiles = append(vd.ConnProfiles, connProfile.Settings.Connection)
 	}
 
 	return vd, nil

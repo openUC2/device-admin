@@ -524,6 +524,34 @@ func dumpConnProfileSettingsIPv6(
 	return s, nil
 }
 
+func ListConnProfiles(ctx context.Context) (conns []ConnProfile, err error) {
+	nm, bus, err := getNetworkManagerSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var connPaths []dbus.ObjectPath
+	if err = nm.CallWithContext(
+		ctx, nmName+".Settings.ListConnections", 0,
+	).Store(&connPaths); err != nil {
+		return nil, errors.Wrap(err, "couldn't list connection profiles")
+	}
+
+	for _, connPath := range connPaths {
+		conn, err := dumpConnProfile(ctx, bus.Object(nmName, connPath))
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't dump connection profile %s", connPath)
+		}
+		conns = append(conns, conn)
+	}
+
+	slices.SortFunc(conns, func(a, b ConnProfile) int {
+		return cmp.Compare(a.Settings.Connection.ID, b.Settings.Connection.ID)
+	})
+
+	return conns, nil
+}
+
 func ReloadConnProfiles(ctx context.Context) error {
 	nm, _, err := getNetworkManagerSettings(ctx)
 	if err != nil {
