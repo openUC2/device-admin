@@ -22,7 +22,7 @@
           {{- else -}}
             other
           {{- end -}}
-          -connection-profiles" aria-current="page">
+          -conn-profiles" aria-current="page">
           Connection profiles
         </a></li>
         <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$id}}</a></li>
@@ -55,7 +55,7 @@
       <div class="field is-grouped">
         <div class="control">
           <form
-            action="{{.Meta.BasePath}}internet/connection-profiles"
+            action="{{.Meta.BasePath}}internet/conn-profiles"
             method="POST"
             data-controller="form-submission"
             data-action="submit->form-submission#submit"

@@ -27,7 +27,7 @@ func getRemoteViewData() (vd RemoteViewData, err error) {
 }
 
 func (h *Handlers) HandleRemoteGet() echo.HandlerFunc {
-	t := "remote/main.page.tmpl"
+	t := "remote/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries

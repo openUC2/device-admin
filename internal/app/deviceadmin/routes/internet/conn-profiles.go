@@ -37,7 +37,7 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 // by UUID
 
 func (h *Handlers) HandleConnProfilesGetByUUID() echo.HandlerFunc {
-	t := "internet/connection-profiles/main.page.tmpl"
+	t := "internet/conn-profiles/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Parse params
@@ -83,7 +83,7 @@ func getConnProfileViewData(
 }
 
 func (h *Handlers) HandleConnProfilesPostByUUID() echo.HandlerFunc {
-	t := "internet/connection-profiles/main.page.tmpl"
+	t := "internet/conn-profiles/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Parse params

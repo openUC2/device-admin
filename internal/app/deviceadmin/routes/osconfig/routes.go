@@ -27,7 +27,7 @@ func getOSConfigViewData() (vd OSConfigViewData, err error) {
 }
 
 func (h *Handlers) HandleOSConfigGet() echo.HandlerFunc {
-	t := "os-config/main.page.tmpl"
+	t := "os-config/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries

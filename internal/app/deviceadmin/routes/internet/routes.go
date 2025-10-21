@@ -31,15 +31,15 @@ func (h *Handlers) Register(er godest.EchoRouter) {
 	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGet())
 	er.POST(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPost())
 	// conn-profiles
-	er.GET(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesGetByUUID())
-	er.POST(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesPostByUUID())
-	er.POST(h.r.BasePath+"internet/connection-profiles", h.HandleConnProfilesPost())
+	er.GET(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilesGetByUUID())
+	er.POST(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilesPostByUUID())
+	er.POST(h.r.BasePath+"internet/conn-profiles", h.HandleConnProfilesPost())
 }
 
 func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
-	t := "internet/main.page.tmpl"
+	t := "internet/index.page.tmpl"
 	h.r.MustHave(t)
-	ta := "internet/main.advanced.page.tmpl"
+	ta := "internet/index.advanced.page.tmpl"
 	h.r.MustHave(ta)
 	return func(c echo.Context) error {
 		// Parse params

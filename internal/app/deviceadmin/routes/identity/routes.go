@@ -27,7 +27,7 @@ func getIdentityViewData() (vd IdentityViewData, err error) {
 }
 
 func (h *Handlers) HandleIdentityGet() echo.HandlerFunc {
-	t := "identity/main.page.tmpl"
+	t := "identity/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries

@@ -16,7 +16,7 @@ import (
 )
 
 func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
-	t := "internet/devices/access-points/main.page.tmpl"
+	t := "internet/devices/access-points/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Parse params

@@ -25,7 +25,7 @@
     </section>
     <section class="section content">
       <h2 id="wifi">Wi-Fi</h2>
-      <h3 id="wifi-connection-profiles">Connection profiles</h3>
+      <h3 id="wifi-conn-profiles">Connection profiles</h3>
       {{
         template "internet/conn-profiles-list.partial.tmpl" dict
         "ConnProfiles" .Data.WifiConnProfiles
@@ -43,7 +43,7 @@
     </section>
     <section class="section content">
       <h2 id="ethernet">Ethernet</h2>
-      <h3 id="ethernet-connection-profiles">Connection profiles</h3>
+      <h3 id="ethernet-conn-profiles">Connection profiles</h3>
       {{
         template "internet/conn-profiles-list.partial.tmpl" dict
         "ConnProfiles" .Data.EthernetConnProfiles
@@ -65,7 +65,7 @@
         Note: "bridge" and "<abbr title="virtual Ethernet">veth</abbr>" devices and connection
         profiles are not shown here.
       </p>
-      <h3 id="other-connection-profiles">Connection profiles</h3>
+      <h3 id="other-conn-profiles">Connection profiles</h3>
       {{
         template "internet/conn-profiles-list.partial.tmpl" dict
         "ConnProfiles" .Data.OtherConnProfiles

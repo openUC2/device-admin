@@ -8,7 +8,7 @@
   </h4>
   <p>
     ID:
-    <a href="{{$Meta.BasePath}}internet/connection-profiles/{{$activeConn.UUID}}" target="_top">
+    <a href="{{$Meta.BasePath}}internet/conn-profiles/{{$activeConn.UUID}}" target="_top">
       {{$activeConn.ID}}
     </a>
   </p>
@@ -86,7 +86,7 @@
     <ul class="mt-0">
       {{range $conn := $availableConns}}
         <li>
-          <a href="{{$Meta.BasePath}}internet/connection-profiles/{{$conn.UUID}}" target="_top">{{$conn.ID}}</a>
+          <a href="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}" target="_top">{{$conn.ID}}</a>
         </li>
       {{end}}
     </ul>
