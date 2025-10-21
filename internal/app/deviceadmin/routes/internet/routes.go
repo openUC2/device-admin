@@ -2,11 +2,7 @@
 package internet
 
 import (
-	"cmp"
 	"context"
-	"fmt"
-	"maps"
-	"net/http"
 	"slices"
 
 	"github.com/labstack/echo/v4"
@@ -31,7 +27,10 @@ func New(r godest.TemplateRenderer, nmc *networkmanager.Client) *Handlers {
 
 func (h *Handlers) Register(er godest.EchoRouter) {
 	er.GET(h.r.BasePath+"internet", h.HandleInternetGet())
-	er.POST(h.r.BasePath+"internet/wifi/networks", h.HandleWiFiNetworksPost())
+	// device-access-points
+	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGet())
+	er.POST(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPost())
+	// conn-profiles
 	er.GET(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesGetByUUID())
 	er.POST(h.r.BasePath+"internet/connection-profiles/:uuid", h.HandleConnProfilesPostByUUID())
 	er.POST(h.r.BasePath+"internet/connection-profiles", h.HandleConnProfilesPost())
@@ -40,49 +39,53 @@ func (h *Handlers) Register(er godest.EchoRouter) {
 func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 	t := "internet/main.page.tmpl"
 	h.r.MustHave(t)
+	ta := "internet/main.advanced.page.tmpl"
+	h.r.MustHave(ta)
 	return func(c echo.Context) error {
+		// Parse params
+		mode := c.QueryParam("mode")
+
 		// Run queries
 		vd, err := getInternetViewData(c.Request().Context())
 		if err != nil {
 			return err
 		}
 		// Produce output
-		return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
+		switch mode {
+		default:
+			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
+		case "advanced":
+			return h.r.CacheablePage(c.Response(), c.Request(), ta, vd, struct{}{})
+		}
 	}
 }
 
 type InternetViewData struct {
 	// TODO: figure out the current SSID, if it exists
 	AvailableSSIDs []string
-	AvailableAPs   map[string][]networkmanager.AccessPoint
 
 	WifiDevices     []networkmanager.Device
 	EthernetDevices []networkmanager.Device
 	OtherDevices    []networkmanager.Device
 
-	ConnProfiles []networkmanager.ConnProfileSettingsConnection
+	WifiConnProfiles     []networkmanager.ConnProfileSettingsConnection
+	EthernetConnProfiles []networkmanager.ConnProfileSettingsConnection
+	OtherConnProfiles    []networkmanager.ConnProfileSettingsConnection
 }
 
-const iface = "wlan0"
-
 func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
-	if vd.AvailableAPs, err = networkmanager.ScanNetworks(ctx, iface); err != nil {
+	const iface = "wlan0"
+	availableAPs, err := networkmanager.ScanNetworks(ctx, iface)
+	if err != nil {
 		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
 	}
-	for ssid, aps := range vd.AvailableAPs {
+	for ssid, aps := range availableAPs {
 		if len(aps) == 0 {
-			delete(vd.AvailableAPs, ssid)
 			continue
 		}
-		slices.SortFunc(aps, func(a, b networkmanager.AccessPoint) int {
-			return cmp.Compare(b.Strength, a.Strength)
-		})
-		vd.AvailableAPs[ssid] = aps
+		vd.AvailableSSIDs = append(vd.AvailableSSIDs, ssid)
 	}
-
-	vd.AvailableSSIDs = slices.SortedFunc(maps.Keys(vd.AvailableAPs), func(a, b string) int {
-		return cmp.Compare(vd.AvailableAPs[b][0].Strength, vd.AvailableAPs[a][0].Strength)
-	})
+	slices.Sort(vd.AvailableSSIDs)
 
 	allDevices, err := networkmanager.GetDevices(ctx)
 	if err != nil {
@@ -104,30 +107,15 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 		return vd, errors.Wrap(err, "couldn't list connection profiles")
 	}
 	for _, connProfile := range connProfiles {
-		vd.ConnProfiles = append(vd.ConnProfiles, connProfile.Settings.Connection)
+		switch connProfile.Settings.Connection.Type.Info().Short {
+		case "wifi":
+			vd.WifiConnProfiles = append(vd.WifiConnProfiles, connProfile.Settings.Connection)
+		case "ethernet":
+			vd.EthernetConnProfiles = append(vd.EthernetConnProfiles, connProfile.Settings.Connection)
+		default:
+			vd.OtherConnProfiles = append(vd.OtherConnProfiles, connProfile.Settings.Connection)
+		}
 	}
 
 	return vd, nil
-}
-
-func (h *Handlers) HandleWiFiNetworksPost() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		// Parse params
-		state := c.FormValue("state")
-
-		// Run queries
-		switch state {
-		default:
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
-				"invalid Wi-Fi networks state %s", state,
-			))
-		case "refreshed":
-			// Note: this function call will block until the scan finishes:
-			if err := networkmanager.RescanNetworks(c.Request().Context(), iface); err != nil {
-				return err
-			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, h.r.BasePath+"internet")
-		}
-	}
 }

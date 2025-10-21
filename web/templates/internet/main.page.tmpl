@@ -15,22 +15,30 @@
     <section class="section content">
       <h1>Internet Access</h1>
       <p>TODO: manage Wi-Fi settings and internet access sharing</p>
+      <article class="message is-info">
+        <div class="message-body">
+          This is a simplified view of your internet settings. If you're an experienced Linux system
+          administrator, you can also open the
+          <a href="{{.Meta.Path}}?mode=advanced">advanced view</a> of this page.
+        </div>
+      </article>
     </section>
     <section class="section content">
-      <h2>Wi-Fi</h2>
+      <h2 id="wifi">Wi-Fi</h2>
       <p>TODO: make a toggle for whether to automatically connect to the preferred external network</p>
       <h3>External network</h3>
       <p>TODO: report whether a preferred network is registered</p>
       <h4 class="is-inline">Detected networks</h4>
       <turbo-frame id="{{.Meta.BasePath}}internet/wifi/networks">
         <form
-          action="{{.Meta.BasePath}}internet/wifi/networks"
+          action="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
           method="POST"
           data-controller="form-submission"
           data-action="submit->form-submission#submit"
-          class="mt-4 mb-3"
+          class="mt-4"
         >
           <input type="hidden" name="state" value="refreshed">
+          <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
           <div class="field">
             <div class="control" data-form-submission-target="submitter">
               <input
@@ -42,70 +50,38 @@
             </div>
           </div>
         </form>
-        <div class="table-container block mb-5">
+        <div class="block mb-5">
           {{
-            template "internet/access-points-table.partial.tmpl" dict
+            template "internet/access-points-list.partial.tmpl" dict
             "AvailableSSIDs" .Data.AvailableSSIDs
-            "AvailableAPs" .Data.AvailableAPs
           }}
         </div>
       </turbo-frame>
       <h4>Preferred network</h4>
       <p>TODO: make a form to set details about the preferred network</p>
-      <h3>Devices</h3>
+      <h3 id="wifi-devices">Devices</h3>
       {{range $device := .Data.WifiDevices}}
         {{
           template "internet/device-card.partial.tmpl" dict
           "Device" $device
+          "Sections" (dict "basics" true)
           "CollapseAll" false
           "Meta" $.Meta
         }}
       {{end}}
     </section>
     <section class="section content">
-      <h2>Ethernet</h2>
-      <h3>Devices</h3>
+      <h2 id="ethernet">Ethernet</h2>
+      <h3 id="ethernet-devices">Devices</h3>
       {{range $device := .Data.EthernetDevices}}
         {{
           template "internet/device-card.partial.tmpl" dict
           "Device" $device
+          "Sections" (dict "basics" true)
           "CollapseAll" false
           "Meta" $.Meta
         }}
       {{end}}
     </section>
-    <section class="section content">
-      <h2>Other network devices</h2>
-      <p>
-        Note: "bridge" and "<abbr title="virtual Ethernet">veth</abbr>" devices are excluded
-        from this list.
-      </p>
-      {{range $device := .Data.OtherDevices}}
-        {{$interface := or $device.IpInterface $device.ControlInterface}}
-        {{$typeInfo := $device.Type.Info}}
-        {{if or
-          (eq $typeInfo.Short "bridge")
-          (eq $typeInfo.Short "veth")
-        }}
-          {{continue}}
-        {{end}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" true
-          "Meta" $.Meta
-        }}
-      {{end}}
-    </section>
-
-    <section class="section content">
-    <h2>Connection profiles</h2>
-    <ul>
-      {{range $connProfile := .Data.ConnProfiles}}
-        <li>
-          <a href="{{$.Meta.Path}}/connection-profiles/{{$connProfile.UUID}}">{{$connProfile.ID}}</a>
-        </li>
-      {{end}}
-    </ul>
   </main>
 {{end}}

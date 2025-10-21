@@ -1,0 +1,18 @@
+{{$connProfiles := (get . "ConnProfiles")}}
+{{$Meta := (get . "Meta")}}
+
+<ul>
+  {{range $connProfile := $connProfiles}}
+    {{$typeInfo := $connProfile.Type.Info}}
+    {{if or
+      (eq $typeInfo.Short "bridge")
+      (eq $typeInfo.Short "veth")
+    }}
+      {{continue}}
+    {{end}}
+    <li>
+      <a href="{{$Meta.Path}}/connection-profiles/{{$connProfile.UUID}}">{{$connProfile.ID}}</a>
+    </li>
+  {{end}}
+</ul>
+

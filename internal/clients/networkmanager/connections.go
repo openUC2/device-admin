@@ -267,11 +267,30 @@ type ConnProfileSettingsConnection struct {
 	// IPPingTimeout       time.Duration
 	StableID  string
 	Timestamp time.Time
-	Type      string // TODO: turn this into a string enum
+	Type      ConnProfileType
 	UUID      uuid.UUID
 	// WaitActivationDelay time.Duration
 	// WaitDeviceTimeout   time.Duration
 	Zone string
+}
+
+type ConnProfileType string
+
+var connProfileTypeInfo = map[ConnProfileType]EnumInfo{
+	"802-11-wireless": {
+		Short: "wifi",
+	},
+	"802-3-ethernet": {
+		Short: "ethernet",
+	},
+}
+
+func (t ConnProfileType) Info() EnumInfo {
+	info, ok := connProfileTypeInfo[t]
+	if !ok {
+		return EnumInfo{Short: string(t)}
+	}
+	return info
 }
 
 type ConnProfileSettings80211Wireless struct {
@@ -410,9 +429,13 @@ func dumpConnProfileSettingsConnection(
 	if s.InterfaceName, err = ensureVar(rawSettings, "interface-name", "", true, ""); err != nil {
 		return s, err
 	}
-	if s.Type, err = ensureVar(rawSettings, "type", "", true, ""); err != nil {
+
+	rawType, err := ensureVar(rawSettings, "type", "", true, "")
+	if err != nil {
 		return s, err
 	}
+	s.Type = ConnProfileType(rawType)
+
 	if s.StableID, err = ensureVar(rawSettings, "stable-id", "stable ID", false, ""); err != nil {
 		return s, err
 	}
@@ -421,9 +444,12 @@ func dumpConnProfileSettingsConnection(
 	if err != nil {
 		return s, err
 	}
-	if rawUint > math.MaxInt64 {
+	switch {
+	case rawUint > math.MaxInt64:
 		// TODO: log a warning!
-	} else {
+	case rawUint == 0:
+		s.Timestamp = time.Time{}
+	default:
 		s.Timestamp = time.Unix(int64(rawUint), 0)
 	}
 

@@ -10,7 +10,9 @@
   <title>{{block "title" .}}{{end}} | Machine Administration</title>
 
   <style type="text/css">{{.Inlines.CSS.BundleEager}}</style>
-  <noscript><link rel="stylesheet" href="{{appHashed "theme-light.css"}}"></noscript>
+  <noscript>
+    <link rel="stylesheet" href="{{.Meta.BasePath}}{{appHashed "theme-light.css"}}">
+  </noscript>
   <link
     id="light-theme"
     as="style"
@@ -47,6 +49,7 @@
   <!-- TODO: add shortcuts to the web application manifest -->
   <link rel="manifest" href="{{.Meta.BasePath}}app/app.webmanifest">
   <script defer src="{{.Meta.BasePath}}{{appHashed "bundle-deferred.js"}}" data-turbo-track="reload"></script>
+  <meta name="turbo-root" content="{{.Meta.BasePath}}">
 </head>
 
 <body>

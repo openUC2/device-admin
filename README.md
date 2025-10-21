@@ -8,7 +8,7 @@ provides the Cockpit system administration panel, but that panel is behind a log
 missing various functionalities. This tool provides a web browser interface for other
 functionalities needed by customers who operate openUC2 instruments, such as:
 
-- Wi-Fi network conntion management (which relies on NetworkManager)
+- Wi-Fi network connection management (which relies on NetworkManager)
 - Toggling remote assistance (which relies on Tailscale)
 - Software updates (which uses Forklift)
 
@@ -18,6 +18,8 @@ services, configured as in [openUC2/pallet](https://github.com/openUC2/pallet).
 In the future, this tool will probably be extended to give the user (or otherwise direct the user to) a
 setup wizard for configuring localization settings (e.g. for languages and wifi networks) upon the
 first boot of the OS.
+
+TODO: include some screenshots of what this roughly looks like 🙂
 
 ## Usage
 

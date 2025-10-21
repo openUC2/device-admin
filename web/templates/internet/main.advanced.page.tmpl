@@ -1,0 +1,93 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title"}}Internet Access{{end}}
+{{define "description"}}Manage configurations for internet access{{end}}
+{{define "mode"}}advanced{{end}}
+
+{{define "content"}}
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
+        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Internet</a></li>
+      </ul>
+    </nav>
+
+    <section class="section content">
+      <h1>Internet Access</h1>
+      <p>TODO: manage internet access sharing</p>
+      <article class="message is-info">
+        <div class="message-body">
+          This is the full view of your internet settings. If it's too overwhelming, you can instead
+          open the <a href="{{.Meta.Path}}">simplified view</a> of this page.
+        </div>
+      </article>
+    </section>
+    <section class="section content">
+      <h2 id="wifi">Wi-Fi</h2>
+      <h3 id="wifi-connection-profiles">Connection profiles</h3>
+      {{
+        template "internet/conn-profiles-list.partial.tmpl" dict
+        "ConnProfiles" .Data.WifiConnProfiles
+        "Meta" .Meta
+      }}
+      <h3 id="wifi-devices">Devices</h3>
+      {{range $device := .Data.WifiDevices}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "CollapseAll" false
+          "Meta" $.Meta
+        }}
+      {{end}}
+    </section>
+    <section class="section content">
+      <h2 id="ethernet">Ethernet</h2>
+      <h3 id="ethernet-connection-profiles">Connection profiles</h3>
+      {{
+        template "internet/conn-profiles-list.partial.tmpl" dict
+        "ConnProfiles" .Data.EthernetConnProfiles
+        "Meta" .Meta
+      }}
+      <h3 id="ethernet-devices">Devices</h3>
+      {{range $device := .Data.EthernetDevices}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "CollapseAll" false
+          "Meta" $.Meta
+        }}
+      {{end}}
+    </section>
+    <section class="section content">
+      <h2 id="other">Other network devices</h2>
+      <p>
+        Note: "bridge" and "<abbr title="virtual Ethernet">veth</abbr>" devices and connection
+        profiles are not shown here.
+      </p>
+      <h3 id="other-connection-profiles">Connection profiles</h3>
+      {{
+        template "internet/conn-profiles-list.partial.tmpl" dict
+        "ConnProfiles" .Data.OtherConnProfiles
+        "Meta" .Meta
+      }}
+      <h3 id="other-devices">Other network devices</h3>
+      {{range $device := .Data.OtherDevices}}
+        {{$interface := or $device.IpInterface $device.ControlInterface}}
+        {{$typeInfo := $device.Type.Info}}
+        {{if or
+          (eq $typeInfo.Short "bridge")
+          (eq $typeInfo.Short "veth")
+        }}
+          {{continue}}
+        {{end}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "CollapseAll" true
+          "Meta" $.Meta
+        }}
+      {{end}}
+    </section>
+  </main>
+{{end}}

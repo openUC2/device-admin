@@ -1,4 +1,5 @@
 {{$device := (get . "Device")}}
+{{$sections := (get . "Sections")}}
 {{$collapseAll := (get . "CollapseAll")}}
 {{$Meta := (get . "Meta")}}
 
@@ -7,30 +8,41 @@
   <article class="panel entity-panel" id="device-{{$interface}}">
     <header class="panel-heading">{{$interface}}</header>
 
-    <details
-      data-accordion-item
-      class="panel-block accordion-item"
-      {{if not $collapseAll}}
-        open
-      {{end}}
-    >
-      <summary class="accordion-header level">
-        Basic status
-        {{template "shared/accordion-icon.partial.tmpl"}}
-      </summary>
-      <div class="accordion-content">
-        {{
-          template "internet/device-basics.partial.tmpl" dict
-          "Device" $device
-        }}
-      </div>
-    </details>
+    {{if or (not $sections) (get $sections "basics")}}
+      <details
+        data-accordion-item
+        class="panel-block accordion-item"
+        {{if not $collapseAll}}
+          open
+        {{end}}
+      >
+        <summary class="accordion-header level">
+          Basic status
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+        </summary>
+        <div class="accordion-content">
+          {{
+            template "internet/device-basics.partial.tmpl" dict
+            "Device" $device
+          }}
+        </div>
+      </details>
+    {{end}}
 
-    {{if $device.ActiveConn.HasData}}
-      <details data-accordion-item class="panel-block accordion-item">
+    {{if and
+      (or (not $sections) (get $sections "conn-profiles"))
+      $device.ActiveConn.HasData
+    }}
+      <details
+        data-accordion-item
+        class="panel-block accordion-item"
+        {{if not $collapseAll}}
+          open
+        {{end}}
+      >
         <summary class="accordion-header level">
           Connection profiles
-          {{template "shared/accordion-icon.partial.tmpl"}}
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
         </summary>
         <div class="accordion-content">
           {{
@@ -43,26 +55,40 @@
       </details>
     {{end}}
 
-    {{if $device.Wifi.HasData}}
-      <details data-accordion-item class="panel-block accordion-item">
+    {{if and
+      (or (not $sections) (get $sections "wifi"))
+      $device.Wifi.HasData
+    }}
+      <details
+        data-accordion-item
+        class="panel-block accordion-item"
+        {{if not $collapseAll}}
+          open
+        {{end}}
+      >
         <summary class="accordion-header level">
           Wi-Fi
-          {{template "shared/accordion-icon.partial.tmpl"}}
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
         </summary>
         <div class="accordion-content">
           {{
             template "internet/device-wifi.partial.tmpl" dict
             "Wifi" $device.Wifi
+            "Interface" $interface
+            "Meta" $Meta
           }}
         </div>
       </details>
     {{end}}
 
-    {{if or $device.IPv4Config $device.IPv6Config}}
+    {{if and
+      (or (not $sections) (get $sections "ip-config"))
+      (or $device.IPv4Config $device.IPv6Config)
+    }}
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           IP configuration
-          {{template "shared/accordion-icon.partial.tmpl"}}
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
         </summary>
         <div class="accordion-content">
           {{if $device.IPv4Config}}
@@ -84,11 +110,14 @@
       </details>
     {{end}}
 
-    {{if or $device.IPv4Config.DNS.HasData $device.IPv6Config.DNS.HasData}}
+    {{if and
+      (or (not $sections) (get $sections "dns-config"))
+      (or $device.IPv4Config.DNS.HasData $device.IPv6Config.DNS.HasData)
+    }}
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           DNS configuration
-          {{template "shared/accordion-icon.partial.tmpl"}}
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
         </summary>
         <div class="accordion-content">
           {{if $device.IPv4Config.DNS.HasData}}
@@ -110,11 +139,14 @@
       </details>
     {{end}}
 
-    {{if or $device.DHCPv4Config.HasData $device.DHCPv6Config.HasData}}
+    {{if and
+      (or (not $sections) (get $sections "dhcp-config"))
+      (or $device.DHCPv4Config.HasData $device.DHCPv6Config.HasData)
+    }}
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           DHCP configuration
-          {{template "shared/accordion-icon.partial.tmpl"}}
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
         </summary>
         <div class="accordion-content">
           {{if $device.DHCPv4Config.HasData}}
@@ -136,18 +168,20 @@
       </details>
     {{end}}
 
-    <details data-accordion-item class="panel-block accordion-item">
-      <summary class="accordion-header level">
-        Other
-        {{template "shared/accordion-icon.partial.tmpl"}}
-      </summary>
-      <div class="accordion-content">
-        {{
-          template "internet/device-other.partial.tmpl" dict
-          "Device" $device
-        }}
-      </div>
-    </details>
+    {{if or (not $sections) (get $sections "other")}}
+      <details data-accordion-item class="panel-block accordion-item">
+        <summary class="accordion-header level">
+          Other
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+        </summary>
+        <div class="accordion-content">
+          {{
+            template "internet/device-other.partial.tmpl" dict
+            "Device" $device
+          }}
+        </div>
+      </details>
+    {{end}}
 
   </article>
 </turbo-frame>

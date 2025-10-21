@@ -1,18 +1,30 @@
 {{template "shared/base.layout.tmpl" .}}
 
-{{define "title"}}{{.Data.ConnProfile.Settings.Connection.ID}} | Connection profiles {{end}}
+{{define "title"}}{{.Data.ConnProfile.Settings.Connection.ID}} | Connection profiles | Internet Access {{end}}
 {{define "description"}}Manage network connection profile{{end}}
+{{define "mode"}}advanced{{end}}
 
 {{define "content"}}
   {{$id := .Data.ConnProfile.Settings.Connection.ID}}
-  {{$internetPagePath := dir (dir .Meta.Path)}}
+  {{$conn := .Data.ConnProfile.Settings.Connection}}
+  {{$internetPagePath := print (dir (dir .Meta.Path)) "?mode=advanced"}}
 
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
       <ul>
-        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
-        <li><a href="{{dir (dir .Meta.Path)}}" aria-current="page">Internet</a></li>
-        <li><a href="{{dir (dir .Meta.Path)}}" aria-current="page">Connection profiles</a></li>
+        <li><a href="{{.Meta.BasePath}}?mode=advanced">Admin</a></li>
+        <li><a href="{{$internetPagePath}}" aria-current="page">Internet</a></li>
+        <li><a href="{{$internetPagePath}}#
+          {{- if eq $conn.Type.Info.Short "wifi" -}}
+            wifi
+          {{- else if eq $conn.Type.Info.Short "ethernet" -}}
+            ethernet
+          {{- else -}}
+            other
+          {{- end -}}
+          -connection-profiles" aria-current="page">
+          Connection profiles
+        </a></li>
         <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$id}}</a></li>
       </ul>
     </nav>
@@ -83,7 +95,6 @@
     </section>
 
     <section class="section content">
-      {{$conn := .Data.ConnProfile.Settings.Connection}}
       <h2>Connection</h2>
       <p>
         ID:
@@ -107,7 +118,11 @@
       <p>
         Type:
         {{if $conn.Type}}
-          {{$conn.Type}}
+          {{if eq $conn.Type.Info.Short $conn.Type}}
+            {{$conn.Type}}
+          {{else}}
+            <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
+          {{end}}
         {{else}}
           <span class="tag is-error">none</span>
         {{end}}

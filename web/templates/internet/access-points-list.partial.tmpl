@@ -1,0 +1,13 @@
+{{$availableSSIDs := (get . "AvailableSSIDs")}}
+
+<ul>
+  {{range $ssid := $availableSSIDs}}
+    <li>
+      {{if $ssid}}
+        {{$ssid}}
+      {{else}}
+        <span class="tag is-warning">Unknown</span>
+      {{end}}
+    </li>
+  {{end}}
+</ul>

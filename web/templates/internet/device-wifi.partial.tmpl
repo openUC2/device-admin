@@ -1,4 +1,6 @@
 {{$wifi := (get . "Wifi")}}
+{{$interface := (get . "Interface")}}
+{{$Meta := (get . "Meta")}}
 
 <p>
   {{$modeInfo := $wifi.Mode.Info}}
@@ -84,9 +86,10 @@
   {{else}}
     {{round (divf $wifi.LastScan.Seconds 60) 1}}
   {{end}}
-  (TODO: show a small button to trigger a rescan!)
 </p>
 
 <p>
-  (TODO: show a list of networks?)
+  <a href="{{$Meta.BasePath}}internet/devices/{{$interface}}/access-points" target="_top">
+    Access points
+  </a>
 </p>
