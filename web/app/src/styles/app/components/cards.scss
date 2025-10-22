@@ -1,0 +1,17 @@
+@charset 'utf-8';
+
+.two-card-width {
+  max-width: calc(2 * (36em + $gap) + $gap);
+}
+
+.section-card {
+  @extend .card-width;
+
+  h4 {
+    margin-bottom: 0.8em;
+  }
+
+  h5 {
+    margin-bottom: 0.8888em
+  }
+}

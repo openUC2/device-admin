@@ -1,0 +1,310 @@
+{{$settings := (get . "Settings")}}
+{{$Meta := (get . "Meta")}}
+
+{{$conn := $settings.Connection}}
+{{$internetPagePath := print (dir (dir $Meta.Path)) "?mode=advanced"}}
+
+<form
+  action="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}"
+  method="POST"
+  data-controller="form-submission"
+  data-action="submit->form-submission#submit"
+  data-form-submission-target="submitter"
+>
+  <input type="hidden" name="state" value="updated">
+  <input type="hidden" name="redirect-target" value="{{$Meta.Path}}">
+  <div class="field is-grouped">
+    <div class="control">
+      <input
+        class="button is-primary"
+        type="submit"
+        name="update-type"
+        value="Apply temporarily"
+        data-form-submission-target="submit"
+      >
+    </div>
+    <!--
+      TODO: if the profile is auto-generated, disable this button and show a message
+      explaining why it's disabled
+    -->
+    <div class="control">
+      <input
+        class="button is-primary"
+        type="submit"
+        name="update-type"
+        value="Save and apply"
+        data-form-submission-target="submit"
+      >
+    </div>
+  </div>
+
+  <h3>Connection</h3>
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        ID
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          {{if $conn.ID}}
+            {{$conn.ID}}
+          {{else}}
+            <span class="tag is-error">none</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        UUID
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          {{if $conn.UUID.String}}
+            {{$conn.UUID.String}}
+          {{else}}
+            <span class="tag is-error">none</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{if $conn.StableID}}
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          Stable ID
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            {{$conn.StableID}}
+          </div>
+        </div>
+      </div>
+    </div>
+  {{end}}
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        Type
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          {{if $conn.Type}}
+            {{if eq $conn.Type.Info.Short $conn.Type}}
+              {{$conn.Type}}
+            {{else}}
+              <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
+            {{end}}
+          {{else}}
+            <span class="tag is-error">none</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="the network interface which this connection is allowed for">Device</abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          {{if $conn.InterfaceName}}
+            <a href="{{$internetPagePath}}#device-{{$conn.InterfaceName}}" target="_top">
+              {{$conn.InterfaceName}}
+            </a>
+          {{else}}
+            <span class="tag is-info">any appropriate interface</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="when the connection was last successfully fully activated">Last used</abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          {{if $conn.Timestamp.IsZero}}
+            <span class="tag is-info">never, or unknown</span>
+          {{else}}
+            <abbr title="at {{dateInZone "2006-01-2 15:04 MST" $conn.Timestamp "UTC"}}">
+              {{durationRound (ago $conn.Timestamp)}} ago
+            </abbr>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="firewall trust level">Zone</abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
+            {{$conn.Zone}}
+          {{else}}
+            <span class="tag is-info">the firewall's default zone</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h4>Autoconnect</h4>
+  <div class="field is-horizontal">
+    <div class="field-label is-normal">
+      <label class="label">
+        <abbr title="whether to automatically activate the profile if the network device is inactive">
+          Activation
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          <div class="select">
+            <select name="connection.autoconnect">
+              <option value="true" {{if $conn.Autoconnect}}selected{{end}}>Enabled</option>
+              <option value="false" {{if not $conn.Autoconnect}}selected{{end}}>Disabled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label is-normal">
+      <label class="label">
+        <abbr title="higher-priority profiles are preferred; when two profiles have equal priority, the most-recently used profile is chosen">
+          Priority
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          <input
+            class="input" type="number"
+            name="connection.autoconnect-priority"
+            min="-999" max="999"
+            value="{{$conn.AutoconnectPriority}}"
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="total number of times to try autoconnecting before giving up and possibly allowing another connection profile to be used instead">
+          Retries
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          {{if eq $conn.AutoconnectRetries -1}}
+            <span class="tag is-info"><abbr title="if not set, defaults to 4 times">global default</abbr></span>
+          {{else if eq $conn.AutoconnectRetries 0}}
+            <span class="tag is-info">indefinitely</span>
+          {{else}}
+            <span class="tag is-info">{{$conn.AutoconnectRetries}}</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{if eq $conn.Type "802-11-wireless"}}
+    <h3>Wi-Fi</h3>
+    <h4>Security</h4>
+  {{end}}
+
+  <h3>IPv4</h3>
+  {{$ipv4 := .Data.ConnProfile.Settings.IPv4}}
+  <p>Addresses:</p>
+  <ul class="mt-0">
+    {{range $ipAddress := $ipv4.Addresses}}
+      <li>
+        <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+        {{if not $ipAddress.Prefix.IsSingleIP}}
+          <p>
+            <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+            <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+          </p>
+        {{end}}
+        {{range $key, $value := $ipAddress.Attributes}}
+          <p>
+            {{title $key}}:
+            {{if isIPAddr $value}}
+              <span class="tag ip-address">{{$value}}</span>
+            {{else}}
+              {{$value}}
+            {{end}}
+          </p>
+        {{end}}
+      </li>
+    {{else}}
+      <li><span class="tag is-abbrev">none</span></li>
+    {{end}}
+  </ul>
+  <h3>IPv6</h3>
+  {{$ipv6 := .Data.ConnProfile.Settings.IPv6}}
+  <p>Addresses:</p>
+  <ul class="mt-0">
+    {{range $ipAddress := $ipv6.Addresses}}
+      <li>
+        <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+        {{if not $ipAddress.Prefix.IsSingleIP}}
+          <p>
+            <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+            <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+          </p>
+        {{end}}
+        {{range $key, $value := $ipAddress.Attributes}}
+          <p>
+            {{title $key}}:
+            {{if isIPAddr $value}}
+              <span class="tag ip-address">{{$value}}</span>
+            {{else}}
+              {{$value}}
+            {{end}}
+          </p>
+        {{end}}
+      </li>
+    {{else}}
+      <li><span class="tag is-abbrev">none</span></li>
+    {{end}}
+  </ul>
+</form>

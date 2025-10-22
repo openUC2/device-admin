@@ -344,7 +344,7 @@ func GetConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conn ConnProfile,
 	return conn, nil
 }
 
-func findConnProfileByUUID(ctx context.Context, uid uuid.UUID) (dev dbus.BusObject, err error) {
+func findConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conno dbus.BusObject, err error) {
 	nm, bus, err := getNetworkManagerSettings(ctx)
 	if err != nil {
 		return nil, err
@@ -615,4 +615,80 @@ func ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func UpdateConnProfileByUUID(
+	ctx context.Context, uid uuid.UUID, updateType string, newSettings map[string]any,
+) error {
+	conno, err := findConnProfileByUUID(ctx, uid)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid.String())
+	}
+
+	var rawSettings map[string]map[string]dbus.Variant
+	if err = conno.CallWithContext(
+		ctx, nmName+".Settings.Connection.GetSettings", 0,
+	).Store(&rawSettings); err != nil {
+		return errors.Wrapf(err, "couldn't get settings of connection profile %s", uid.String())
+	}
+	// Remove deprecated fields which would override non-deprecated fields:
+	delete(rawSettings["ipv4"], "addresses")
+	delete(rawSettings["ipv4"], "routes")
+	delete(rawSettings["ipv6"], "addresses")
+	delete(rawSettings["ipv6"], "routes")
+
+	for rawKey, value := range newSettings {
+		section, key, ok := strings.Cut(rawKey, ".")
+		if !ok {
+			return errors.Errorf("key %s lacks a prefix for its parent (delimited with a '.')", rawKey)
+		}
+		if rawSettings[section][key], err = makeVariant(value); err != nil {
+			return errors.Errorf("couldn't set value %+v for key %s in section %s", value, key, section)
+		}
+	}
+	// TODO: handle secrets properly
+
+	var flags UpdateFlags
+	switch updateType {
+	default:
+		return errors.Errorf("unknown update type %s", updateType)
+	case "apply":
+		flags |= UpdateFlagInMemory
+	case "save":
+		flags |= UpdateFlagToDisk
+	}
+
+	args := make(map[string]dbus.Variant)
+	// TODO: set plugin in args to store the password somehow
+	// TODO: set version-id in args to detect data races (requires NetworkManager 1.44, which is too
+	// recent)
+
+	var rawResult map[string]dbus.Variant
+	if err = conno.CallWithContext(
+		ctx, nmName+".Settings.Connection.Update2", 0, rawSettings, uint32(flags), args,
+	).Store(&rawResult); err != nil {
+		return errors.Wrapf(err, "couldn't apply settings of connection profile %s", uid.String())
+	}
+
+	// TODO: add checkpointing behavior for auto-rollback in the absence of manual confirmation
+
+	return nil
+}
+
+type UpdateFlags uint32
+
+const (
+	UpdateFlagToDisk   = 0x1
+	UpdateFlagInMemory = 0x1
+)
+
+func makeVariant(value any) (variant dbus.Variant, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			variant = dbus.Variant{}
+			err = errors.Errorf("value %+v not representable in D-Bus", value)
+		}
+	}()
+	variant = dbus.MakeVariant(value)
+	return variant, err // note: these returns are modified by the defer when MakeVariant panics
 }

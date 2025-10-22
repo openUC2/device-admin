@@ -15,8 +15,7 @@
 
     <section class="section content">
       <h1>Internet Access</h1>
-      <p>TODO: manage internet access sharing</p>
-      <article class="message is-info">
+      <article class="message is-info two-card-width">
         <div class="message-body">
           This is the full view of your internet settings. If it's too overwhelming, you can instead
           open the <a href="{{.Meta.Path}}">simplified view</a> of this page.
@@ -88,6 +87,18 @@
           "Meta" $.Meta
         }}
       {{end}}
+    </section>
+
+    <!--
+      TODO: display more information from https://networkmanager.pages.freedesktop.org/NetworkManager/NetworkManager/gdbus-org.freedesktop.NetworkManager.html,
+      e.g. NetworkManager version, connectivity checks, overall connection state, overall state,
+      checkpoints, etc.
+      TODO: display more information from https://networkmanager.pages.freedesktop.org/NetworkManager/NetworkManager/gdbus-org.freedesktop.NetworkManager.Settings.html,
+      e.g. modifiability
+    -->
+    <section class="section content">
+      <h2 id="access-sharing">Internet access sharing</h2>
+      <p>TODO: manage internet access sharing</p>
     </section>
   </main>
 {{end}}

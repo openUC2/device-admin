@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -36,7 +39,7 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 
 // by UUID
 
-func (h *Handlers) HandleConnProfilesGetByUUID() echo.HandlerFunc {
+func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 	t := "internet/conn-profiles/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
@@ -82,7 +85,7 @@ func getConnProfileViewData(
 	return vd, nil
 }
 
-func (h *Handlers) HandleConnProfilesPostByUUID() echo.HandlerFunc {
+func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 	t := "internet/conn-profiles/index.page.tmpl"
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
@@ -107,6 +110,61 @@ func (h *Handlers) HandleConnProfilesPostByUUID() echo.HandlerFunc {
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
+		case "updated":
+			formValues, err := c.FormParams()
+			if err != nil {
+				return errors.Wrap(err, "couldn't load form parameters")
+			}
+			if err := updateConnProfile(
+				c.Request().Context(), uid, c.FormValue("update-type"), formValues,
+			); err != nil {
+				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
+			}
+			// Redirect user
+			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		}
 	}
+}
+
+func updateConnProfile(
+	ctx context.Context, uid uuid.UUID, updateType string, formValues url.Values,
+) error {
+	updateValues := make(map[string]any)
+
+	switch strings.ToLower(updateType) {
+	default:
+		return errors.Errorf("unknown update type: %s", updateType)
+	case "apply temporarily":
+		updateType = "apply"
+	case "save and apply":
+		updateType = "save"
+	}
+
+	for key, values := range formValues {
+		if len(values) != 1 {
+			continue
+		}
+		rawValue := values[0]
+		switch key {
+		case "connection.autoconnect":
+			switch rawValue {
+			default:
+				return errors.Errorf("autoconnect value %s must be 'true' or 'false'", rawValue)
+			case "true":
+				updateValues[key] = true
+			case "false":
+				updateValues[key] = false
+			}
+		case "connection.autoconnect-priority":
+			value, err := strconv.Atoi(rawValue)
+			if err != nil {
+				return errors.Wrapf(err, "couldn't parse %s as integer", rawValue)
+			}
+			if value < -999 || value > 999 {
+				return errors.Errorf("autoconnect priority %d out of range [-999, 999]", value)
+			}
+			updateValues[key] = value
+		}
+	}
+	return networkmanager.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
 }

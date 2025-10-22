@@ -5,7 +5,6 @@
 {{define "mode"}}advanced{{end}}
 
 {{define "content"}}
-  {{$id := .Data.ConnProfile.Settings.Connection.ID}}
   {{$conn := .Data.ConnProfile.Settings.Connection}}
   {{$internetPagePath := print (dir (dir .Meta.Path)) "?mode=advanced"}}
 
@@ -25,21 +24,13 @@
           -conn-profiles" aria-current="page">
           Connection profiles
         </a></li>
-        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$id}}</a></li>
+        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$conn.ID}}</a></li>
       </ul>
     </nav>
 
     <section class="section content">
-      <h1>Connection profile: {{$id}}</h1>
-      <p>
-        You can <a href="/admin/fs-su/files{{.Data.ConnProfile.Filename}}" target="_blank">view and edit this file</a>
-        directly using the system file manager. TODO: detect if it's a symbolic link into somewhere
-        in /run or /var/run, and if so, add a warning that direct edits to the file won't be
-        persisted across reboots; instead, such a file will need to be configured using Forklift
-        through feature flags in the appropriate package deployments in the "OS" section of the
-        Machine Administration panel.
-      </p>
-      <h2>Activation</h2>
+      <h1>Connection profile: {{$conn.ID}}</h1>
+      <h3>Activation</h3>
       <p>
         Status:
         {{if not .Data.Active}}
@@ -52,6 +43,14 @@
         {{end}}
       </p>
       <p>TODO: if active, display some more info about the active connection</p>
+      <p>
+        TODO: the connection profile file is auto-generated from drop-in snippet files, show a
+        button to re-generate the connection profile file.
+      </p>
+      <!--
+        TODO: change this to reload only the current profile (and move the "reload all profiles"
+        button to the home page), using org.freedesktop.NetworkManager.Settings.LoadConnections
+      -->
       <div class="field is-grouped">
         <div class="control">
           <form
@@ -95,166 +94,27 @@
     </section>
 
     <section class="section content">
-      <h2>Connection</h2>
-      <p>
-        ID:
-        {{if $conn.ID}}
-          {{$conn.ID}}
-        {{else}}
-          <span class="tag is-error">none</span>
-        {{end}}
+      <h2>Settings</h2>
+      <p class="two-card-width">
+        You can edit the settings here, or you can view and edit this connection profile's
+        <a href="/admin/fs-su/files{{.Data.ConnProfile.Filename}}" target="_blank">file</a>
+        directly using the system file manager.
+        TODO: detect if the file for this connection profile is actually a symbolic link into
+        somewhere in /run or /var/run, and if so, add a warning message that settings changes on
+        this page (and edits to this connection profile's file) won't be persisted across reboots;
+        then also link to the snippets drop-in directory and the templated snippets drop-in
+        directory for making persistent changes, and to a relevant section of Forklift's feature
+        flags for the connection profile.
       </p>
-      <p>
-        UUID:
-        {{if $conn.UUID.String}}
-          {{$conn.UUID.String}}
-        {{else}}
-          <span class="tag is-error">none</span>
-        {{end}}
-      </p>
-      {{if $conn.StableID}}
-        <p>Stable ID: {{$conn.StableID}}</p>
-      {{end}}
-      <p>
-        Type:
-        {{if $conn.Type}}
-          {{if eq $conn.Type.Info.Short $conn.Type}}
-            {{$conn.Type}}
-          {{else}}
-            <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
-          {{end}}
-        {{else}}
-          <span class="tag is-error">none</span>
-        {{end}}
-      </p>
-      <p>
-        <abbr title="the interface which this connection is allowed for">Network interface</abbr>:
-        {{if $conn.InterfaceName}}
-          <a href="{{$internetPagePath}}#device-{{$conn.InterfaceName}}" target="_top">{{$conn.InterfaceName}}</a>
-        {{else}}
-          <span class="tag is-info">any appropriate interface</span>
-        {{end}}
-      </p>
-      <p>
-        <abbr title="when the connection was last successfully fully activated">Last activated:</abbr>
-        {{if $conn.Timestamp.IsZero}}
-          <span class="tag is-info">never, or unknown</span>
-        {{else}}
-          <abbr title="at {{dateInZone "2006-01-2 15:04 MST" $conn.Timestamp "UTC"}}">
-            {{durationRound (ago $conn.Timestamp)}} ago
-          </abbr>
-        {{end}}
-      </p>
-      <p>
-        <abbr title="firewall trust level">Zone</abbr>:
-        {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
-          {{$conn.Zone}}
-        {{else}}
-          <span class="tag is-info">the firewall's default zone</span>
-        {{end}}
-      </p>
-      <!--
-      <p>
-        <abbr title="number of retries for authentication before giving up">Auth retries</abbr>:
-        {{if eq $conn.AuthRetries -1}}
-          <span class="tag is-info"><abbr title="if not set, defaults to 3 times">global default</abbr></span>
-        {{else if eq $conn.AuthRetries 0}}
-          <span class="tag is-info">indefinitely</span>
-        {{else}}
-        {{end}}
-      </p>
-      -->
-      <h3>Autoconnect</h3>
-      <p>
-        Enabled:
-        {{if $conn.Autoconnect}}
-          yes
-        {{else}}
-          no
-        {{end}}
-      </p>
-      <p>
-        <abbr title="higher-priority profiles are preferred; when two profiles have equal priority, the most-recently used profile is chosen">
-          Priority
-        </abbr>:
-        {{$conn.AutoconnectPriority}}
-      </p>
-      <p>
-        <abbr title="total number of times to try autoconnecting before giving up">Retries</abbr>:
-        {{if eq $conn.AutoconnectRetries -1}}
-          <span class="tag is-info"><abbr title="if not set, defaults to 4 times">global default</abbr></span>
-        {{else if eq $conn.AutoconnectRetries 0}}
-          <span class="tag is-info">indefinitely</span>
-        {{else}}
-          <span class="tag is-info">{{$conn.AutoconnectRetries}}</span>
-        {{end}}
-      </p>
-    </section>
-
-    {{if eq $conn.Type "802-11-wireless"}}
-      <section class="section content">
-        <h2>Wi-Fi</h2>
-        <h2>Wi-Fi Security</h2>
-      </section>
-    {{end}}
-
-    <section class="section content">
-      <h2>IPv4</h2>
-        {{$ipv4 := .Data.ConnProfile.Settings.IPv4}}
-        <p>Addresses:</p>
-        <ul class="mt-0">
-          {{range $ipAddress := $ipv4.Addresses}}
-            <li>
-              <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
-              {{if not $ipAddress.Prefix.IsSingleIP}}
-                <p>
-                  <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
-                  <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
-                </p>
-              {{end}}
-              {{range $key, $value := $ipAddress.Attributes}}
-                <p>
-                  {{title $key}}:
-                  {{if isIPAddr $value}}
-                    <span class="tag ip-address">{{$value}}</span>
-                  {{else}}
-                    {{$value}}
-                  {{end}}
-                </p>
-              {{end}}
-            </li>
-          {{else}}
-            <li><span class="tag is-abbrev">none</span></li>
-          {{end}}
-        </ul>
-      <h2>IPv6</h2>
-        {{$ipv6 := .Data.ConnProfile.Settings.IPv6}}
-        <p>Addresses:</p>
-        <ul class="mt-0">
-          {{range $ipAddress := $ipv6.Addresses}}
-            <li>
-              <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
-              {{if not $ipAddress.Prefix.IsSingleIP}}
-                <p>
-                  <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
-                  <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
-                </p>
-              {{end}}
-              {{range $key, $value := $ipAddress.Attributes}}
-                <p>
-                  {{title $key}}:
-                  {{if isIPAddr $value}}
-                    <span class="tag ip-address">{{$value}}</span>
-                  {{else}}
-                    {{$value}}
-                  {{end}}
-                </p>
-              {{end}}
-            </li>
-          {{else}}
-            <li><span class="tag is-abbrev">none</span></li>
-          {{end}}
-        </ul>
+      <div class="card section-card">
+        <div class="card-content">
+          {{
+            template "internet/conn-profiles/settings-form.partial.tmpl" dict
+            "Settings" .Data.ConnProfile.Settings
+            "Meta" .Meta
+          }}
+        </div>
+      </div>
     </section>
   </main>
 {{end}}

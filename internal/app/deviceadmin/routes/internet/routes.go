@@ -31,8 +31,8 @@ func (h *Handlers) Register(er godest.EchoRouter) {
 	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGet())
 	er.POST(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPost())
 	// conn-profiles
-	er.GET(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilesGetByUUID())
-	er.POST(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilesPostByUUID())
+	er.GET(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfileGetByUUID())
+	er.POST(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilePostByUUID())
 	er.POST(h.r.BasePath+"internet/conn-profiles", h.HandleConnProfilesPost())
 }
 
