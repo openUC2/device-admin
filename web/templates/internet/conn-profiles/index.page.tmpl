@@ -1,11 +1,11 @@
 {{template "shared/base.layout.tmpl" .}}
 
-{{define "title"}}{{.Data.ConnProfile.Settings.Connection.ID}} | Connection profiles | Internet Access {{end}}
+{{define "title"}}{{.Data.ConnProfile.Settings.Conn.ID}} | Connection profiles | Internet Access {{end}}
 {{define "description"}}Manage network connection profile{{end}}
 {{define "mode"}}advanced{{end}}
 
 {{define "content"}}
-  {{$conn := .Data.ConnProfile.Settings.Connection}}
+  {{$conn := .Data.ConnProfile.Settings.Conn}}
   {{$internetPagePath := print (dir (dir .Meta.Path)) "?mode=advanced"}}
 
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
@@ -85,7 +85,7 @@
             <input
               class="button is-primary"
               type="submit"
-              value="{{if .Data.Active.HasData}}Reactivate profile{{else}}Activate profile until next boot{{end}}"
+              value="{{if .Data.Active.HasData}}Reactivate profile{{else}}Activate temporarily{{end}}"
               data-form-submission-target="submit"
             >
           </form>

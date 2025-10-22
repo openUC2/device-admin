@@ -7,7 +7,7 @@
   Mode:
   <span class="tag is-{{$modeInfo.Level}}">
     {{if eq $modeInfo.Short "infrastructure"}}
-      <abbr title="this device is an 802.11 client (or maybe a station)">{{$modeInfo.Short}}</abbr>
+      <abbr title="this device is an 802.11 client">{{$modeInfo.Short}}</abbr>
     {{else if $modeInfo.Details}}
       <abbr title="{{$modeInfo.Details}}">{{$modeInfo.Short}}</abbr>
     {{else}}
@@ -62,17 +62,17 @@
   {{end}}
   {{if $wifi.Caps.SupportsAdhoc}}
     <span class="tag is-info">
-      <abbr title="support for Ad-Hoc mode">ad-hoc</abbr>
+      <abbr title="support for Ad-Hoc (IBSS) mode">ad-hoc</abbr>
     </span>
   {{end}}
   {{if $wifi.Caps.SupportsMesh}}
     <span class="tag is-info">
-      <abbr title="support for acting as a mesh point">mesh</abbr>
+      <abbr title="support for acting as an 802.11s mesh point">mesh</abbr>
     </span>
   {{end}}
   {{if $wifi.Caps.SupportsIBSSRSN}}
     <span class="tag is-info">
-      <abbr title="support for WPA2/RSN in an IBSS network">WPA2 IBSS</abbr>
+      <abbr title="support for WPA2/RSN in an IBSS (Ad-Hoc) network">WPA2 IBSS</abbr>
     </span>
   {{end}}
 </p>

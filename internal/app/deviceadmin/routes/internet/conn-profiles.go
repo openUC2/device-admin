@@ -12,7 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 
-	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
 func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
@@ -28,7 +28,7 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 				"invalid connection profiles state %s", state,
 			))
 		case "reloaded":
-			if err := networkmanager.ReloadConnProfiles(c.Request().Context()); err != nil {
+			if err := nm.ReloadConnProfiles(c.Request().Context()); err != nil {
 				return err
 			}
 			// Redirect user
@@ -64,21 +64,21 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 }
 
 type ConnProfileViewData struct {
-	ConnProfile networkmanager.ConnProfile
-	Active      *networkmanager.ActiveConn
+	ConnProfile nm.ConnProfile
+	Active      *nm.ActiveConn
 }
 
 func getConnProfileViewData(
 	ctx context.Context,
 	uid uuid.UUID,
 ) (vd ConnProfileViewData, err error) {
-	if vd.ConnProfile, err = networkmanager.GetConnProfileByUUID(ctx, uid); err != nil {
+	if vd.ConnProfile, err = nm.GetConnProfileByUUID(ctx, uid); err != nil {
 		return vd, errors.Wrapf(err, "couldn't get connection profile %s", uid)
 	}
 
-	activeConns, err := networkmanager.ListActiveConns(ctx)
+	activeConns, err := nm.ListActiveConns(ctx)
 	if err == nil { // vd.Active is nil if we can't determine the active conns
-		activeConn := activeConns[vd.ConnProfile.Settings.Connection.UUID.String()]
+		activeConn := activeConns[vd.ConnProfile.Settings.Conn.UUID.String()]
 		vd.Active = &(activeConn)
 	}
 
@@ -105,7 +105,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				"invalid connection profiles state %s", state,
 			))
 		case "activated-transiently":
-			if err := networkmanager.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+			if err := nm.ActivateConnProfile(c.Request().Context(), uid); err != nil {
 				return err
 			}
 			// Redirect user
@@ -129,7 +129,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 func updateConnProfile(
 	ctx context.Context, uid uuid.UUID, updateType string, formValues url.Values,
 ) error {
-	updateValues := make(map[string]any)
+	updateValues := make(map[nm.ConnProfileSettingsKey]any)
 
 	switch strings.ToLower(updateType) {
 	default:
@@ -140,31 +140,110 @@ func updateConnProfile(
 		updateType = "save"
 	}
 
-	for key, values := range formValues {
-		if len(values) != 1 {
+	for rawKey, values := range formValues {
+		if len(values) < 1 {
 			continue
 		}
-		rawValue := values[0]
-		switch key {
-		case "connection.autoconnect":
-			switch rawValue {
-			default:
-				return errors.Errorf("autoconnect value %s must be 'true' or 'false'", rawValue)
-			case "true":
-				updateValues[key] = true
-			case "false":
-				updateValues[key] = false
+		key, err := nm.ParseConnProfileSettingsKey(rawKey)
+		if err != nil {
+			continue
+		}
+		rawValue := values[len(values)-1] // selects the last value to account for checkboxes
+		switch key.Section {
+		case "connection":
+			if updateValues[key], err = parseConnProfileSettingsConnField(key, rawValue); err != nil {
+				return errors.Wrapf(err, "couldn't parse (key, value) pair: (%s, %+v)", key, rawValue)
 			}
-		case "connection.autoconnect-priority":
-			value, err := strconv.Atoi(rawValue)
-			if err != nil {
-				return errors.Wrapf(err, "couldn't parse %s as integer", rawValue)
+		case "802-11-wireless":
+			if updateValues[key], err = parseConnProfileSettingsWifiField(key, rawValue); err != nil {
+				return errors.Wrapf(err, "couldn't parse (key, value) pair: (%s, %+v)", key, rawValue)
 			}
-			if value < -999 || value > 999 {
-				return errors.Errorf("autoconnect priority %d out of range [-999, 999]", value)
-			}
-			updateValues[key] = value
 		}
 	}
-	return networkmanager.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
+	wifiChannel := formValues["802-11-wireless.channel"][0]
+	wifiBand := formValues["802-11-wireless.band"][0]
+	if wifiChannel != "0" && wifiBand == "" {
+		return errors.Errorf("setting a non-zero channel (%s) requires setting a band", wifiChannel)
+	}
+	return nm.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
+}
+
+func parseConnProfileSettingsConnField(
+	key nm.ConnProfileSettingsKey, rawValue string,
+) (parsedValue any, err error) {
+	switch key.Key {
+	default:
+		return nil, errors.Errorf("unimplemented or unknown key %s", key)
+	case "autoconnect":
+		autoconnect, err := parseCheckbox(rawValue, "on", "off")
+		if err != nil {
+			return false, errors.Wrapf(err, "couldn't parse value for %s", key)
+		}
+		return autoconnect, nil
+	case "autoconnect-priority":
+		value, err := strconv.Atoi(rawValue)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't parse %s as integer", rawValue)
+		}
+		if value < -999 || value > 999 {
+			return nil, errors.Errorf("autoconnect priority %d out of range [-999, 999]", value)
+		}
+		return value, nil
+	}
+}
+
+func parseCheckbox(rawValue, checkedValue, uncheckedValue string) (parsedValue bool, err error) {
+	switch rawValue {
+	default:
+		return false, errors.Errorf(
+			"value %s must be '%s' or '%s'", rawValue, checkedValue, uncheckedValue,
+		)
+	case checkedValue:
+		return true, nil
+	case uncheckedValue:
+		return false, nil
+	}
+}
+
+func parseConnProfileSettingsWifiField(
+	key nm.ConnProfileSettingsKey, rawValue string,
+) (parsedValue any, err error) {
+	switch key.Key {
+	default:
+		return nil, errors.Errorf("unimplemented or unknown key %s", key)
+	case "band":
+		band := nm.ConnProfileSettingsWifiBand(rawValue)
+		if info := band.Info(); info.Level == "error" {
+			return nil, errors.New(info.Details)
+		}
+		return band, nil
+	case "channel":
+		value, err := strconv.Atoi(rawValue)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't parse %s as integer", rawValue)
+		}
+		if value < -999 || value > 999 {
+			return nil, errors.Errorf("autoconnect priority %d out of range [-999, 999]", value)
+		}
+		return value, nil
+	case "hidden":
+		hidden, err := parseCheckbox(rawValue, "true", "false")
+		if err != nil {
+			return false, errors.Wrapf(err, "couldn't parse value for %s", key)
+		}
+		return hidden, nil
+	case "mode":
+		mode := nm.ConnProfileSettingsWifiMode(rawValue)
+		if info := mode.Info(); info.Level == "error" {
+			return nil, errors.New(info.Details)
+		}
+		return mode, nil
+	case "ssid":
+		ssid := []byte(rawValue)
+		const maxLen = 32
+		if len(ssid) > maxLen {
+			return nil, errors.Errorf("SSID %s is longer than %d bytes!", rawValue, maxLen)
+		}
+		return ssid, nil
+	}
 }

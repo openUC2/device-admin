@@ -14,209 +14,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ActiveConn
-
-type ActiveConn struct {
-	ID               string
-	UUID             uuid.UUID
-	Type             string
-	DeviceInterfaces []string
-	State            ActiveConnState
-	StateFlags       ConnectionActivationStateFlags
-	IsIPv4Default    bool
-	IsIPv6Default    bool
-	IsVPN            bool
-}
-
-func (c ActiveConn) HasData() bool {
-	return c.ID != "" || c.UUID != uuid.UUID{} || c.Type != ""
-}
-
-type ActiveConnState uint32
-
-var activeConnectionStateInfo = map[ActiveConnState]EnumInfo{
-	0: {
-		Short: "unknown",
-		Level: "warning",
-	},
-	1: {
-		Short:   "activating",
-		Details: "network connection is being prepared",
-		Level:   "info",
-	},
-	2: {
-		Short:   "activated",
-		Details: "there is a connection to the network",
-		Level:   "success",
-	},
-	3: {
-		Short:   "deactivating",
-		Details: "network connection is being torn down and cleaned up",
-		Level:   "info",
-	},
-	4: {
-		Short:   "deactivating",
-		Details: "network connection is disconnected and will be removed",
-		Level:   "info",
-	},
-}
-
-func (s ActiveConnState) Info() EnumInfo {
-	info, ok := activeConnectionStateInfo[s]
-	if !ok {
-		return EnumInfo{
-			Short:   "unknown",
-			Details: fmt.Sprintf("state (%d) was reported but could not be determined", s),
-			Level:   "error",
-		}
-	}
-	return info
-}
-
-type ConnectionActivationStateFlags uint32
-
-func (f ConnectionActivationStateFlags) HasNone() bool {
-	return f == 0
-}
-
-func (f ConnectionActivationStateFlags) IsController() bool {
-	return f&0x1 > 0
-}
-
-func (f ConnectionActivationStateFlags) IsPort() bool {
-	return f&0x2 > 0
-}
-
-func (f ConnectionActivationStateFlags) Layer2Ready() bool {
-	return f&0x4 > 0
-}
-
-func (f ConnectionActivationStateFlags) IPv4Ready() bool {
-	return f&0x8 > 0
-}
-
-func (f ConnectionActivationStateFlags) IPv6Ready() bool {
-	return f&0x10 > 0
-}
-
-func (f ConnectionActivationStateFlags) ControllerHasPorts() bool {
-	return f&0x20 > 0
-}
-
-func (f ConnectionActivationStateFlags) LifetimeBoundToProfileVisibility() bool {
-	return f&0x40 > 0
-}
-
-func (f ConnectionActivationStateFlags) External() bool {
-	return f&0x80 > 0
-}
-
-func dumpActiveConn(conno dbus.BusObject, bus *dbus.Conn) (conn ActiveConn, err error) {
-	const connName = nmName + ".Connection.Active"
-
-	if err = conno.StoreProperty(connName+".Id", &conn.ID); err != nil {
-		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection ID")
-	}
-
-	var rawUUID string
-	if err = conno.StoreProperty(connName+".Uuid", &rawUUID); err != nil {
-		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection UUID")
-	}
-	if conn.UUID, err = uuid.Parse(rawUUID); err != nil {
-		return ActiveConn{}, errors.Wrapf(err, "couldn't parse connection UUID %s", rawUUID)
-	}
-
-	if err = conno.StoreProperty(connName+".Type", &conn.Type); err != nil {
-		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection type")
-	}
-
-	var rawEnum uint32
-	if err = conno.StoreProperty(connName+".State", &rawEnum); err != nil {
-		return ActiveConn{}, errors.Wrap(err, "couldn't query for connection state")
-	}
-	conn.State = ActiveConnState(rawEnum)
-
-	var rawFlags uint32
-	if err = conno.StoreProperty(connName+".StateFlags", &rawFlags); err != nil {
-		return ActiveConn{}, errors.Wrap(
-			err, "couldn't query for connection activation state flags",
-		)
-	}
-	conn.StateFlags = ConnectionActivationStateFlags(rawFlags)
-
-	if err = conno.StoreProperty(connName+".Default", &conn.IsIPv4Default); err != nil {
-		return ActiveConn{}, errors.Wrap(
-			err, "couldn't query for ownership of default IPv4 route",
-		)
-	}
-	if err = conno.StoreProperty(connName+".Default6", &conn.IsIPv6Default); err != nil {
-		return ActiveConn{}, errors.Wrap(
-			err, "couldn't query for ownership of default IPv6 route",
-		)
-	}
-	if err = conno.StoreProperty(connName+".Vpn", &conn.IsVPN); err != nil {
-		return ActiveConn{}, errors.Wrap(err, "couldn't query for VPN")
-	}
-
-	if conn.DeviceInterfaces, err = dumpActiveConnDevices(conno, bus); err != nil {
-		return ActiveConn{}, errors.Wrap(err, "couldn't query for interface names of devices")
-	}
-
-	return conn, nil
-}
-
-func dumpActiveConnDevices(
-	conno dbus.BusObject, bus *dbus.Conn,
-) (interfaces []string, err error) {
-	const connName = nmName + ".Connection.Active"
-
-	var devPaths []dbus.ObjectPath
-	if err = conno.StoreProperty(connName+".Devices", &devPaths); err != nil {
-		return nil, errors.Wrap(err, "couldn't query for devices")
-	}
-
-	for _, devPath := range devPaths {
-		dev := Device{}
-		devo := bus.Object(nmName, devPath)
-		if err = devo.StoreProperty(nmName+".Device.Interface", &dev.ControlInterface); err != nil {
-			return nil, errors.Wrapf(err, "couldn't query for control interface of %s", devo)
-		}
-		if err = devo.StoreProperty(nmName+".Device.IpInterface", &dev.IpInterface); err != nil {
-			return nil, errors.Wrapf(err, "couldn't query for data interface of %s", devo)
-		}
-		interfaces = append(interfaces, cmp.Or(dev.IpInterface, dev.ControlInterface))
-	}
-	slices.Sort(interfaces)
-	return interfaces, nil
-}
-
-func ListActiveConns(
-	ctx context.Context,
-) (conns map[string]ActiveConn, err error) { // keyed by UUID strings
-	nm, bus, err := getNetworkManager(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var connPaths []dbus.ObjectPath
-	if err = nm.StoreProperty(nmName+".ActiveConnections", &connPaths); err != nil {
-		return nil, errors.Wrap(err, "couldn't query for active connections")
-	}
-
-	conns = make(map[string]ActiveConn)
-	for _, connPath := range connPaths {
-		conn, err := dumpActiveConn(bus.Object(nmName, connPath), bus)
-		if err != nil {
-			return nil, errors.Wrapf(err, "couldn't dump active connection %s", connPath)
-		}
-		conns[conn.UUID.String()] = conn
-	}
-
-	return conns, nil
-}
-
-// ConnProfile
-
 type ConnProfile struct {
 	Unsaved  bool
 	Flags    ConnProfileFlags
@@ -247,16 +44,16 @@ func (f ConnProfileFlags) External() bool {
 }
 
 type ConnProfileSettings struct {
-	Connection ConnProfileSettingsConnection
-	Wifi       ConnProfileSettings80211Wireless
-	WifiSec    ConnProfileSettings80211WirelessSecurity
-	// WifiAuthn  ConnProfileSettings8021x
-	// Ethernet ConnProfileSettings8023Ethernet
-	IPv4 ConnProfileSettingsIPv4
-	IPv6 ConnProfileSettingsIPv6
+	Conn    ConnProfileSettingsConn    // connection
+	Wifi    ConnProfileSettingsWifi    // 802-11-wireless
+	WifiSec ConnProfileSettingsWifiSec // 802-11-wireless-security
+	// WifiAuthn  ConnProfileSettings8021x // 802-1x
+	// Ethernet ConnProfileSettings8023Ethernet // 802-3-ethernet
+	IPv4 ConnProfileSettingsIPv4 // ipv4
+	IPv6 ConnProfileSettingsIPv6 // ipv6
 }
 
-type ConnProfileSettingsConnection struct {
+type ConnProfileSettingsConn struct {
 	AuthRetries         int32
 	Autoconnect         bool
 	AutoconnectPriority int32
@@ -267,16 +64,16 @@ type ConnProfileSettingsConnection struct {
 	// IPPingTimeout       time.Duration
 	StableID  string
 	Timestamp time.Time
-	Type      ConnProfileType
+	Type      ConnProfileSettingsConnType
 	UUID      uuid.UUID
 	// WaitActivationDelay time.Duration
 	// WaitDeviceTimeout   time.Duration
 	Zone string
 }
 
-type ConnProfileType string
+type ConnProfileSettingsConnType string
 
-var connProfileTypeInfo = map[ConnProfileType]EnumInfo{
+var connProfileSettingsConnTypeInfo = map[ConnProfileSettingsConnType]EnumInfo{
 	"802-11-wireless": {
 		Short: "wifi",
 	},
@@ -285,40 +82,106 @@ var connProfileTypeInfo = map[ConnProfileType]EnumInfo{
 	},
 }
 
-func (t ConnProfileType) Info() EnumInfo {
-	info, ok := connProfileTypeInfo[t]
+func (t ConnProfileSettingsConnType) Info() EnumInfo {
+	info, ok := connProfileSettingsConnTypeInfo[t]
 	if !ok {
 		return EnumInfo{Short: string(t)}
 	}
 	return info
 }
 
-type ConnProfileSettings80211Wireless struct {
+type ConnProfileSettingsWifi struct {
 	// APIsolation int32 // TODO: change this to an int32 enum
 	// AssignedMACAddress  string
-	Band string // TODO: change this to a string enum
+	Band ConnProfileSettingsWifiBand
 	// BSSID               []string
-	Channel uint32
+	Channel uint32 // TODO
 	// ChannelWidth int32
-	Hidden bool
+	Hidden bool // TODO
 	// MACAddress          []byte
 	// MACAddressBlacklist []string
 	// MACAddressDenylist  []string
-	Mode string // TODO: change this to a string enum
+	Mode ConnProfileSettingsWifiMode // TODO
 	// MTU                 uint32
 	// Powersave uint32 // TODO: change this to a uint32 enum
 	// SeenBSSIDs          []string
-	SSID string
+	SSID []byte // TODO
 }
 
-type ConnProfileSettings80211WirelessSecurity struct {
+type ConnProfileSettingsWifiBand string
+
+var connProfileSettingsWifiBand = map[ConnProfileSettingsWifiBand]EnumInfo{
+	"a": {
+		Short:   "a",
+		Details: "802.11a (5 GHz)",
+	},
+	"bg": {
+		Short:   "bg",
+		Details: "802.11b/g (2.4 GHz)",
+	},
+	"": {
+		Short:   "any",
+		Details: "any available band",
+	},
+}
+
+func (b ConnProfileSettingsWifiBand) Info() EnumInfo {
+	info, ok := connProfileSettingsWifiBand[b]
+	if !ok {
+		return EnumInfo{
+			Short:   "unknown",
+			Details: fmt.Sprintf("unknown band (%s)", b),
+			Level:   "error",
+		}
+	}
+	return info
+}
+
+type ConnProfileSettingsWifiMode string
+
+var connProfileSettingsWifiMode = map[ConnProfileSettingsWifiMode]EnumInfo{
+	"": {
+		Short:   "infrastructure",
+		Details: "connect to an external Wi-Fi network",
+	},
+	"infrastructure": {
+		Short:   "infrastructure",
+		Details: "connect to an external Wi-Fi network",
+	},
+	"mesh": {
+		Short:   "mesh",
+		Details: "connect to a mesh Wi-Fi network",
+	},
+	"adhoc": {
+		Short:   "ad-hoc",
+		Details: "connect to an ad-hoc Wi-Fi network",
+	},
+	"ap": {
+		Short:   "ap",
+		Details: "create a Wi-Fi hotspot",
+	},
+}
+
+func (m ConnProfileSettingsWifiMode) Info() EnumInfo {
+	info, ok := connProfileSettingsWifiMode[m]
+	if !ok {
+		return EnumInfo{
+			Short:   "unknown",
+			Details: fmt.Sprintf("unknown mode (%s)", m),
+			Level:   "error",
+		}
+	}
+	return info
+}
+
+type ConnProfileSettingsWifiSec struct {
 	AuthAlg  string   // TODO: change this to a string enum
 	Group    []string // TODO: change this to an array of string enums
 	KeyMgmt  string   // TODO: change this to a string enum
 	Pairwise []string // TODO: change this to an array of string enums
 	Proto    []string // TODO: change this to an array of string enums
-	PSK      string
-	PSKFlags uint32 // TODO: change this to a uint32 flags type
+	PSK      string   // TODO
+	PSKFlags uint32   // TODO: change this to a uint32 flags type
 }
 
 type ConnProfileSettingsIPv4 struct {
@@ -394,10 +257,16 @@ func dumpConnProfileSettings(
 		return s, errors.Wrap(err, "couldn't get settings")
 	}
 
-	if s.Connection, err = dumpConnProfileSettingsConnection(
+	if s.Conn, err = dumpConnProfileSettingsConn(
 		rawSettings["connection"],
 	); err != nil {
 		return s, errors.Wrap(err, "couldn't parse 'connection' section")
+	}
+
+	if s.Wifi, err = dumpConnProfileSettingsWifi(
+		rawSettings["802-11-wireless"],
+	); err != nil {
+		return s, errors.Wrap(err, "couldn't parse '802-11-wireless' section")
 	}
 
 	if s.IPv4, err = dumpConnProfileSettingsIPv4(
@@ -414,9 +283,9 @@ func dumpConnProfileSettings(
 	return s, nil
 }
 
-func dumpConnProfileSettingsConnection(
+func dumpConnProfileSettingsConn(
 	rawSettings map[string]dbus.Variant,
-) (s ConnProfileSettingsConnection, err error) {
+) (s ConnProfileSettingsConn, err error) {
 	if s.AuthRetries, err = ensureVar[int32](
 		rawSettings, "auth-retries", "auth retries", false, -1,
 	); err != nil {
@@ -434,7 +303,7 @@ func dumpConnProfileSettingsConnection(
 	if err != nil {
 		return s, err
 	}
-	s.Type = ConnProfileType(rawType)
+	s.Type = ConnProfileSettingsConnType(rawType)
 
 	if s.StableID, err = ensureVar(rawSettings, "stable-id", "stable ID", false, ""); err != nil {
 		return s, err
@@ -465,7 +334,7 @@ func dumpConnProfileSettingsConnection(
 		return s, err
 	}
 
-	if s, err = dumpConnProfileSettingsConnectionAutoconnect(rawSettings, s); err != nil {
+	if s, err = dumpConnProfileSettingsConnAutoconnect(rawSettings, s); err != nil {
 		return s, err
 	}
 
@@ -492,9 +361,9 @@ func ensureVar[T any](
 	return result, nil
 }
 
-func dumpConnProfileSettingsConnectionAutoconnect(
-	rawSettings map[string]dbus.Variant, s ConnProfileSettingsConnection,
-) (ConnProfileSettingsConnection, error) {
+func dumpConnProfileSettingsConnAutoconnect(
+	rawSettings map[string]dbus.Variant, s ConnProfileSettingsConn,
+) (ConnProfileSettingsConn, error) {
 	var err error
 
 	if s.Autoconnect, err = ensureVar(rawSettings, "autoconnect", "", false, true); err != nil {
@@ -508,6 +377,39 @@ func dumpConnProfileSettingsConnectionAutoconnect(
 	if s.AutoconnectRetries, err = ensureVar[int32](
 		rawSettings, "autoconnect-retries", "", false, -1,
 	); err != nil {
+		return s, err
+	}
+
+	return s, nil
+}
+
+func dumpConnProfileSettingsWifi(
+	rawSettings map[string]dbus.Variant,
+) (s ConnProfileSettingsWifi, err error) {
+	rawBand, err := ensureVar(rawSettings, "band", "", false, "")
+	if err != nil {
+		return s, err
+	}
+	s.Band = ConnProfileSettingsWifiBand(rawBand)
+
+	if s.Channel, err = ensureVar[uint32](rawSettings, "channel", "", false, 0); err != nil {
+		return s, err
+	}
+
+	if s.Hidden, err = ensureVar(rawSettings, "hidden", "", false, false); err != nil {
+		return s, err
+	}
+
+	rawMode, err := ensureVar(rawSettings, "mode", "", false, "")
+	if err != nil {
+		return s, err
+	}
+	if rawMode == "" {
+		rawMode = "infrastructure"
+	}
+	s.Mode = ConnProfileSettingsWifiMode(rawMode)
+
+	if s.SSID, err = ensureVar(rawSettings, "ssid", "SSID", false, []byte{}); err != nil {
 		return s, err
 	}
 
@@ -572,7 +474,7 @@ func ListConnProfiles(ctx context.Context) (conns []ConnProfile, err error) {
 	}
 
 	slices.SortFunc(conns, func(a, b ConnProfile) int {
-		return cmp.Compare(a.Settings.Connection.ID, b.Settings.Connection.ID)
+		return cmp.Compare(a.Settings.Conn.ID, b.Settings.Conn.ID)
 	})
 
 	return conns, nil
@@ -617,8 +519,27 @@ func ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {
 	return nil
 }
 
+type ConnProfileSettingsKey struct {
+	Section   string
+	Key       string
+	Remainder string
+}
+
+func ParseConnProfileSettingsKey(rawKey string) (k ConnProfileSettingsKey, err error) {
+	var ok bool
+	if k.Section, k.Key, ok = strings.Cut(rawKey, "."); !ok {
+		return ConnProfileSettingsKey{}, errors.Errorf("key %s doesn't have a ", rawKey)
+	}
+	k.Key, k.Remainder, _ = strings.Cut(k.Key, ".")
+	return k, nil
+}
+
+func (k ConnProfileSettingsKey) String() string {
+	return fmt.Sprintf("%s.%s", k.Section, k.Key)
+}
+
 func UpdateConnProfileByUUID(
-	ctx context.Context, uid uuid.UUID, updateType string, newSettings map[string]any,
+	ctx context.Context, uid uuid.UUID, updateType string, newSettings map[ConnProfileSettingsKey]any,
 ) error {
 	conno, err := findConnProfileByUUID(ctx, uid)
 	if err != nil {
@@ -637,13 +558,16 @@ func UpdateConnProfileByUUID(
 	delete(rawSettings["ipv6"], "addresses")
 	delete(rawSettings["ipv6"], "routes")
 
-	for rawKey, value := range newSettings {
-		section, key, ok := strings.Cut(rawKey, ".")
-		if !ok {
-			return errors.Errorf("key %s lacks a prefix for its parent (delimited with a '.')", rawKey)
+	for fullKey, value := range newSettings {
+		if rawSettings[fullKey.Section][fullKey.Key], err = makeVariant(value); err != nil {
+			return errors.Errorf("couldn't set value %+v for key %s", value, fullKey)
 		}
-		if rawSettings[section][key], err = makeVariant(value); err != nil {
-			return errors.Errorf("couldn't set value %+v for key %s in section %s", value, key, section)
+		if fullKey.Section == "802-11-wireless" && fullKey.Key == "band" {
+			if band, ok := value.(ConnProfileSettingsWifiBand); ok && band == "" {
+				// NetworkManager rejects "" as band; instead, to set an empty band, we must omit it from
+				// the settings:
+				delete(rawSettings[fullKey.Section], fullKey.Key)
+			}
 		}
 	}
 	// TODO: handle secrets properly

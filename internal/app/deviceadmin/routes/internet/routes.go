@@ -68,9 +68,9 @@ type InternetViewData struct {
 	EthernetDevices []networkmanager.Device
 	OtherDevices    []networkmanager.Device
 
-	WifiConnProfiles     []networkmanager.ConnProfileSettingsConnection
-	EthernetConnProfiles []networkmanager.ConnProfileSettingsConnection
-	OtherConnProfiles    []networkmanager.ConnProfileSettingsConnection
+	WifiConnProfiles     []networkmanager.ConnProfileSettingsConn
+	EthernetConnProfiles []networkmanager.ConnProfileSettingsConn
+	OtherConnProfiles    []networkmanager.ConnProfileSettingsConn
 }
 
 func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
@@ -107,13 +107,13 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 		return vd, errors.Wrap(err, "couldn't list connection profiles")
 	}
 	for _, connProfile := range connProfiles {
-		switch connProfile.Settings.Connection.Type.Info().Short {
+		switch connProfile.Settings.Conn.Type.Info().Short {
 		case "wifi":
-			vd.WifiConnProfiles = append(vd.WifiConnProfiles, connProfile.Settings.Connection)
+			vd.WifiConnProfiles = append(vd.WifiConnProfiles, connProfile.Settings.Conn)
 		case "ethernet":
-			vd.EthernetConnProfiles = append(vd.EthernetConnProfiles, connProfile.Settings.Connection)
+			vd.EthernetConnProfiles = append(vd.EthernetConnProfiles, connProfile.Settings.Conn)
 		default:
-			vd.OtherConnProfiles = append(vd.OtherConnProfiles, connProfile.Settings.Connection)
+			vd.OtherConnProfiles = append(vd.OtherConnProfiles, connProfile.Settings.Conn)
 		}
 	}
 

@@ -29,7 +29,7 @@ type Device struct {
 	FirmwareMissing  bool
 	NMPluginMissing  bool
 	Type             DeviceType
-	AvailableConns   []ConnProfileSettingsConnection
+	AvailableConns   []ConnProfileSettingsConn
 	IPv4Connectivity IPConnectivityState
 	IPv6Connectivity IPConnectivityState
 	InterfaceFlags   DeviceInterfaceFlags
@@ -964,10 +964,10 @@ func dumpDeviceAvailableConnProfiles(
 		if err != nil {
 			return Device{}, errors.Wrap(err, "couldn't dump connection profile")
 		}
-		dev.AvailableConns = append(dev.AvailableConns, connProfile.Settings.Connection)
+		dev.AvailableConns = append(dev.AvailableConns, connProfile.Settings.Conn)
 	}
 
-	slices.SortFunc(dev.AvailableConns, func(a, b ConnProfileSettingsConnection) int {
+	slices.SortFunc(dev.AvailableConns, func(a, b ConnProfileSettingsConn) int {
 		switch {
 		case a.Autoconnect && !b.Autoconnect: // list autoconnect profiles first
 			return -1

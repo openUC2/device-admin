@@ -1,7 +1,7 @@
 {{$settings := (get . "Settings")}}
 {{$Meta := (get . "Meta")}}
 
-{{$conn := $settings.Connection}}
+{{$conn := $settings.Conn}}
 {{$internetPagePath := print (dir (dir $Meta.Path)) "?mode=advanced"}}
 
 <form
@@ -179,23 +179,29 @@
   </div>
 
   <h4>Autoconnect</h4>
+  <p class="mb-3">
+    Autoconnect allows this profile to be automatically selected for activation by an appropriate
+    network device when that device is inactive (i.e. doesn't already have some other connection
+    profile activated for it). Without autoconnect, this connection profile can only be activated
+    by a manual user action.
+  </p>
   <div class="field is-horizontal">
-    <div class="field-label is-normal">
+    <div class="field-label">
       <label class="label">
-        <abbr title="whether to automatically activate the profile if the network device is inactive">
-          Activation
+        <abbr title="whether to automatically activate the profile when circumstances are suitable">
+          Enabled?
         </abbr>
       </label>
     </div>
     <div class="field-body">
       <div class="field has-addons">
         <div class="control">
-          <div class="select">
-            <select name="connection.autoconnect">
-              <option value="true" {{if $conn.Autoconnect}}selected{{end}}>Enabled</option>
-              <option value="false" {{if not $conn.Autoconnect}}selected{{end}}>Disabled</option>
-            </select>
-          </div>
+          <input type="hidden" name="connection.autoconnect" value="off">
+          <input type="checkbox"
+            name="connection.autoconnect"
+            value="on"
+            {{if $conn.Autoconnect}}checked{{end}}
+          />
         </div>
       </div>
     </div>
@@ -247,7 +253,158 @@
   </div>
 
   {{if eq $conn.Type "802-11-wireless"}}
+    {{$wifi := $settings.Wifi}}
     <h3>Wi-Fi</h3>
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">
+          <abbr title="Wi-Fi network mode">
+            Mode
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <div class="select">
+              <select name="802-11-wireless.mode">
+                <option
+                  value="infrastructure"
+                  {{if eq $wifi.Mode.Info.Short "infrastructure"}}selected{{end}}
+                >
+                  infrastructure (connect to external network)
+                </option>
+                <option
+                  value="ap"
+                  {{if eq $wifi.Mode.Info.Short "ap"}}selected{{end}}
+                >
+                  hotspot
+                </option>
+                <option
+                  value="mesh"
+                  {{if eq $wifi.Mode.Info.Short "mesh"}}selected{{end}}
+                >
+                  mesh (802.11s)
+                </option>
+                <option
+                  value="adhoc"
+                  {{if eq $wifi.Mode.Info.Short "adhoc"}}selected{{end}}
+                >
+                  ad-hoc (IBSS)
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">
+          <abbr title="Wi-Fi network name">
+            SSID
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <input
+              class="input" type="text"
+              name="802-11-wireless.ssid"
+              minlength=1 maxlength=32
+              value="{{toString $wifi.SSID}}"
+              size=40
+              required
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="whether the network hides its SSID">
+            Hidden?
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <input type="hidden" name="802-11-wireless.hidden" value="false">
+            <input type="checkbox"
+              name="802-11-wireless.hidden"
+              value="true"
+              {{if $wifi.Hidden}}checked{{end}}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">
+          <abbr title="802.11 frequency band of the network">
+            Band
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <div class="select">
+              <select name="802-11-wireless.band">
+                <option
+                  value="a"
+                  {{if eq $wifi.Band "a"}}selected{{end}}
+                >
+                  802.11a (5 GHz)
+                </option>
+                <option
+                  value="bg"
+                  {{if eq $wifi.Band "bg"}}selected{{end}}
+                >
+                  802.11b/g (2.4 GHz)
+                </option>
+                <option
+                  value=""
+                  {{if eq $wifi.Band ""}}selected{{end}}
+                >
+                  any available band
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">
+          <abbr title="wireless channel to require, if non-zero; a non-zero value requires Band to be set to a specific frequency band">
+            Channel
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <input
+              class="input" type="number"
+              name="802-11-wireless.channel"
+              min="0" max="256"
+              value="{{$wifi.Channel}}"
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
     <h4>Security</h4>
   {{end}}
 
