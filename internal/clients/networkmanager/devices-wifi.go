@@ -53,7 +53,7 @@ func (s DeviceWifiMode) Info() EnumInfo {
 		return EnumInfo{
 			Short:   "unknown",
 			Details: fmt.Sprintf("mode (%d) was reported but could not be determined", s),
-			Level:   "error",
+			Level:   EnumInfoLevelError,
 		}
 	}
 	return info
@@ -112,8 +112,10 @@ func dumpWifiDevice(devo dbus.BusObject, bus *dbus.Conn) (dev WifiDevice, err er
 	if err = devo.StoreProperty(nmName+".Device.Wireless.ActiveAccessPoint", &apPath); err != nil {
 		return WifiDevice{}, errors.Wrap(err, "couldn't query for active AP")
 	}
-	if dev.ActiveAP, err = dumpAccessPoint(bus.Object(nmName, apPath)); err != nil {
-		return WifiDevice{}, errors.Wrapf(err, "couldn't query for access point %s", apPath)
+	if apPath != "/" {
+		if dev.ActiveAP, err = dumpAccessPoint(bus.Object(nmName, apPath)); err != nil {
+			return WifiDevice{}, errors.Wrapf(err, "couldn't query for access point %s", apPath)
+		}
 	}
 
 	if err = devo.StoreProperty(

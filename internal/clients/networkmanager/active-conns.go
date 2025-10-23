@@ -62,7 +62,7 @@ func (s ActiveConnState) Info() EnumInfo {
 		return EnumInfo{
 			Short:   "unknown",
 			Details: fmt.Sprintf("state (%d) was reported but could not be determined", s),
-			Level:   "error",
+			Level:   EnumInfoLevelError,
 		}
 	}
 	return info

@@ -9,32 +9,33 @@
   method="POST"
   data-controller="form-submission"
   data-action="submit->form-submission#submit"
-  data-form-submission-target="submitter"
 >
   <input type="hidden" name="state" value="updated">
   <input type="hidden" name="redirect-target" value="{{$Meta.Path}}">
-  <div class="field is-grouped">
-    <div class="control">
-      <input
-        class="button is-primary"
-        type="submit"
-        name="update-type"
-        value="Apply temporarily"
-        data-form-submission-target="submit"
-      >
-    </div>
-    <!--
-      TODO: if the profile is auto-generated, disable this button and show a message
-      explaining why it's disabled
-    -->
-    <div class="control">
-      <input
-        class="button is-primary"
-        type="submit"
-        name="update-type"
-        value="Save and apply"
-        data-form-submission-target="submit"
-      >
+  <div data-form-submission-target="submitter">
+    <div class="field is-grouped">
+      <div class="control">
+        <input
+          class="button is-primary"
+          type="submit"
+          name="update-type"
+          value="Apply temporarily"
+          data-form-submission-target="submit"
+        >
+      </div>
+      <!--
+        TODO: if the profile is auto-generated, disable this button and show a message
+        explaining why it's disabled
+      -->
+      <div class="control">
+        <input
+          class="button is-primary"
+          type="submit"
+          name="update-type"
+          value="Save and apply"
+          data-form-submission-target="submit"
+        >
+      </div>
     </div>
   </div>
 
@@ -253,8 +254,8 @@
   </div>
 
   {{if eq $conn.Type "802-11-wireless"}}
-    {{$wifi := $settings.Wifi}}
     <h3>Wi-Fi</h3>
+    {{$wifi := $settings.Wifi}}
     <div class="field is-horizontal">
       <div class="field-label is-normal">
         <label class="label">
@@ -406,62 +407,311 @@
     </div>
 
     <h4>Security</h4>
+    {{$wifiSec := $settings.WifiSec}}
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">
+          <abbr title="key-management mode">
+            Mode
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <div class="select">
+              <select name="802-11-wireless-security.key-mgmt">
+                <option
+                  value=""
+                  {{if eq $wifiSec.KeyMgmt ""}}selected{{end}}
+                >
+                  None
+                </option>
+                <option
+                  value="wpa-psk"
+                  {{if eq $wifiSec.KeyMgmt "wpa-psk"}}selected{{end}}
+                >
+                  WPA2/3-Personal Pre-Shared Key (PSK)
+                </option>
+                <option
+                  value="wpa-eap"
+                  {{if eq $wifiSec.KeyMgmt "wpa-eap"}}selected{{end}}
+                >
+                  WPA2/3-Enterprise <abbr title="Extensible Authentication Protocol">EAP</abbr>
+                </option>
+                <option
+                  value="sae"
+                  {{if eq $wifiSec.KeyMgmt "sae"}}selected{{end}}
+                >
+                  WPA3-Personal <abbr title="Simultaneous Authentication of Equals">SAE</abbr>
+                </option>
+                <option
+                  value="wpa-eap-suite-b-192"
+                  {{if eq $wifiSec.KeyMgmt "wpa-eap-suite-b-192"}}selected{{end}}
+                >
+                  WPA3-Enterprise <abbr title="Extensible Authentication Protocol">EAP</abbr>
+                  with SuiteB-<abbr title="192-bit encryption">192</abbr>
+                </option>
+                <option
+                  value="owe"
+                  {{if eq $wifiSec.KeyMgmt "owe"}}selected{{end}}
+                >
+                  OWE
+                </option>
+                <option
+                  value="none"
+                  {{if eq $wifiSec.KeyMgmt "none"}}selected{{end}}
+                >
+                  WEP (insecure)
+                </option>
+                <option
+                  value="ieee8021x"
+                  {{if eq $wifiSec.KeyMgmt "ieee8021x"}}selected{{end}}
+                >
+                  <abbr title="IEEE 802.1x">Dynamic WEP</abbr> (insecure)
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label is-normal">
+        <label class="label">
+          <abbr title="Wi-Fi security passphrase; not needed if mode is None or OWE">
+            Password
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <input
+              class="input" type="password"
+              name="802-11-wireless-security.psk"
+              minlength=8
+              {{if $wifiSec.PSK}}
+                placeholder="not shown here, for security reasons"
+              {{else}}
+                placeholder="required except for 'None' and 'OWE' modes"
+              {{end}}
+              size=40
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="allowed WPA protocol versions; selecting none is equivalent to selecting all">
+            Protocols
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <div class="checkboxes">
+              {{$wifiSecPairwise := $wifiSec.Proto.Strings}}
+              <input type="hidden" name="802-11-wireless-security.proto" value="">
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.proto"
+                  value="rsn"
+                  {{if or (not $wifiSec.Proto) (has "rsn" $wifiSecPairwise)}}checked{{end}}
+                />
+                WPA2/3 <abbr title="Robust Security Network">RSN</abbr>
+              </label>
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.proto"
+                  value="wpa"
+                  {{if or (not $wifiSec.Proto) (has "wpa" $wifiSecPairwise)}}checked{{end}}
+                />
+                WPA (insecure)
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="allowed pairwise encryption algorithms; selecting none is equivalent to selecting all">
+            Pairwise
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <div class="checkboxes">
+              {{$wifiSecPairwise := $wifiSec.Pairwise.Strings}}
+              <input type="hidden" name="802-11-wireless-security.pairwise" value="">
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.pairwise"
+                  value="ccmp"
+                  {{if or (not $wifiSec.Pairwise) (has "ccmp" $wifiSecPairwise)}}checked{{end}}
+                />
+                AES/CCMP (WPA2/3)
+              </label>
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.pairwise"
+                  value="tkip"
+                  {{if or (not $wifiSec.Pairwise) (has "tkip" $wifiSecPairwise)}}checked{{end}}
+                />
+                TKIP (WPA, insecure)
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="allowed group/broadcast encryption algorithms; selecting none is equivalent to selecting all">
+            Group
+          </abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field has-addons">
+          <div class="control">
+            <div class="checkboxes">
+              {{$wifiSecGroup := $wifiSec.Group.Strings}}
+              <input type="hidden" name="802-11-wireless-security.group" value="">
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.group"
+                  value="ccmp"
+                  {{if or (not $wifiSec.Group) (has "ccmp" $wifiSecGroup)}}checked{{end}}
+                />
+                AES/CCMP (WPA2/3)
+              </label>
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.group"
+                  value="tkip"
+                  {{if or (not $wifiSec.Group) (has "tkip" $wifiSecGroup)}}checked{{end}}
+                />
+                TKIP (WPA, insecure)
+              </label>
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.group"
+                  value="wep104"
+                  {{if or (not $wifiSec.Group) (has "wep104" $wifiSecGroup)}}checked{{end}}
+                />
+                WEP-<abbr title="104-bit key">104</abbr> (insecure)
+              </label>
+              <label class="checkbox is-block">
+                <input
+                  type="checkbox"
+                  name="802-11-wireless-security.group"
+                  value="wep40"
+                  {{if or (not $wifiSec.Group) (has "wep40" $wifiSecGroup)}}checked{{end}}
+                />
+                WEP-<abbr title="40-bit key">40</abbr> (insecure)
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   {{end}}
 
   <h3>IPv4</h3>
-  {{$ipv4 := .Data.ConnProfile.Settings.IPv4}}
-  <p>Addresses:</p>
-  <ul class="mt-0">
-    {{range $ipAddress := $ipv4.Addresses}}
-      <li>
-        <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
-        {{if not $ipAddress.Prefix.IsSingleIP}}
-          <p>
-            <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
-            <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
-          </p>
-        {{end}}
-        {{range $key, $value := $ipAddress.Attributes}}
-          <p>
-            {{title $key}}:
-            {{if isIPAddr $value}}
-              <span class="tag ip-address">{{$value}}</span>
+  {{$ipv4 := $settings.IPv4}}
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Addresses</label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          <ul class="mt-0">
+            {{range $ipAddress := $ipv4.Addresses}}
+              <li>
+                <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+                {{if not $ipAddress.Prefix.IsSingleIP}}
+                  <p>
+                    <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+                    <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+                  </p>
+                {{end}}
+                {{range $key, $value := $ipAddress.Attributes}}
+                  <p>
+                    {{title $key}}:
+                    {{if isIPAddr $value}}
+                      <span class="tag ip-address">{{$value}}</span>
+                    {{else}}
+                      {{$value}}
+                    {{end}}
+                  </p>
+                {{end}}
+              </li>
             {{else}}
-              {{$value}}
+              <li><span class="tag is-abbrev">none</span></li>
             {{end}}
-          </p>
-        {{end}}
-      </li>
-    {{else}}
-      <li><span class="tag is-abbrev">none</span></li>
-    {{end}}
-  </ul>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <h3>IPv6</h3>
-  {{$ipv6 := .Data.ConnProfile.Settings.IPv6}}
-  <p>Addresses:</p>
-  <ul class="mt-0">
-    {{range $ipAddress := $ipv6.Addresses}}
-      <li>
-        <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
-        {{if not $ipAddress.Prefix.IsSingleIP}}
-          <p>
-            <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
-            <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
-          </p>
-        {{end}}
-        {{range $key, $value := $ipAddress.Attributes}}
-          <p>
-            {{title $key}}:
-            {{if isIPAddr $value}}
-              <span class="tag ip-address">{{$value}}</span>
+  {{$ipv6 := $settings.IPv6}}
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">Addresses</label>
+    </div>
+    <div class="field-body">
+      <div class="field has-addons">
+        <div class="control">
+          <ul class="mt-0">
+            {{range $ipAddress := $ipv6.Addresses}}
+              <li>
+                <p><span class="tag ip-address">{{$ipAddress.Prefix.Addr}}</span></p>
+                {{if not $ipAddress.Prefix.IsSingleIP}}
+                  <p>
+                    <abbrev title="space of addresses assignable to devices on the network">Subnet</abbrev>:
+                    <span class="tag ip-subnet">{{$ipAddress.Prefix.Masked}}</span>
+                  </p>
+                {{end}}
+                {{range $key, $value := $ipAddress.Attributes}}
+                  <p>
+                    {{title $key}}:
+                    {{if isIPAddr $value}}
+                      <span class="tag ip-address">{{$value}}</span>
+                    {{else}}
+                      {{$value}}
+                    {{end}}
+                  </p>
+                {{end}}
+              </li>
             {{else}}
-              {{$value}}
+              <li><span class="tag is-abbrev">none</span></li>
             {{end}}
-          </p>
-        {{end}}
-      </li>
-    {{else}}
-      <li><span class="tag is-abbrev">none</span></li>
-    {{end}}
-  </ul>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
 </form>

@@ -140,37 +140,37 @@ func updateConnProfile(
 		updateType = "save"
 	}
 
-	for rawKey, values := range formValues {
-		if len(values) < 1 {
+	for rawKey, rawValues := range formValues {
+		if len(rawValues) < 1 {
 			continue
 		}
 		key, err := nm.ParseConnProfileSettingsKey(rawKey)
 		if err != nil {
 			continue
 		}
-		rawValue := values[len(values)-1] // selects the last value to account for checkboxes
-		switch key.Section {
-		case "connection":
-			if updateValues[key], err = parseConnProfileSettingsConnField(key, rawValue); err != nil {
-				return errors.Wrapf(err, "couldn't parse (key, value) pair: (%s, %+v)", key, rawValue)
-			}
-		case "802-11-wireless":
-			if updateValues[key], err = parseConnProfileSettingsWifiField(key, rawValue); err != nil {
-				return errors.Wrapf(err, "couldn't parse (key, value) pair: (%s, %+v)", key, rawValue)
-			}
+		if updateValues[key], err = parseConnProfileSettingsField(key, rawValues); err != nil {
+			return errors.Wrapf(err, "couldn't parse (key, value) pair: (%s, %+v)", key, rawValues)
 		}
 	}
-	wifiChannel := formValues["802-11-wireless.channel"][0]
-	wifiBand := formValues["802-11-wireless.band"][0]
-	if wifiChannel != "0" && wifiBand == "" {
-		return errors.Errorf("setting a non-zero channel (%s) requires setting a band", wifiChannel)
+	wifiSecKeyMgmt := formValues["802-11-wireless-security.key-mgmt"][0]
+	wifiSecPSK := formValues["802-11-wireless-security.psk"][0]
+	if wifiSecPSK == "" && wifiSecKeyMgmt != "none" && wifiSecKeyMgmt != "owe" {
+		// in key-mgmt modes requiring a PSK, don't overwrite the existing PSK with the submitted value,
+		// which may be left empty in the form submission as a signal to keep the existing PSK:
+		delete(updateValues, nm.ConnProfileSettingsKey{
+			Section: "802-11-wireless-security", Key: "psk",
+		})
+	}
+	if err := checkConnProfile(formValues); err != nil {
+		return err
 	}
 	return nm.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
 }
 
 func parseConnProfileSettingsConnField(
-	key nm.ConnProfileSettingsKey, rawValue string,
+	key nm.ConnProfileSettingsKey, rawValues []string,
 ) (parsedValue any, err error) {
+	rawValue := rawValues[len(rawValues)-1] // selects the last value to account for single checkboxes
 	switch key.Key {
 	default:
 		return nil, errors.Errorf("unimplemented or unknown key %s", key)
@@ -205,15 +205,33 @@ func parseCheckbox(rawValue, checkedValue, uncheckedValue string) (parsedValue b
 	}
 }
 
+func parseConnProfileSettingsField(
+	key nm.ConnProfileSettingsKey, rawValues []string,
+) (update any, err error) {
+	switch key.Section {
+	default:
+		return nil, errors.Errorf("unimplemented settings section %s", key.Section)
+	case "connection":
+		return parseConnProfileSettingsConnField(key, rawValues)
+	case "802-11-wireless":
+		return parseConnProfileSettingsWifiField(key, rawValues)
+	case "802-11-wireless-security":
+		return parseConnProfileSettingsWifiSecField(
+			key, rawValues,
+		)
+	}
+}
+
 func parseConnProfileSettingsWifiField(
-	key nm.ConnProfileSettingsKey, rawValue string,
+	key nm.ConnProfileSettingsKey, rawValues []string,
 ) (parsedValue any, err error) {
+	rawValue := rawValues[len(rawValues)-1] // selects the last value to account for single checkboxes
 	switch key.Key {
 	default:
 		return nil, errors.Errorf("unimplemented or unknown key %s", key)
 	case "band":
 		band := nm.ConnProfileSettingsWifiBand(rawValue)
-		if info := band.Info(); info.Level == "error" {
+		if info := band.Info(); info.Level == nm.EnumInfoLevelError {
 			return nil, errors.New(info.Details)
 		}
 		return band, nil
@@ -234,7 +252,7 @@ func parseConnProfileSettingsWifiField(
 		return hidden, nil
 	case "mode":
 		mode := nm.ConnProfileSettingsWifiMode(rawValue)
-		if info := mode.Info(); info.Level == "error" {
+		if info := mode.Info(); info.Level == nm.EnumInfoLevelError {
 			return nil, errors.New(info.Details)
 		}
 		return mode, nil
@@ -246,4 +264,67 @@ func parseConnProfileSettingsWifiField(
 		}
 		return ssid, nil
 	}
+}
+
+func parseConnProfileSettingsWifiSecField(
+	key nm.ConnProfileSettingsKey, rawValues []string,
+) (parsedValue any, err error) {
+	filteredValues := make([]string, 0)
+	for _, rawValue := range rawValues {
+		if rawValue == "" {
+			continue
+		}
+		filteredValues = append(filteredValues, rawValue)
+	}
+
+	switch key.Key {
+	default:
+		return nil, errors.Errorf("unimplemented or unknown key %s", key)
+	case "group":
+		group := nm.NewEnumSet[nm.ConnProfileSettingsWifiSecGroup](filteredValues)
+		if err = group.CheckInvalid(); err != nil {
+			return nil, err
+		}
+		if len(group) == len(nm.ConnProfileSettingsWifiSecGroupInfo) {
+			return nm.NewEnumSet[nm.ConnProfileSettingsWifiSecGroup](nil), nil
+		}
+		return group, nil
+	case "key-mgmt":
+		rawValue := rawValues[len(rawValues)-1]
+		keyMgmt := nm.ConnProfileSettingsWifiSecKeyMgmt(rawValue)
+		if info := keyMgmt.Info(); info.Level == nm.EnumInfoLevelError {
+			return nil, errors.New(info.Details)
+		}
+		return keyMgmt, nil
+	case "pairwise":
+		pairwise := nm.NewEnumSet[nm.ConnProfileSettingsWifiSecPairwise](filteredValues)
+		if err = pairwise.CheckInvalid(); err != nil {
+			return nil, err
+		}
+		if len(pairwise) == len(nm.ConnProfileSettingsWifiSecPairwiseInfo) {
+			return nm.NewEnumSet[nm.ConnProfileSettingsWifiSecPairwise](nil), nil
+		}
+		return pairwise, nil
+	case "proto":
+		proto := nm.NewEnumSet[nm.ConnProfileSettingsWifiSecProto](filteredValues)
+		if err = proto.CheckInvalid(); err != nil {
+			return nil, err
+		}
+		if len(proto) == len(nm.ConnProfileSettingsWifiSecProtoInfo) {
+			return nm.NewEnumSet[nm.ConnProfileSettingsWifiSecProto](nil), nil
+		}
+		return proto, nil
+	case "psk":
+		rawValue := rawValues[len(rawValues)-1]
+		return rawValue, nil
+	}
+}
+
+func checkConnProfile(formValues url.Values) error {
+	wifiChannel := formValues["802-11-wireless.channel"][0]
+	wifiBand := formValues["802-11-wireless.band"][0]
+	if wifiChannel != "0" && wifiBand == "" {
+		return errors.Errorf("setting a non-zero channel (%s) requires setting a band", wifiChannel)
+	}
+	return nil
 }

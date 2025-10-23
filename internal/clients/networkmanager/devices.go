@@ -61,18 +61,12 @@ func (c DeviceCaps) SupportsSRIOV() bool {
 	return c&0x8 > 0
 }
 
-type EnumInfo struct {
-	Short   string
-	Details string
-	Level   string
-}
-
 type DeviceState uint32
 
 var deviceStateInfo = map[DeviceState]EnumInfo{
 	0: {
 		Short: "unknown",
-		Level: "error",
+		Level: EnumInfoLevelError,
 	},
 	10: {
 		Short:   "unmanaged",
@@ -132,7 +126,7 @@ var deviceStateInfo = map[DeviceState]EnumInfo{
 	120: {
 		Short:   "failed",
 		Details: "failed to connect to requested network, cleaning up",
-		Level:   "error",
+		Level:   EnumInfoLevelError,
 	},
 }
 
@@ -142,7 +136,7 @@ func (s DeviceState) Info() EnumInfo {
 		return EnumInfo{
 			Short:   "unknown",
 			Details: fmt.Sprintf("state (%d) was reported but could not be determined", s),
-			Level:   "error",
+			Level:   EnumInfoLevelError,
 		}
 	}
 	return info
@@ -456,7 +450,7 @@ func (r DeviceStateReason) Info() EnumInfo {
 		return EnumInfo{
 			Short:   "unknown",
 			Details: fmt.Sprintf("reason (%d) was reported but could not be determined", r),
-			Level:   "error",
+			Level:   EnumInfoLevelError,
 		}
 	}
 	return info
@@ -488,12 +482,12 @@ var deviceTypeInfo = map[DeviceType]EnumInfo{
 	3: {
 		Short:   "unused 1",
 		Details: "not used",
-		Level:   "error",
+		Level:   EnumInfoLevelError,
 	},
 	4: {
 		Short:   "unused 2",
 		Details: "not used",
-		Level:   "error",
+		Level:   EnumInfoLevelError,
 	},
 	5: {
 		Short:   "bluetooth",
@@ -648,7 +642,7 @@ func (s DeviceType) Info() EnumInfo {
 		return EnumInfo{
 			Short:   "unknown",
 			Details: fmt.Sprintf("type (%d) was reported but could not be determined", s),
-			Level:   "error",
+			Level:   EnumInfoLevelError,
 		}
 	}
 	return info
@@ -690,7 +684,7 @@ func (s IPConnectivityState) Info() EnumInfo {
 		return EnumInfo{
 			Short:   "unknown",
 			Details: fmt.Sprintf("state (%d) was reported but could not be determined", s),
-			Level:   "error",
+			Level:   EnumInfoLevelError,
 		}
 	}
 	return info
