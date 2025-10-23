@@ -9,16 +9,16 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
 
-	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
 type Handlers struct {
 	r godest.TemplateRenderer
 
-	nmc *networkmanager.Client
+	nmc *nm.Client
 }
 
-func New(r godest.TemplateRenderer, nmc *networkmanager.Client) *Handlers {
+func New(r godest.TemplateRenderer, nmc *nm.Client) *Handlers {
 	return &Handlers{
 		r:   r,
 		nmc: nmc,
@@ -61,24 +61,25 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 }
 
 type InternetViewData struct {
-	// TODO: figure out the current SSID, if it exists
-	AvailableSSIDs []string
+	AvailableSSIDs           []string
+	Wlan0InternetConnProfile nm.ConnProfile
+	Wlan0HotspotConnProfile  nm.ConnProfile
 
-	WifiDevices     []networkmanager.Device
-	EthernetDevices []networkmanager.Device
-	OtherDevices    []networkmanager.Device
+	WifiDevices     []nm.Device
+	EthernetDevices []nm.Device
+	OtherDevices    []nm.Device
 
-	WifiConnProfiles     []networkmanager.ConnProfileSettingsConn
-	EthernetConnProfiles []networkmanager.ConnProfileSettingsConn
-	OtherConnProfiles    []networkmanager.ConnProfileSettingsConn
+	WifiConnProfiles     []nm.ConnProfileSettingsConn
+	EthernetConnProfiles []nm.ConnProfileSettingsConn
+	OtherConnProfiles    []nm.ConnProfileSettingsConn
 }
 
 func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 	const iface = "wlan0"
-	availableAPs, err := networkmanager.ScanNetworks(ctx, iface)
-	if err != nil {
-		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
-	}
+	// Note(ethanjli): the list of APs is just for autocompletion in the simplified wifi management
+	// view, and it can be missing just after activating wlan0-hotspot; so it's fine if we don't
+	// provide any data about available APs on this page:
+	availableAPs, _ := nm.ScanNetworks(ctx, iface)
 	for ssid, aps := range availableAPs {
 		if len(aps) == 0 {
 			continue
@@ -87,7 +88,7 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 	}
 	slices.Sort(vd.AvailableSSIDs)
 
-	allDevices, err := networkmanager.GetDevices(ctx)
+	allDevices, err := nm.GetDevices(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list network devices")
 	}
@@ -102,7 +103,7 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 		}
 	}
 
-	connProfiles, err := networkmanager.ListConnProfiles(ctx)
+	connProfiles, err := nm.ListConnProfiles(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list connection profiles")
 	}
@@ -110,6 +111,12 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 		switch connProfile.Settings.Conn.Type.Info().Short {
 		case "wifi":
 			vd.WifiConnProfiles = append(vd.WifiConnProfiles, connProfile.Settings.Conn)
+			switch conn := connProfile.Settings.Conn; conn.ID {
+			case "wlan0-internet":
+				vd.Wlan0InternetConnProfile = connProfile
+			case "wlan0-hotspot":
+				vd.Wlan0HotspotConnProfile = connProfile
+			}
 		case "ethernet":
 			vd.EthernetConnProfiles = append(vd.EthernetConnProfiles, connProfile.Settings.Conn)
 		default:

@@ -1,0 +1,121 @@
+{{$connProfile := (get . "ConnProfile")}}
+{{$availableSSIDs := (get . "AvailableSSIDs")}}
+{{$Meta := (get . "Meta")}}
+
+{{$conn := $connProfile.Settings.Conn}}
+{{$wifi := $connProfile.Settings.Wifi}}
+{{$wifiSec := $connProfile.Settings.WifiSec}}
+
+<form
+  action="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}"
+  method="POST"
+  data-controller="form-submission"
+  data-action="submit->form-submission#submit"
+>
+  <input type="hidden" name="state" value="simplified-updated">
+  <input type="hidden" name="redirect-target" value="{{$Meta.Path}}">
+
+  <div class="field">
+    <label class="label">Network</label>
+    <div class="field">
+      <input
+        class="input" type="text"
+        name="802-11-wireless.ssid"
+        list="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list"
+        minlength=1 maxlength=32
+        value="{{toString $wifi.SSID}}"
+        required
+        size=30
+      >
+      <turbo-frame id="{{$Meta.BasePath}}internet/devices/wlan0/access-points">
+        <datalist id="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list">
+          {{range $ssid := $availableSSIDs}}
+            {{if not $ssid}}
+              {{continue}}
+            {{end}}
+            <option value="{{$ssid}}"></option>
+          {{end}}
+        </datalist>
+      </turbo-frame>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">Password</label>
+    <div class="field">
+      <div class="control">
+        <div class="control radios">
+          <label class="radio is-block ml-0">
+            <input type="radio"
+              name="802-11-wireless-security.key-mgmt"
+              value="wpa-psk"
+              required
+              autocomplete="off"
+              {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
+            />
+            <p class="is-inline-block">
+              Yes:
+              <input
+                class="input" type="password"
+                name="802-11-wireless-security.psk"
+                minlength=1
+                placeholder="not shown here, for security reasons"
+                size=30
+              >
+            </p>
+          </label>
+          <label class="radio is-block ml-0">
+            <input type="radio"
+              name="802-11-wireless-security.key-mgmt"
+              value=""
+              required
+              autocomplete="off"
+              {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
+            />
+            No
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">Behavior</label>
+    <div class="field">
+      <div class="control radios">
+        <label class="radio is-block">
+          <input type="radio"
+            name="connection.autoconnect"
+            value="on"
+            required
+            autocomplete="off"
+            {{if $conn.Autoconnect}}checked{{end}}
+          />
+          Automatically try to connect during boot
+        </label>
+        <label class="radio is-block ml-0">
+          <input type="radio"
+            name="connection.autoconnect"
+            value="off"
+            required
+            autocomplete="off"
+            {{if not $conn.Autoconnect}}checked{{end}}
+          />
+          Don't try to connect during boot
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="field" data-form-submission-target="submitter">
+    <div class="control">
+      <input
+        class="button is-primary"
+        type="submit"
+        name="update-type"
+        value="Save"
+        data-form-submission-target="submit"
+      >
+    </div>
+  </div>
+</form>

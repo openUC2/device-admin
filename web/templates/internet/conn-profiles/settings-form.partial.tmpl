@@ -86,7 +86,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             {{$conn.StableID}}
           </div>
@@ -102,7 +102,7 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           {{if $conn.Type}}
             {{if eq $conn.Type.Info.Short $conn.Type}}
@@ -125,7 +125,7 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           {{if $conn.InterfaceName}}
             <a href="{{$internetPagePath}}#device-{{$conn.InterfaceName}}" target="_top">
@@ -146,7 +146,7 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           {{if $conn.Timestamp.IsZero}}
             <span class="tag is-info">never, or unknown</span>
@@ -167,7 +167,7 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
             {{$conn.Zone}}
@@ -195,12 +195,13 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           <input type="hidden" name="connection.autoconnect" value="off">
           <input type="checkbox"
             name="connection.autoconnect"
             value="on"
+            autocomplete="off"
             {{if $conn.Autoconnect}}checked{{end}}
           />
         </div>
@@ -217,7 +218,7 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           <input
             class="input" type="number"
@@ -239,7 +240,7 @@
       </label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           {{if eq $conn.AutoconnectRetries -1}}
             <span class="tag is-info"><abbr title="if not set, defaults to 4 times">global default</abbr></span>
@@ -265,7 +266,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <div class="select">
               <select name="802-11-wireless.mode">
@@ -309,7 +310,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <input
               class="input" type="text"
@@ -333,12 +334,13 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <input type="hidden" name="802-11-wireless.hidden" value="false">
             <input type="checkbox"
               name="802-11-wireless.hidden"
               value="true"
+              autocomplete="off"
               {{if $wifi.Hidden}}checked{{end}}
             />
           </div>
@@ -355,7 +357,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <div class="select">
               <select name="802-11-wireless.band">
@@ -393,7 +395,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <input
               class="input" type="number"
@@ -417,7 +419,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <div class="select">
               <select name="802-11-wireless-security.key-mgmt">
@@ -486,12 +488,12 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <input
               class="input" type="password"
               name="802-11-wireless-security.psk"
-              minlength=8
+              minlength=1
               {{if $wifiSec.PSK}}
                 placeholder="not shown here, for security reasons"
               {{else}}
@@ -513,7 +515,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <div class="checkboxes">
               {{$wifiSecPairwise := $wifiSec.Proto.Strings}}
@@ -523,6 +525,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.proto"
                   value="rsn"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Proto) (has "rsn" $wifiSecPairwise)}}checked{{end}}
                 />
                 WPA2/3 <abbr title="Robust Security Network">RSN</abbr>
@@ -532,6 +535,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.proto"
                   value="wpa"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Proto) (has "wpa" $wifiSecPairwise)}}checked{{end}}
                 />
                 WPA (insecure)
@@ -551,7 +555,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <div class="checkboxes">
               {{$wifiSecPairwise := $wifiSec.Pairwise.Strings}}
@@ -561,6 +565,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.pairwise"
                   value="ccmp"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Pairwise) (has "ccmp" $wifiSecPairwise)}}checked{{end}}
                 />
                 AES/CCMP (WPA2/3)
@@ -570,6 +575,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.pairwise"
                   value="tkip"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Pairwise) (has "tkip" $wifiSecPairwise)}}checked{{end}}
                 />
                 TKIP (WPA, insecure)
@@ -589,7 +595,7 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field has-addons">
+        <div class="field">
           <div class="control">
             <div class="checkboxes">
               {{$wifiSecGroup := $wifiSec.Group.Strings}}
@@ -599,6 +605,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.group"
                   value="ccmp"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Group) (has "ccmp" $wifiSecGroup)}}checked{{end}}
                 />
                 AES/CCMP (WPA2/3)
@@ -608,6 +615,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.group"
                   value="tkip"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Group) (has "tkip" $wifiSecGroup)}}checked{{end}}
                 />
                 TKIP (WPA, insecure)
@@ -617,6 +625,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.group"
                   value="wep104"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Group) (has "wep104" $wifiSecGroup)}}checked{{end}}
                 />
                 WEP-<abbr title="104-bit key">104</abbr> (insecure)
@@ -626,6 +635,7 @@
                   type="checkbox"
                   name="802-11-wireless-security.group"
                   value="wep40"
+                  autocomplete="off"
                   {{if or (not $wifiSec.Group) (has "wep40" $wifiSecGroup)}}checked{{end}}
                 />
                 WEP-<abbr title="40-bit key">40</abbr> (insecure)
@@ -644,7 +654,7 @@
       <label class="label">Addresses</label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           <ul class="mt-0">
             {{range $ipAddress := $ipv4.Addresses}}
@@ -683,7 +693,7 @@
       <label class="label">Addresses</label>
     </div>
     <div class="field-body">
-      <div class="field has-addons">
+      <div class="field">
         <div class="control">
           <ul class="mt-0">
             {{range $ipAddress := $ipv6.Addresses}}

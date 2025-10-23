@@ -110,6 +110,18 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
+		case "simplified-updated":
+			formValues, err := c.FormParams()
+			if err != nil {
+				return errors.Wrap(err, "couldn't load form parameters")
+			}
+			if err := updateConnProfile(
+				c.Request().Context(), uid, "save and apply", formValues,
+			); err != nil {
+				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
+			}
+			// Redirect user
+			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		case "updated":
 			formValues, err := c.FormParams()
 			if err != nil {
@@ -321,10 +333,12 @@ func parseConnProfileSettingsWifiSecField(
 }
 
 func checkConnProfile(formValues url.Values) error {
-	wifiChannel := formValues["802-11-wireless.channel"][0]
-	wifiBand := formValues["802-11-wireless.band"][0]
-	if wifiChannel != "0" && wifiBand == "" {
-		return errors.Errorf("setting a non-zero channel (%s) requires setting a band", wifiChannel)
+	if rawWifiChannel, ok := formValues["802-11-wireless.channel"]; ok {
+		wifiChannel := rawWifiChannel[0]
+		wifiBand := formValues["802-11-wireless.band"][0]
+		if wifiChannel != "0" && wifiBand == "" {
+			return errors.Errorf("setting a non-zero channel (%s) requires setting a band", wifiChannel)
+		}
 	}
 	return nil
 }

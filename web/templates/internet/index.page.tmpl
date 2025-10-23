@@ -14,7 +14,7 @@
 
     <section class="section content">
       <h1>Internet Access</h1>
-      <p>TODO: manage Wi-Fi settings and internet access sharing</p>
+      <p>TODO: display an overview of internet connectivity from NetworkManager</p>
       <article class="message is-info two-card-width">
         <div class="message-body">
           This is a simplified view of your internet settings. If you're an experienced Linux system
@@ -25,54 +25,142 @@
     </section>
     <section class="section content">
       <h2 id="wifi">Wi-Fi</h2>
-      <p>TODO: make a toggle for whether to automatically connect to the preferred external network</p>
-      <h3>External network</h3>
-      <p>TODO: report whether a preferred network is registered</p>
-      <h4 class="is-inline">Detected networks</h4>
-      <turbo-frame id="{{.Meta.BasePath}}internet/wifi/networks">
-        <form
-          action="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
-          method="POST"
-          data-controller="form-submission"
-          data-action="submit->form-submission#submit"
-          class="mt-4"
-        >
-          <input type="hidden" name="state" value="refreshed">
-          <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
-          <div class="field">
-            <div class="control" data-form-submission-target="submitter">
+      {{if not .Data.Wlan0InternetConnProfile.HasData}}
+        <article class="message is-error two-card-width">
+          <div class="message-body">
+            The basic configuration file for internet access could not be found! Was it removed?
+            You might be able to troubleshoot this by opening the
+            <a href="{{.Meta.Path}}?mode=advanced">advanced view</a> of this page to check whether
+            the "wlan0-internet" connection profile is listed, and if so, what its contents are.
+            It should have ID "wlan0-internet" and be of type "wifi".
+          </div>
+        </article>
+      {{else}}
+        <p class="two-card-width">
+          This machine's internal Wi-Fi module (wlan0) can either connect to an
+          <strong>external Wi-Fi network</strong> created by a Wi-Fi router (to give this machine
+          internet access) or create its own <strong>Wi-Fi hotspot</strong> (as a way for your
+          computer to connect directly to this machine). Whenever a connection to an external Wi-Fi
+          network fails or is lost, this machine will automatically switch to creating its own Wi-Fi
+          hotspot instead.
+        </p>
+        <article class="message is-info two-card-width">
+          <div class="message-body">
+            Once this machine has started making its own Wi-Fi hotspot, it will not automatically
+            try to connect to the external Wi-Fi network before the next boot. However, you can
+            manually make the machine try to connect to the external Wi-Fi network by clicking the
+            "Use external network now" button further down this page.
+          </div>
+        </article>
+        <p>
+          TODO: we could simplify this behavior by making a system service which checks whether the
+          wlan0-internet profile's autoconnect behavior is enabled and, if so, deactivates
+          wlan0-hotspot and activates wlan0-internet instead whenever the wlan0-internet's network
+          is within range. This would effectively be a "always automatically try to connect"
+          behavior, instead of the "autoconnect only during boot" behavior which we currently have
+          with NetworkManager.
+        </p>
+        <div class="card section-card">
+          <div class="card-content">
+            <turbo-frame id="{{.Meta.BasePath}}internet/devices/wlan0/access-points">
+              <h3>External Wi-Fi network</h3>
+              <form
+                action="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
+                method="POST"
+                data-controller="form-submission"
+                data-action="submit->form-submission#submit"
+                data-turbo-frame="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
+                class="is-inline-block mb-3"
+              >
+                <!--
+                  FIXME: for some reason data-turbo-frame isn't working correctly. Maybe we can
+                  instead use Turbo Streams to update the list of networks instead?
+                -->
+                <input type="hidden" name="state" value="refreshed">
+                <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+                <div class="field">
+                  <div class="control" data-form-submission-target="submitter">
+                    <input
+                      class="button is-info"
+                      type="submit"
+                      value="Rescan networks"
+                      data-form-submission-target="submit"
+                    >
+                  </div>
+                </div>
+              </form>
+              {{
+                template "internet/external-network-form.partial.tmpl" dict
+                "ConnProfile" .Data.Wlan0InternetConnProfile
+                "AvailableSSIDs" .Data.AvailableSSIDs
+                "Meta" .Meta
+              }}
+            </turbo-frame>
+          </div>
+        </div>
+
+        <p class="two-card-width">
+          This machine can try to temporarily switch between connecting to the external network and
+          making the hotspot, before the next boot:
+        </p>
+        <div class="field is-grouped">
+          <div class="control">
+            {{$wlan0Internet := .Data.Wlan0InternetConnProfile}}
+            <form
+              action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Internet.Settings.Conn.UUID.String}}"
+              method="POST"
+              data-controller="form-submission"
+              data-action="submit->form-submission#submit"
+              data-form-submission-target="submitter"
+              class="mb-3"
+            >
+              <input type="hidden" name="state" value="activated-transiently">
+              <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
               <input
                 class="button is-primary"
                 type="submit"
-                value="Rescan networks"
+                value="Use external network now"
                 data-form-submission-target="submit"
               >
-            </div>
+            </form>
           </div>
-        </form>
-        <div class="block mb-5">
-          {{
-            template "internet/access-points-list.partial.tmpl" dict
-            "AvailableSSIDs" .Data.AvailableSSIDs
-          }}
+          <div class="control">
+          {{$wlan0Hotspot := .Data.Wlan0HotspotConnProfile}}
+          <form
+            action="{{.Meta.BasePath}}internet/conn-profiles/{{.Data.Wlan0HotspotConnProfile.Settings.Conn.UUID.String}}"
+            method="POST"
+            data-controller="form-submission"
+            data-action="submit->form-submission#submit"
+            data-form-submission-target="submitter"
+            class="mb-3"
+          >
+            <input type="hidden" name="state" value="activated-transiently">
+            <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+            <input
+              class="button is-primary"
+              type="submit"
+              value="Activate hotspot now"
+              data-form-submission-target="submit"
+            >
+          </form>
+          </div>
         </div>
-      </turbo-frame>
-      <h4>Preferred network</h4>
-      <p>TODO: make a form to set details about the preferred network</p>
-      <h3 id="wifi-devices">Devices</h3>
-      {{range $device := .Data.WifiDevices}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "Sections" (dict "basics" true)
-          "CollapseAll" false
-          "Meta" $.Meta
-        }}
+
+        <h3 id="wifi-devices">All modules</h3>
+        {{range $device := .Data.WifiDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "Sections" (dict "basics" true)
+            "CollapseAll" false
+            "Meta" $.Meta
+          }}
+        {{end}}
       {{end}}
     </section>
     <section class="section content">
       <h2 id="ethernet">Ethernet</h2>
-      <h3 id="ethernet-devices">Devices</h3>
+      <h3 id="ethernet-devices">All modules</h3>
       {{range $device := .Data.EthernetDevices}}
         {{
           template "internet/device-card.partial.tmpl" dict

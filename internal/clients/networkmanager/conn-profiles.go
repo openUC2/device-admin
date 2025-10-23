@@ -19,6 +19,10 @@ type ConnProfile struct {
 	Settings ConnProfileSettings
 }
 
+func (p ConnProfile) HasData() bool {
+	return p.Filename != "" || !p.Flags.HasNone() || p.Settings.HasData()
+}
+
 type ConnProfileFlags uint32
 
 func (f ConnProfileFlags) HasNone() bool {

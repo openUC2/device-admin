@@ -21,6 +21,10 @@ type ConnProfileSettings struct {
 	IPv6 ConnProfileSettingsIPv6 // ipv6
 }
 
+func (s ConnProfileSettings) HasData() bool {
+	return s.Conn != ConnProfileSettingsConn{}
+}
+
 type ConnProfileSettingsConn struct {
 	AuthRetries         int32
 	Autoconnect         bool
