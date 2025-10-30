@@ -20,7 +20,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v5
@@ -43,7 +43,7 @@ jobs:
           path: dist
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.1
         with:
           files: ./coverage.out
           flags: ${{ runner.os }}
@@ -51,7 +51,7 @@ jobs:
   release-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
