@@ -29,12 +29,6 @@
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
-    "Href" (print .Meta.BasePath "identity")
-    "Name" "Identity" "MetaPath" .Meta.Path
-  }}
-  {{
-    template "shared/nav/navlink.partial.tmpl" dict
-    "Display" true
     "Href" (print .Meta.BasePath "internet")
     "Name" "Internet" "MetaPath" .Meta.Path
   }}
@@ -43,12 +37,6 @@
     "Display" true
     "Href" (print .Meta.BasePath "remote")
     "Name" "Remote" "MetaPath" .Meta.Path
-  }}
-  {{
-    template "shared/nav/navlink.partial.tmpl" dict
-    "Display" true
-    "Href" (print .Meta.BasePath "os-config")
-    "Name" "OS" "MetaPath" .Meta.Path
   }}
 {{end}}
 
