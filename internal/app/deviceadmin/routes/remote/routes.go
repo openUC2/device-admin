@@ -41,8 +41,6 @@ type RemoteViewData struct {
 	Online bool
 	// KeyExpiration time.Time
 	NetworkName string
-
-	RemoteAssistNetwork string
 }
 
 func getRemoteViewData(ctx context.Context, tc *ts.Client) (vd RemoteViewData, err error) {
@@ -70,8 +68,6 @@ func getRemoteViewData(ctx context.Context, tc *ts.Client) (vd RemoteViewData, e
 	if tailnet != nil {
 		vd.NetworkName = tailnet.Name
 	}
-
-	vd.RemoteAssistNetwork = tc.Config.KnownTailnet
 
 	return vd, nil
 }
