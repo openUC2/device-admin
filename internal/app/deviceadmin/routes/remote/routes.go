@@ -3,6 +3,8 @@ package remote
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"net/netip"
 
 	"github.com/labstack/echo/v4"
@@ -26,6 +28,8 @@ func New(r godest.TemplateRenderer, tsc *ts.Client) *Handlers {
 
 func (h *Handlers) Register(er godest.EchoRouter) {
 	er.GET(h.r.BasePath+"remote", h.HandleRemoteGet())
+	// assistance
+	er.POST(h.r.BasePath+"remote/assistance", h.HandleAssistancePost())
 }
 
 type RemoteViewData struct {
@@ -83,5 +87,34 @@ func (h *Handlers) HandleRemoteGet() echo.HandlerFunc {
 		}
 		// Produce output
 		return h.r.CacheablePage(c.Response(), c.Request(), t, remoteViewData, struct{}{})
+	}
+}
+
+func (h *Handlers) HandleAssistancePost() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Parse params
+		state := c.FormValue("state")
+		redirectTarget := c.FormValue("redirect-target")
+
+		// Run queries
+		switch state {
+		default:
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
+				"invalid connection profiles state %s", state,
+			))
+		case "enabled":
+			deviceAuthKey := c.FormValue("device-authentication-key")
+			if err := h.tsc.Provision(c.Request().Context(), deviceAuthKey); err != nil {
+				return err
+			}
+			// Redirect user
+			return c.Redirect(http.StatusSeeOther, redirectTarget)
+		case "disabled":
+			if err := h.tsc.Deprovision(c.Request().Context()); err != nil {
+				return err
+			}
+			// Redirect user
+			return c.Redirect(http.StatusSeeOther, redirectTarget)
+		}
 	}
 }

@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
 	tcl "tailscale.com/client/local"
+	"tailscale.com/ipn"
 	"tailscale.com/ipn/ipnstate"
 )
 
@@ -24,6 +26,31 @@ func NewClient(c Config, l godest.Logger) *Client {
 		ts:     &ts,
 		l:      l,
 	}
+}
+
+func (c *Client) Provision(ctx context.Context, deviceAuthKey string) error {
+	prefs, err := c.ts.GetPrefs(ctx)
+	if err != nil {
+		return errors.Wrap(err, "couldn't check current Tailscale preferences")
+	}
+	if err = c.ts.CheckPrefs(ctx, prefs); err != nil {
+		return errors.Wrap(err, "couldn't validate Tailscale preferences")
+	}
+	prefs.WantRunning = true
+	if err := c.ts.Start(ctx, ipn.Options{
+		AuthKey:     deviceAuthKey,
+		UpdatePrefs: prefs,
+	}); err != nil {
+		return errors.Wrap(err, "couldn't make Tailscale start with the provided device auth key")
+	}
+	if err := c.ts.StartLoginInteractive(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) Deprovision(ctx context.Context) error {
+	return c.ts.Logout(ctx)
 }
 
 func (c *Client) GetStatus(ctx context.Context) (status *ipnstate.Status, err error) {

@@ -1,7 +1,7 @@
 {{template "shared/base.layout.tmpl" .}}
 
 {{define "title"}}Remote Access{{end}}
-{{define "description"}}Manage configurations for remote access{{end}}
+{{define "description"}}Manage settings for remote access{{end}}
 
 {{define "content"}}
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
@@ -14,10 +14,88 @@
 
     <section class="section content">
       <h1>Remote Access</h1>
-      <h2>Remote assistance</h2>
-      <h2>Remote access agent</h2>
+    </section>
+
+    <section class="section content">
+      <div class="card section-card">
+        <div class="card-content">
+          <h2>Remote assistance</h2>
+          {{if eq .Data.NetworkName ""}}
+            <p>
+              Enter the device authentication key given to you by the person helping you, so that
+              they can remotely access your machine:
+            </p>
+            <form
+              action="{{.Meta.BasePath}}remote/assistance"
+              method="POST"
+              data-controller="form-submission"
+              data-action="submit->form-submission#submit"
+              class="is-inline-block mt-3"
+            >
+              <input type="hidden" name="state" value="enabled">
+              <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+              <div class="field">
+                <input
+                  class="input" type="text"
+                  name="device-authentication-key"
+                  minlength=1
+                  required
+                  autocomplete="off"
+                  size=30
+                >
+              </div>
+              <article class="message is-warning two-card-width">
+                <div class="message-body">
+                  You should not use a device authentication key from anyone you don't fully trust!
+                  They may have full access to everything on your machine.
+                </div>
+              </article>
+              <div class="field">
+                <div class="control" data-form-submission-target="submitter">
+                  <input
+                    class="button is-info"
+                    type="submit"
+                    value="Enable"
+                    data-form-submission-target="submit"
+                    placeholder="ts-key-auth-..."
+                  >
+                </div>
+              </div>
+            </form>
+          {{else}}
+            <p>
+              Remote assistance is allowed over the <strong>{{.Data.NetworkName}}</strong> network.
+              To stop allowing remote access through that network, disable remote assistance:
+            </p>
+            <form
+              action="{{.Meta.BasePath}}remote/assistance"
+              method="POST"
+              data-controller="form-submission"
+              data-action="submit->form-submission#submit"
+              class="is-inline-block mt-3"
+            >
+              <input type="hidden" name="state" value="disabled">
+              <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+              <div class="field">
+                <div class="control" data-form-submission-target="submitter">
+                  <input
+                    class="button is-info"
+                    type="submit"
+                    value="Disable"
+                    data-form-submission-target="submit"
+                  >
+                </div>
+              </div>
+            </form>
+          {{end}}
+        </div>
+      </div>
+    </section>
+
+    <section class="section content">
+      <h2>Remote-access agent</h2>
       <p>
-        The remote access agent (Tailscale) makes your machine available for remote connections.
+        The remote-access agent (Tailscale) makes your machine available for remote connections.
       </p>
 
       <p>
@@ -42,14 +120,12 @@
         Connectivity:
         {{if .Data.Online}}
           <span class="tag is-success">
-            online
+            connected
           </span>
         {{else}}
           <span class="tag is-warning">
-            offline
+            <abbr title="not connected to the remote-access network">disconnected</abbr>
           </span>
-          (please check your machine's internet connection settings
-          <a href="{{.Meta.BasePath}}internet">here</a>)
         {{end}}
       </p>
 
