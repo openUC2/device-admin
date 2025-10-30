@@ -1,5 +1,4 @@
-// Package networkmanager provides an interface for NetworkManager functionalities not exposed by
-// nmstate.
+// Package networkmanager provides an interface for NetworkManager via its D-Bus API.
 package networkmanager
 
 import (

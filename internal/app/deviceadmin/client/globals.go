@@ -8,6 +8,7 @@ import (
 
 	"github.com/openUC2/device-admin/internal/app/deviceadmin/conf"
 	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	"github.com/openUC2/device-admin/internal/clients/tailscale"
 	"github.com/openUC2/device-admin/internal/clients/templates"
 )
 
@@ -23,6 +24,7 @@ type Globals struct {
 
 	Templates      *templates.Client
 	NetworkManager *networkmanager.Client
+	Tailscale      *tailscale.Client
 }
 
 func NewBaseGlobals(config conf.Config, l godest.Logger) (g *BaseGlobals, err error) {
@@ -54,6 +56,12 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 		return nil, errors.Wrap(err, "couldn't set up networkmanager config")
 	}
 	g.NetworkManager = networkmanager.NewClient(networkManagerConfig, g.Base.Logger)
+
+	tailscaleConfig, err := tailscale.GetConfig()
+	if err != nil {
+		return nil, errors.Wrap(err, "couldn't set up tailscale config")
+	}
+	g.Tailscale = tailscale.NewClient(tailscaleConfig, g.Base.Logger)
 
 	return g, nil
 }
