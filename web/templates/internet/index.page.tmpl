@@ -14,7 +14,7 @@
 
     <section class="section content">
       <h1>Internet Access</h1>
-      <p>TODO: display an overview of internet connectivity from NetworkManager</p>
+      <!-- <p>TODO: display an overview of internet connectivity from NetworkManager</p> -->
       <article class="message is-info two-card-width">
         <div class="message-body">
           This is a simplified view of your internet settings. If you're an experienced Linux system
@@ -52,14 +52,16 @@
             "Use external network now" button further down this page.
           </div>
         </article>
-        <p>
-          TODO: we could simplify this behavior by making a system service which checks whether the
-          wlan0-internet profile's autoconnect behavior is enabled and, if so, deactivates
-          wlan0-hotspot and activates wlan0-internet instead whenever the wlan0-internet's network
-          is within range. This would effectively be a "always automatically try to connect"
-          behavior, instead of the "autoconnect only during boot" behavior which we currently have
-          with NetworkManager.
-        </p>
+        <!--
+          <p>
+            TODO: simplify this behavior by making a system service which checks whether the
+            wlan0-internet profile's autoconnect behavior is enabled and, if so, deactivate
+            wlan0-hotspot and activate wlan0-internet instead whenever the wlan0-internet's network
+            is within range. This would effectively be a "always automatically try to connect"
+            behavior, instead of the "autoconnect only during boot" behavior which we currently have
+            with NetworkManager.
+          </p>
+        -->
         <div class="card section-card">
           <div class="card-content">
             <turbo-frame id="{{.Meta.BasePath}}internet/devices/wlan0/access-points">
@@ -72,10 +74,6 @@
                 data-turbo-frame="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
                 class="is-inline-block mb-3"
               >
-                <!--
-                  FIXME: for some reason data-turbo-frame isn't working correctly. Maybe we can
-                  instead use Turbo Streams to update the list of networks instead?
-                -->
                 <input type="hidden" name="state" value="refreshed">
                 <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
                 <div class="field">
@@ -89,13 +87,20 @@
                   </div>
                 </div>
               </form>
-              {{
-                template "internet/external-network-form.partial.tmpl" dict
-                "ConnProfile" .Data.Wlan0InternetConnProfile
-                "AvailableSSIDs" .Data.AvailableSSIDs
-                "Meta" .Meta
-              }}
+              <datalist id="{{.Meta.BasePath}}internet/devices/wlan0/access-points/list">
+                {{range $ssid := .Data.AvailableSSIDs}}
+                  {{if not $ssid}}
+                    {{continue}}
+                  {{end}}
+                  <option value="{{$ssid}}"></option>
+                {{end}}
+              </datalist>
             </turbo-frame>
+            {{
+              template "internet/external-network-form.partial.tmpl" dict
+              "ConnProfile" .Data.Wlan0InternetConnProfile
+              "Meta" .Meta
+            }}
           </div>
         </div>
 

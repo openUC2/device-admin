@@ -1,5 +1,4 @@
 {{$connProfile := (get . "ConnProfile")}}
-{{$availableSSIDs := (get . "AvailableSSIDs")}}
 {{$Meta := (get . "Meta")}}
 
 {{$conn := $connProfile.Settings.Conn}}
@@ -27,16 +26,6 @@
         required
         size=30
       >
-      <turbo-frame id="{{$Meta.BasePath}}internet/devices/wlan0/access-points">
-        <datalist id="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list">
-          {{range $ssid := $availableSSIDs}}
-            {{if not $ssid}}
-              {{continue}}
-            {{end}}
-            <option value="{{$ssid}}"></option>
-          {{end}}
-        </datalist>
-      </turbo-frame>
     </div>
   </div>
 
