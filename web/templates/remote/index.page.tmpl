@@ -153,21 +153,23 @@
         </p>
       {{end}}
 
-      {{if gt (len .Data.IPs) 0}}
-        <p>
-          <abbr title="the IP addresses of your machine within the remote-access network">
-            IP addresses
-            {{- /* make template ignore the line break */ -}}
-          </abbr>:
-          <ul>
-            {{range $ipAddr := .Data.IPs}}
-              <li>
-                <span class="tag ip-address">{{$ipAddr}}</span>
-              </li>
-            {{end}}
-          </ul>
-        </p>
-      {{end}}
+      <!-- We hide this info because it's on the tailscale web UI, and it's advanced info:
+        {{if gt (len .Data.IPs) 0}}
+          <p>
+            <abbr title="the IP addresses of your machine within the remote-access network">
+              IP addresses
+              {{- /* make template ignore the line break */ -}}
+            </abbr>:
+            <ul>
+              {{range $ipAddr := .Data.IPs}}
+                <li>
+                  <span class="tag ip-address">{{$ipAddr}}</span>
+                </li>
+              {{end}}
+            </ul>
+          </p>
+        {{end}}
+      --> 
       <p>
         You can view more information on this device's
         <a href="{{.Meta.BasePath}}remote/tailscale/details" target="_blank">Tailscale web UI</a>.
