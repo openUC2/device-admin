@@ -92,14 +92,20 @@ func (s *Server) configureHeaders(e *echo.Echo) error {
 	cspBuilder := cspbuilder.Builder{
 		Directives: map[string][]string{
 			cspbuilder.DefaultSrc: {"'self'"},
-			cspbuilder.ScriptSrc: append(
-				// Warning: script-src 'self' may not be safe to use if we're hosting user-uploaded content.
-				// Then we'll need to provide hashes for scripts & styles we include by URL, and we'll need
-				// to add the SRI integrity attribute to the tags including those files; however, it's
-				// unclear how well-supported they are by browsers.
-				[]string{"'self'", "'unsafe-inline'"},
-				s.Inlines.ComputeJSHashesForCSP()...,
-			),
+			// Note: the following is needed for the Tailscale web GUI to check device status (but the GUI
+			// still works without this permission, it just doesn't report device status):
+			cspbuilder.ConnectSrc: {"*"},
+			// Note: script-src "unsafe-inline" (which is ignored if we provide one or more hashes for
+			// CSP) is needed by the Tailscale web GUI:
+			cspbuilder.ScriptSrc: {"'self'", "'unsafe-inline'"},
+			// cspbuilder.ScriptSrc: append(
+			// 	// Warning: script-src 'self' may not be safe to use if we're hosting user-uploaded content.
+			// 	// Then we'll need to provide hashes for scripts & styles we include by URL, and we'll need
+			// 	// to add the SRI integrity attribute to the tags including those files; however, it's
+			// 	// unclear how well-supported they are by browsers.
+			// 	[]string{"'self'", "'unsafe-inline'"},
+			// 	s.Inlines.ComputeJSHashesForCSP()...,
+			// ),
 			cspbuilder.StyleSrc: append(
 				[]string{
 					"'self'",
@@ -108,9 +114,10 @@ func (s *Server) configureHeaders(e *echo.Echo) error {
 				},
 				s.Inlines.ComputeCSSHashesForCSP()...,
 			),
-			cspbuilder.ObjectSrc:      {"'none'"},
-			cspbuilder.ChildSrc:       {"'self'"},
-			cspbuilder.ImgSrc:         {"*"},
+			cspbuilder.ObjectSrc: {"'none'"},
+			cspbuilder.ChildSrc:  {"'self'"},
+			// Note: img-src with scheme "data:" is needed by the Tailscale web GUI:
+			cspbuilder.ImgSrc:         {"*", "data:"},
 			cspbuilder.BaseURI:        {"'none'"},
 			cspbuilder.FormAction:     {"'self'"},
 			cspbuilder.FrameAncestors: {"'none'"},
@@ -145,17 +152,23 @@ func (s *Server) Register(e *echo.Echo) error {
 	// Compression Middleware
 	e.Use(middleware.Decompress())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
-		Level: s.Globals.Config.HTTP.GzipLevel,
+		Level:   s.Globals.Config.HTTP.GzipLevel,
+		Skipper: s.Handlers.GzipSkipper,
 	}))
 
 	// Other Middleware
-	e.Pre(middleware.RemoveTrailingSlash())
-	e.Use(gmw.RequireContentTypes(echo.MIMEApplicationForm))
+	e.Pre(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
+		Skipper: s.Handlers.TrailingSlashSkipper,
+	}))
+	// application/JSON is needed by the Tailscale web GUI:
+	e.Use(gmw.RequireContentTypes(echo.MIMEApplicationForm, echo.MIMEApplicationJSON))
 	// TODO: enable Prometheus and rate-limiting
 
 	// Handlers
 	e.HTTPErrorHandler = NewHTTPErrorHandler(s.Renderer, s.Embeds.TemplatesFS)
-	s.Handlers.Register(e, s.Embeds)
+	if err := s.Handlers.Register(e, s.Embeds); err != nil {
+		return errors.Wrap(err, "couldn't register HTTP route handlers")
+	}
 
 	return nil
 }
@@ -185,6 +198,7 @@ func (s *Server) Shutdown(ctx context.Context, e *echo.Echo) (err error) {
 	// FIXME: e.Shutdown calls e.Server.Shutdown, which doesn't wait for WebSocket connections. When
 	// starting Echo, we need to call e.Server.RegisterOnShutdown with a function to gracefully close
 	// WebSocket connections!
+	s.Globals.Tailscale.Shutdown()
 	if errEcho := e.Shutdown(ctx); errEcho != nil {
 		s.Globals.Base.Logger.Error(errors.Wrap(errEcho, "couldn't shut down http server"))
 		err = errEcho

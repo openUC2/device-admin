@@ -95,7 +95,8 @@
     <section class="section content">
       <h2>Remote-access agent</h2>
       <p>
-        The remote-access agent (Tailscale) makes your machine available for remote connections.
+        The remote-access agent (Tailscale) makes your machine available for remote connections
+        through a Tailscale mesh VPN.
       </p>
 
       <p>
@@ -110,11 +111,13 @@
         </span>
       </p>
 
-      <p>
-        TODO: add buttons to temporarily and persistently start/stop tailscaled.service!
-        (if we've connected to the app using a ts.net DNS name, display a warning that stopping it
-        will make the DNS name stop working for us)
-      </p>
+      <!--
+        <p>
+          TODO: add buttons to temporarily and persistently start/stop tailscaled.service!
+          (if we've connected to the app using a ts.net DNS name, display a warning that stopping it
+          will make the DNS name stop working for us)
+        </p>
+      -->
 
       <p>
         Connectivity:
@@ -129,7 +132,9 @@
         {{end}}
       </p>
 
-      <p>TODO: add buttons to log out and log in to the tailnet</p>
+      <!--
+        <p>TODO: add buttons to log out and log in to the tailnet</p>
+      -->
 
       {{if not (eq .Data.NetworkName "")}}
         <p>
@@ -163,6 +168,10 @@
           </ul>
         </p>
       {{end}}
+      <p>
+        You can view more information on this device's
+        <a href="{{.Meta.BasePath}}remote/tailscale/details" target="_blank">Tailscale web UI</a>.
+      </p>
     </section>
   </main>
 {{end}}

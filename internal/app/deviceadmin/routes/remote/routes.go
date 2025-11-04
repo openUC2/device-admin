@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/netip"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
@@ -26,10 +27,32 @@ func New(r godest.TemplateRenderer, tsc *ts.Client) *Handlers {
 	}
 }
 
-func (h *Handlers) Register(er godest.EchoRouter) {
+func (h *Handlers) Register(er godest.EchoRouter) error {
 	er.GET(h.r.BasePath+"remote", h.HandleRemoteGet())
 	// assistance
 	er.POST(h.r.BasePath+"remote/assistance", h.HandleAssistancePost())
+	// tailscale
+	tsws, err := h.tsc.InitWebServer(h.r.BasePath + "remote/tailscale")
+	if err != nil {
+		return err
+	}
+	er.GET(h.r.BasePath+"remote/tailscale/", echo.WrapHandler(tsws))
+	er.GET(h.r.BasePath+"remote/tailscale/*", echo.WrapHandler(tsws))
+	er.POST(h.r.BasePath+"remote/tailscale/*", echo.WrapHandler(tsws))
+	er.PATCH(h.r.BasePath+"remote/tailscale/*", echo.WrapHandler(tsws))
+	return nil
+}
+
+func (h *Handlers) TrailingSlashSkipper(c echo.Context) bool {
+	// Tailscale's web UI page assumes that the web page has a trailing slash for loading its JS and
+	// CSS assets from relative paths:
+	return c.Request().URL.Path == h.r.BasePath+"remote/tailscale/"
+}
+
+func (h *Handlers) GzipSkipper(c echo.Context) bool {
+	// We skip gzip for the Tailscale web GUI because its HTTP handler already does its own gzip
+	// compression, and HTTP clients assume that responses don't have two or more layers of gzipping:
+	return strings.HasPrefix(c.Request().URL.Path, h.r.BasePath+"remote/tailscale/")
 }
 
 type RemoteViewData struct {
