@@ -14,7 +14,7 @@ require (
 	github.com/sargassum-world/godest v0.6.1
 	github.com/unrolled/secure v1.17.0
 	golang.org/x/sync v0.17.0
-	tailscale.com v1.90.4
+	tailscale.com v1.90.6
 )
 
 require (
