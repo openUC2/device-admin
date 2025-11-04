@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
 	tcl "tailscale.com/client/local"
+	tsw "tailscale.com/client/web"
 	"tailscale.com/ipn"
 	"tailscale.com/ipn/ipnstate"
 )
@@ -15,8 +16,9 @@ import (
 type Client struct {
 	Config Config
 
-	ts *tcl.Client
-	l  godest.Logger
+	ts   *tcl.Client
+	tsws *tsw.Server
+	l    godest.Logger
 }
 
 func NewClient(c Config, l godest.Logger) *Client {
@@ -25,6 +27,25 @@ func NewClient(c Config, l godest.Logger) *Client {
 		Config: c,
 		ts:     &ts,
 		l:      l,
+	}
+}
+
+func (c *Client) InitWebServer(basePath string) (tsws *tsw.Server, err error) {
+	if c.tsws, err = tsw.NewServer(tsw.ServerOpts{
+		Mode:        tsw.LoginServerMode,
+		CGIMode:     true,
+		PathPrefix:  basePath,
+		LocalClient: c.ts,
+		Logf:        c.l.Printf,
+	}); err != nil {
+		return nil, errors.Wrap(err, "couldn't initialize server for Tailscale web GUI")
+	}
+	return c.tsws, nil
+}
+
+func (c *Client) Shutdown() {
+	if c.tsws != nil {
+		c.tsws.Shutdown()
 	}
 }
 
