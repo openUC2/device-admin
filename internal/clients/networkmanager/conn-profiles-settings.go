@@ -139,7 +139,7 @@ func dumpConnProfileSettingsConn(
 		return s, err
 	}
 
-	if s.InterfaceName, err = ensureVar(rawSettings, "interface-name", "", true, ""); err != nil {
+	if s.InterfaceName, err = ensureVar(rawSettings, "interface-name", "", false, ""); err != nil {
 		return s, err
 	}
 
