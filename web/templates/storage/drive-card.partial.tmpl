@@ -1,0 +1,75 @@
+{{$drive := (get . "Drive")}}
+{{$blockDevices := (get . "BlockDevices")}}
+{{$diskUsages := (get . "DiskUsages")}}
+{{$isSystem := (get . "IsSystem")}}
+{{$sections := (get . "Sections")}}
+{{$collapseAll := (get . "CollapseAll")}}
+{{$Meta := (get . "Meta")}}
+
+<turbo-frame id="{{$Meta.BasePath}}storage/drives/{{$drive.ID}}">
+  <article class="panel entity-panel" id="drive-{{$drive.ID}}">
+    <header class="panel-heading">{{$drive.ID}}</header>
+
+    {{if or (not $sections) (get $sections "basics")}}
+      <details
+        data-accordion-item
+        class="panel-block accordion-item"
+        {{if not $collapseAll}}
+          open
+        {{end}}
+      >
+        <summary class="accordion-header level">
+          Basic status
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+        </summary>
+        <div class="accordion-content">
+          {{
+            template "storage/drive-basics.partial.tmpl" dict
+            "Drive" $drive
+            "BlockDevices" $blockDevices
+            "DiskUsages" $diskUsages
+            "IsSystem" $isSystem
+            "Meta" $Meta
+          }}
+        </div>
+      </details>
+    {{end}}
+
+    {{if or (not $sections) (get $sections "block-devices")}}
+      <details
+        data-accordion-item
+        class="panel-block accordion-item"
+      >
+        <summary class="accordion-header level">
+          Block devices
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+        </summary>
+        <div class="accordion-content">
+          {{
+            template "storage/drive-block-devices.partial.tmpl" dict
+            "BlockDevices" $blockDevices
+            "DiskUsages" $diskUsages
+            "IsSystem" $isSystem
+            "Meta" $Meta
+          }}
+        </div>
+      </details>
+    {{end}}
+
+    {{if or (not $sections) (get $sections "other")}}
+      <details data-accordion-item class="panel-block accordion-item">
+        <summary class="accordion-header level">
+          Other
+          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+        </summary>
+        <div class="accordion-content">
+          {{
+            template "storage/drive-other.partial.tmpl" dict
+            "Drive" $drive
+          }}
+        </div>
+      </details>
+    {{end}}
+
+  </article>
+</turbo-frame>

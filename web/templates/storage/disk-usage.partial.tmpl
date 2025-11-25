@@ -1,0 +1,23 @@
+{{$diskUsage := .}}
+
+<label>
+  Disk usage:
+  {{round (divf $diskUsage.Used 1000000000) 1}} GB
+  (of {{round (divf $diskUsage.Size 1000000000) 1}} GB)
+  <progress
+    class="
+      {{if lt $diskUsage.RatioUsed 0.5}}
+        is-success
+      {{else if lt $diskUsage.RatioUsed 0.8}}
+        is-warning
+      {{else}}
+        is-danger
+      {{end}}
+      progress
+    "
+    value="{{$diskUsage.Used}}"
+    max="{{$diskUsage.Size}}"
+  >
+    {{round (mulf 100.0 $diskUsage.RatioUsed) 0}}%
+  </progress>
+</label>
