@@ -1,0 +1,57 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title"}}Storage Drives{{end}}
+{{define "description"}}Manage settings for data storage drives{{end}}
+
+{{define "content"}}
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+      <ul>
+        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
+        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Storage</a></li>
+      </ul>
+    </nav>
+
+    <section class="section content">
+      <h1>Storage Drives</h1>
+    </section>
+
+    {{if gt (len .Data.RemovableDrives) 0}}
+      <section class="section content">
+        <h2>Removable drives</h2>
+        <p>These devices are probably external USB drives.</p>
+        {{range $drive := .Data.RemovableDrives}}
+          {{
+            template "storage/drive-card.partial.tmpl" dict
+            "Drive" $drive
+            "BlockDevices" (index $.Data.BlockDevices $drive.ID)
+            "DiskUsages" (index $.Data.DiskUsages $drive.ID)
+            "IsSystem" false
+            "CollapseAll" false
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </section>
+    {{end}}
+
+    <section class="section content">
+      <h2>System drives</h2>
+      <p>
+        These devices are probably required for running the operating system. Don't unplug them!
+      </p>
+      {{range $drive := .Data.SystemDrives}}
+        {{
+          template "storage/drive-card.partial.tmpl" dict
+          "Drive" $drive
+          "BlockDevices" (index $.Data.BlockDevices $drive.ID)
+          "DiskUsages" (index $.Data.DiskUsages $drive.ID)
+          "IsSystem" true
+          "CollapseAll" false
+          "Meta" $.Meta
+        }}
+      {{else}}
+        <p>(none detected!)</p>
+      {{end}}
+    </section>
+  </main>
+{{end}}

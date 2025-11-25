@@ -29,14 +29,20 @@
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
+    "Href" (print .Meta.BasePath "remote")
+    "Name" "Remote" "MetaPath" .Meta.Path
+  }}
+  {{
+    template "shared/nav/navlink.partial.tmpl" dict
+    "Display" true
     "Href" (print .Meta.BasePath "internet")
     "Name" "Internet" "MetaPath" .Meta.Path
   }}
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
-    "Href" (print .Meta.BasePath "remote")
-    "Name" "Remote" "MetaPath" .Meta.Path
+    "Href" (print .Meta.BasePath "storage")
+    "Name" "Storage" "MetaPath" .Meta.Path
   }}
 {{end}}
 

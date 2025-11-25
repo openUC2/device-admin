@@ -13,6 +13,7 @@ import (
 	"github.com/openUC2/device-admin/internal/app/deviceadmin/routes/internet"
 	"github.com/openUC2/device-admin/internal/app/deviceadmin/routes/osconfig"
 	"github.com/openUC2/device-admin/internal/app/deviceadmin/routes/remote"
+	"github.com/openUC2/device-admin/internal/app/deviceadmin/routes/storage"
 )
 
 type Handlers struct {
@@ -39,6 +40,7 @@ func (h *Handlers) Register(er godest.EchoRouter, em godest.Embeds) error {
 	if err := h.remote.Register(er); err != nil {
 		return errors.Wrap(err, "couldn't register handlers for remote routes")
 	}
+	storage.New(h.r, h.globals.UDisks2).Register(er)
 	osconfig.New(h.r).Register(er)
 	return nil
 }

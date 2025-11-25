@@ -86,8 +86,6 @@ func getConnProfileViewData(
 }
 
 func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
-	t := "internet/conn-profiles/index.page.tmpl"
-	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Parse params
 		rawUUID := c.Param("uuid")
