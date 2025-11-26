@@ -17,10 +17,12 @@
     </section>
 
     <section class="section content">
+      {{$stateInfo := .Data.State.Info}}
+
       <div class="card section-card">
         <div class="card-content">
           <h2>Remote assistance</h2>
-          {{if eq .Data.NetworkName ""}}
+          {{if or (eq .Data.NetworkName "") (eq $stateInfo.Short "stopped")}}
             <p>
               Enter the device authentication key given to you by the person helping you, so that
               they can remotely access your machine:
@@ -100,7 +102,6 @@
       </p>
 
       <p>
-        {{$stateInfo := .Data.State.Info}}
         Status:
         <span class="tag is-{{$stateInfo.Level}}">
           {{if $stateInfo.Details}}

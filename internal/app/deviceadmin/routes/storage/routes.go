@@ -17,12 +17,15 @@ import (
 type Handlers struct {
 	r   godest.TemplateRenderer
 	udc *ud.Client
+
+	l godest.Logger
 }
 
-func New(r godest.TemplateRenderer, udc *ud.Client) *Handlers {
+func New(r godest.TemplateRenderer, udc *ud.Client, l godest.Logger) *Handlers {
 	return &Handlers{
 		r:   r,
 		udc: udc,
+		l:   l,
 	}
 }
 
@@ -37,7 +40,7 @@ func (h *Handlers) HandleStorageGet() echo.HandlerFunc {
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries
-		remoteViewData, err := getStorageViewData(c.Request().Context())
+		remoteViewData, err := getStorageViewData(c.Request().Context(), h.l)
 		if err != nil {
 			return err
 		}
@@ -53,7 +56,7 @@ type StorageViewData struct {
 	DiskUsages      map[string]map[string]du.Usage // keyed by drive ID, then mount point
 }
 
-func getStorageViewData(ctx context.Context) (vd StorageViewData, err error) {
+func getStorageViewData(ctx context.Context, l godest.Logger) (vd StorageViewData, err error) {
 	drives, err := ud.GetDrives(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list storage drives")
@@ -68,8 +71,9 @@ func getStorageViewData(ctx context.Context) (vd StorageViewData, err error) {
 		vd.BlockDevices[dev.Drive.ID] = append(vd.BlockDevices[dev.Drive.ID], dev)
 		vd.DiskUsages[dev.Drive.ID] = make(map[string]du.Usage)
 		for _, mp := range dev.Filesystem.MountPoints {
-			// TODO: log our failure to check disk usage
-			vd.DiskUsages[dev.Drive.ID][mp], _ = du.GetUsage(mp)
+			if vd.DiskUsages[dev.Drive.ID][mp], err = du.GetUsage(mp); err != nil {
+				l.Warn(errors.Wrapf(err, "couldn't check disk usage of %s", mp))
+			}
 		}
 	}
 

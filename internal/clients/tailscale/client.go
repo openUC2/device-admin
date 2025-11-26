@@ -71,7 +71,13 @@ func (c *Client) Provision(ctx context.Context, deviceAuthKey string) error {
 }
 
 func (c *Client) Deprovision(ctx context.Context) error {
-	return c.ts.Logout(ctx)
+	_, err := c.ts.EditPrefs(ctx, &ipn.MaskedPrefs{
+		Prefs: ipn.Prefs{
+			WantRunning: false,
+		},
+		WantRunningSet: true,
+	})
+	return err
 }
 
 func (c *Client) GetStatus(ctx context.Context) (status *ipnstate.Status, err error) {

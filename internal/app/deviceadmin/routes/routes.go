@@ -40,7 +40,7 @@ func (h *Handlers) Register(er godest.EchoRouter, em godest.Embeds) error {
 	if err := h.remote.Register(er); err != nil {
 		return errors.Wrap(err, "couldn't register handlers for remote routes")
 	}
-	storage.New(h.r, h.globals.UDisks2).Register(er)
+	storage.New(h.r, h.globals.UDisks2, h.globals.Base.Logger).Register(er)
 	osconfig.New(h.r).Register(er)
 	return nil
 }
