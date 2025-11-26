@@ -68,9 +68,8 @@ func getStorageViewData(ctx context.Context) (vd StorageViewData, err error) {
 		vd.BlockDevices[dev.Drive.ID] = append(vd.BlockDevices[dev.Drive.ID], dev)
 		vd.DiskUsages[dev.Drive.ID] = make(map[string]du.Usage)
 		for _, mp := range dev.Filesystem.MountPoints {
-			if vd.DiskUsages[dev.Drive.ID][mp], err = du.GetUsage(mp); err != nil {
-				return vd, errors.Wrapf(err, "couldn't check disk usage of %s", mp)
-			}
+			// TODO: log our failure to check disk usage
+			vd.DiskUsages[dev.Drive.ID][mp], _ = du.GetUsage(mp)
 		}
 	}
 
