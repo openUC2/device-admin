@@ -5,12 +5,14 @@
 
 {{define "content"}}
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
-    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
-      <ul>
-        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
-        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Remote</a></li>
-      </ul>
-    </nav>
+    {{if ne (.Meta.Form.Get "nav") "hidden"}}
+      <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{.Meta.BasePath}}">Admin</a></li>
+          <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Remote</a></li>
+        </ul>
+      </nav>
+    {{end}}
 
     <section class="section content">
       <h1>Remote Access</h1>
@@ -35,7 +37,10 @@
               class="is-inline-block mt-3"
             >
               <input type="hidden" name="state" value="enabled">
-              <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                "path" .Meta.Path
+                "query" .Meta.Form.Encode
+              )}}">
               <div class="field">
                 <input
                   class="input" type="text"
@@ -77,7 +82,10 @@
               class="is-inline-block mt-3"
             >
               <input type="hidden" name="state" value="disabled">
-              <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                "path" .Meta.Path
+                "query" .Meta.Form.Encode
+              )}}">
               <div class="field">
                 <div class="control" data-form-submission-target="submitter">
                   <input

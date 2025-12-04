@@ -86,5 +86,7 @@ export default [
 	themeGenerator("light"),
 	themeGenerator("dark"),
 	bundleGenerator("eager", "appEager"),
+	bundleGenerator("eager-override-light", "appEager"),
+	bundleGenerator("eager-override-dark", "appEager"),
 	bundleGenerator("deferred", "app", "window"),
 ];

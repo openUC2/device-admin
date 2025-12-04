@@ -11,7 +11,10 @@
   data-action="submit->form-submission#submit"
 >
   <input type="hidden" name="state" value="updated">
-  <input type="hidden" name="redirect-target" value="{{$Meta.Path}}">
+  <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+    "path" $Meta.Path
+    "query" $Meta.Form.Encode
+  )}}">
   <div data-form-submission-target="submitter">
     <div class="field is-grouped">
       <div class="control">

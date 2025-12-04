@@ -39,11 +39,19 @@ var (
 	fontsFS, _ = fs.Sub(fontsEFS, "app/public/build/fonts")
 )
 
-//go:embed app/public/build/bundle-eager.js
-var bundleEagerJS string
+var (
+	//go:embed app/public/build/bundle-eager.js
+	bundleEagerJS string
 
-//go:embed app/public/build/theme-eager.css
-var bundleEagerCSS string
+	//go:embed app/public/build/bundle-eager-override-light.js
+	bundleEagerJSOverrideLight string
+
+	//go:embed app/public/build/bundle-eager-override-dark.js
+	bundleEagerJSOverrideDark string
+
+	//go:embed app/public/build/theme-eager.css
+	bundleEagerCSS string
+)
 
 func NewEmbeds() godest.Embeds {
 	return godest.Embeds{
@@ -66,6 +74,10 @@ func NewInlines() godest.Inlines {
 		JS: map[string]template.JS{
 			//nolint:gosec // This is generated from code in web/app/src, so we know it's well-formed
 			"BundleEager": template.JS(bundleEagerJS),
+			//nolint:gosec // This is generated from code in web/app/src, so we know it's well-formed
+			"BundleEagerOverrideLight": template.JS(bundleEagerJSOverrideLight),
+			//nolint:gosec // This is generated from code in web/app/src, so we know it's well-formed
+			"BundleEagerOverrideDark": template.JS(bundleEagerJSOverrideDark),
 		},
 	}
 }

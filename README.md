@@ -103,6 +103,14 @@ sudo HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" make run
 ```
 Note that `HTTP_BASEPATH` should end with a trailing slash.
 
+### Embedding
+
+Webpages can be embedded in other websites as iframes. For this, you may want to add the following GET query params to the webpage URL for the iframe:
+- `nav`: `hidden` to prevent the navbar from being displayed
+- `theme`: `dark` or `light` to override the theme settings saved in the localStorage of the user's web browser
+
+For example, your iframe could embed a URL like: `/admin/panel/internet?nav=hidden&theme=dark`.
+
 ## Licensing
 
 Except where otherwise indicated, source code provided here is covered by the following information:

@@ -29,20 +29,32 @@
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
-    "Href" (print .Meta.BasePath "remote")
-    "Name" "Remote" "MetaPath" .Meta.Path
+    "Href" (urlJoin (dict
+      "path" (print .Meta.BasePath "remote")
+      "query" .Meta.Form.Encode
+    ))
+    "Name" "Remote"
+    "Meta" .Meta
   }}
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
-    "Href" (print .Meta.BasePath "internet")
-    "Name" "Internet" "MetaPath" .Meta.Path
+    "Href" (urlJoin (dict
+      "path" (print .Meta.BasePath "internet")
+      "query" .Meta.Form.Encode
+    ))
+    "Name" "Internet"
+    "Meta" .Meta
   }}
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
-    "Href" (print .Meta.BasePath "storage")
-    "Name" "Storage" "MetaPath" .Meta.Path
+    "Href" (urlJoin (dict
+      "path" (print .Meta.BasePath "storage")
+      "query" .Meta.Form.Encode
+    ))
+    "Name" "Storage"
+    "Meta" .Meta
   }}
 {{end}}
 
@@ -71,7 +83,10 @@
         <span aria-hidden="true"></span>
       </a>
       <a
-        href="{{.Meta.BasePath}}"
+        href="{{urlJoin (dict
+          "path" .Meta.BasePath
+          "query" .Meta.Form.Encode
+        )}}"
         class="navbar-item brand-with-logo"
         id="main-nav-brand"
         data-turbo-permanent

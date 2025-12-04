@@ -12,7 +12,10 @@
   data-action="submit->form-submission#submit"
 >
   <input type="hidden" name="state" value="simplified-updated">
-  <input type="hidden" name="redirect-target" value="{{$Meta.Path}}">
+  <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+    "path" $Meta.Path
+    "query" $Meta.Form.Encode
+  )}}">
 
   <div class="field">
     <label class="label">Network</label>

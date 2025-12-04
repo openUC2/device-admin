@@ -9,11 +9,11 @@ import {
   LoadScrollController,
   NavigationLinkController,
   NavigationMenuController,
-  ThemeController,
   Turbo,
   TurboCableStreamSourceElement,
   TurboCacheController,
 } from '@sargassum-world/stimulated';
+import { ThemeController } from './sprinkles';
 
 Turbo.session.drive = true;
 

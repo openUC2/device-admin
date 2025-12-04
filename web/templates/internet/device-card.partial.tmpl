@@ -18,7 +18,7 @@
       >
         <summary class="accordion-header level">
           Basic status
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{
@@ -42,7 +42,7 @@
       >
         <summary class="accordion-header level">
           Connection profiles
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{
@@ -68,7 +68,7 @@
       >
         <summary class="accordion-header level">
           Wi-Fi
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{
@@ -88,7 +88,7 @@
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           IP configuration
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{if $device.IPv4Config}}
@@ -117,7 +117,7 @@
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           DNS configuration
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{if $device.IPv4Config.DNS.HasData}}
@@ -146,7 +146,7 @@
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           DHCP configuration
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{if $device.DHCPv4Config.HasData}}
@@ -172,7 +172,7 @@
       <details data-accordion-item class="panel-block accordion-item">
         <summary class="accordion-header level">
           Other
-          {{template "shared/accordion-icon.partial.tmpl" .Meta}}
+          {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
           {{
