@@ -1,3 +1,3 @@
-import { ThemeToggle } from "./sprinkles/util";
+import { ThemeToggle } from './sprinkles/util';
 
-ThemeToggle.onLoad("dark");
+ThemeToggle.onLoad('dark');

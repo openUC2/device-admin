@@ -1,1 +1,1 @@
-export * as ThemeToggle from "./theme-toggle";
+export * as ThemeToggle from './theme-toggle';
