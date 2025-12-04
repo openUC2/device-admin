@@ -89,7 +89,10 @@
 </p>
 
 <p>
-  <a href="{{$Meta.BasePath}}internet/devices/{{$interface}}/access-points" target="_top">
+  <a href="{{urlJoin (dict
+    "path" (print $Meta.BasePath "internet/devices/" $interface "/access-points")
+    "query" $Meta.Form.Encode
+  )}}" target="_top">
     Access points
   </a>
 </p>

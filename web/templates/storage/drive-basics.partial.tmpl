@@ -56,7 +56,10 @@
       class="is-inline-block"
     >
       <input type="hidden" name="state" value="unmounted">
-      <input type="hidden" name="redirect-target" value="{{$Meta.Path}}">
+      <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+        "path" $Meta.Path
+        "query" $Meta.Form.Encode
+      )}}">
       <div class="field">
         <div class="control" data-form-submission-target="submitter">
           <input

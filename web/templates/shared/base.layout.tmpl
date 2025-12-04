@@ -10,8 +10,13 @@
   <title>{{block "title" .}}{{end}} | Machine Administration</title>
 
   <style type="text/css">{{.Inlines.CSS.BundleEager}}</style>
+  {{$themeOverride := .Meta.Form.Get "theme"}}
   <noscript>
-    <link rel="stylesheet" href="{{.Meta.BasePath}}{{appHashed "theme-light.css"}}">
+    {{if eq $themeOverride "dark"}}
+      <link rel="stylesheet" href="{{.Meta.BasePath}}{{appHashed "theme-dark.css"}}">
+    {{else}}
+      <link rel="stylesheet" href="{{.Meta.BasePath}}{{appHashed "theme-light.css"}}">
+    {{end}}
   </noscript>
   <link
     id="light-theme"
@@ -25,8 +30,18 @@
     rel="preload"
     href="{{.Meta.BasePath}}{{appHashed "theme-dark.css"}}"
   >
-  <script>{{.Inlines.JS.BundleEager}}</script>
-  {{block "nav/navbar.assets" .}}{{end}}
+  <script>
+    {{if eq $themeOverride "dark"}}
+      {{.Inlines.JS.BundleEagerOverrideDark}}
+    {{else if eq $themeOverride "light"}}
+      {{.Inlines.JS.BundleEagerOverrideLight}}
+    {{else}}
+      {{.Inlines.JS.BundleEager}}
+    {{end}}
+  </script>
+  {{if ne (.Meta.Form.Get "nav") "hidden"}}
+    {{block "nav/navbar.assets" .}}{{end}}
+  {{end}}
   <!-- crossorigin is needed to preload fonts correctly -->
   <link
     rel="preload"
@@ -53,9 +68,15 @@
 </head>
 
 <body>
-  <div class="main-window is-flex is-flex-direction-column-touch is-flex-direction-row-desktop">
-    {{block "nav/navbar" .}}{{end}}
-    {{block "content" .}}{{end}}
-  </div>
+  {{if eq (.Meta.Form.Get "nav") "hidden"}}
+    <div class="main-window">
+      {{block "content" .}}{{end}}
+    </div>
+  {{else}}
+    <div class="main-window is-flex is-flex-direction-column-touch is-flex-direction-row-desktop">
+      {{block "nav/navbar" .}}{{end}}
+      {{block "content" .}}{{end}}
+    </div>
+  {{end}}
 </body>
 </html>

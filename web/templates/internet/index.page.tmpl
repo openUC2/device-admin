@@ -5,12 +5,14 @@
 
 {{define "content"}}
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
-    <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
-      <ul>
-        <li><a href="{{.Meta.BasePath}}">Admin</a></li>
-        <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Internet</a></li>
-      </ul>
-    </nav>
+    {{if ne (.Meta.Form.Get "nav") "hidden"}}
+      <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{.Meta.BasePath}}">Admin</a></li>
+          <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Internet</a></li>
+        </ul>
+      </nav>
+    {{end}}
 
     <section class="section content">
       <h1>Internet Access</h1>
@@ -19,7 +21,10 @@
         <div class="message-body">
           This is a simplified view of your internet settings. If you're an experienced Linux system
           administrator, you can also open the
-          <a href="{{.Meta.Path}}?mode=advanced">advanced view</a> of this page.
+          <a href="{{urlJoin (dict
+            "path" .Meta.Path
+            "query" (.Meta.Form.WithInstead "mode" "advanced").Encode
+          )}}">advanced view</a> of this page.
         </div>
       </article>
     </section>
@@ -30,7 +35,10 @@
           <div class="message-body">
             The basic configuration file for internet access could not be found! Was it removed?
             You might be able to troubleshoot this by opening the
-            <a href="{{.Meta.Path}}?mode=advanced">advanced view</a> of this page to check whether
+            <a href="{{urlJoin (dict
+              "path" .Meta.Path
+              "query" (.Meta.Form.WithInstead "mode" "advanced").Encode
+            )}}">advanced view</a> of this page to check whether
             the "wlan0-internet" connection profile is listed, and if so, what its contents are.
             It should have ID "wlan0-internet" and be of type "wifi".
           </div>
@@ -75,7 +83,10 @@
                 class="is-inline-block mb-3"
               >
                 <input type="hidden" name="state" value="refreshed">
-                <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                  "path" .Meta.Path
+                  "query" .Meta.Form.Encode
+                )}}">
                 <div class="field">
                   <div class="control" data-form-submission-target="submitter">
                     <input
@@ -120,7 +131,10 @@
               class="mb-3"
             >
               <input type="hidden" name="state" value="activated-transiently">
-              <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                "path" .Meta.Path
+                "query" .Meta.Form.Encode
+              )}}">
               <input
                 class="button is-primary"
                 type="submit"
@@ -140,7 +154,10 @@
             class="mb-3"
           >
             <input type="hidden" name="state" value="activated-transiently">
-            <input type="hidden" name="redirect-target" value="{{.Meta.Path}}">
+            <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+              "path" .Meta.Path
+              "query" .Meta.Form.Encode
+            )}}">
             <input
               class="button is-primary"
               type="submit"

@@ -1,13 +1,13 @@
 {{$display := get . "Display"}}
 {{$href := get . "Href"}}
 {{$name := get . "Name"}}
-{{$metaPath := get . "MetaPath"}}
+{{$Meta := get . "Meta"}}
 {{$clearCache := get . "ClearCache"}}
 
 {{if $display}}
   <a
     href="{{$href}}"
-    {{if hasPrefix $href $metaPath}}
+    {{if hasPrefix $href $Meta.Path}}
       class="navbar-item nav-link is-active"
     {{else}}
       class="navbar-item nav-link"

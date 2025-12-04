@@ -8,7 +8,10 @@
   </h4>
   <p>
     ID:
-    <a href="{{$Meta.BasePath}}internet/conn-profiles/{{$activeConn.UUID}}" target="_top">
+    <a href="{{urlJoin (dict
+      "path" (print $Meta.BasePath "internet/conn-profiles/" $activeConn.UUID)
+      "query" $Meta.Form.Encode
+    )}}" target="_top">
       {{$activeConn.ID}}
     </a>
   </p>
@@ -86,7 +89,10 @@
     <ul class="mt-0">
       {{range $conn := $availableConns}}
         <li>
-          <a href="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}" target="_top">{{$conn.ID}}</a>
+          <a href="{{urlJoin (dict
+            "path" (print $Meta.BasePath "internet/conn-profiles/" $conn.UUID)
+            "query" $Meta.Form.Encode
+          )}}" target="_top">{{$conn.ID}}</a>
         </li>
       {{end}}
     </ul>
