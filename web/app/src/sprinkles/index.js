@@ -1,1 +1,1 @@
-export { default as ThemeController } from "./theme.controller";
+export { default as ThemeController } from './theme.controller';
