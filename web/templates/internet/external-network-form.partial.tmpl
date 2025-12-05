@@ -29,6 +29,13 @@
         required
         size=30
       >
+      <p>
+        (you can view the full list of external Wi-Fi networks
+        <a href="{{urlJoin (dict
+          "path" (print $Meta.BasePath "internet/devices/wlan0/access-points")
+          "query" $Meta.Form.Encode
+        )}}" target="_blank">here</a>)
+      </p>
     </div>
   </div>
 

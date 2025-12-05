@@ -8,8 +8,14 @@
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
         <ul>
-          <li><a href="{{.Meta.BasePath}}">Admin</a></li>
-          <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">Remote</a></li>
+          <li><a href="{{urlJoin (dict
+            "path" .Meta.BasePath
+            "query" .Meta.Form.Encode
+          )}}">Admin</a></li>
+          <li class="is-active"><a href="{{urlJoin (dict
+            "path" .Meta.Path
+            "query" .Meta.Form.Encode
+          )}}" aria-current="page">Remote</a></li>
         </ul>
       </nav>
     {{end}}

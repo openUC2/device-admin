@@ -6,25 +6,30 @@
 
 {{define "content"}}
   {{$conn := .Data.ConnProfile.Settings.Conn}}
-  {{$internetPagePath := print (dir (dir .Meta.Path)) "?mode=advanced"}}
 
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
         <ul>
-          <li><a href="{{.Meta.BasePath}}?mode=advanced">Admin</a></li>
-          <li><a href="{{$internetPagePath}}" aria-current="page">Internet</a></li>
-          <li><a href="{{$internetPagePath}}#
-            {{- if eq $conn.Type.Info.Short "wifi" -}}
-              wifi
-            {{- else if eq $conn.Type.Info.Short "ethernet" -}}
-              ethernet
-            {{- else -}}
-              other
-            {{- end -}}
-            -conn-profiles" aria-current="page">
-            Connection profiles
-          </a></li>
+          <li><a href="{{urlJoin (dict
+            "path" .Meta.BasePath
+            "query" .Meta.Form.Encode
+          )}}">Admin</a></li>
+          <li><a href="{{urlJoin (dict
+            "path" (print .Meta.BasePath "internet")
+            "query" .Meta.Form.Encode
+          )}}" aria-current="page">Internet</a></li>
+          {{$connProfilesFragment := "other-conn-profiles"}}
+          {{if eq $conn.Type.Info.Short "wifi"}}
+            {{$connProfilesFragment = "wifi-conn-profiles"}}
+          {{else if eq $conn.Type.Info.Short "ethernet"}}
+            {{$connProfilesFragment = "ethernet-conn-profiles"}}
+          {{end}}
+          <li><a href="{{urlJoin (dict
+            "path" (print .Meta.BasePath "internet")
+            "query" .Meta.Form.Encode
+            "fragment" $connProfilesFragment
+          )}}" aria-current="page">Connection profiles</a></li>
           <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$conn.ID}}</a></li>
         </ul>
       </nav>
