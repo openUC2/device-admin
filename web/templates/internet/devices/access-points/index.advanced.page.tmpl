@@ -1,7 +1,7 @@
 {{template "shared/base.layout.tmpl" .}}
 
-{{define "title"}}External Wi-Fi networks | {{.Data.Interface}} | Devices | Internet Access {{end}}
-{{define "description"}}View available external Wi-Fi networks for device {{.Data.Interface}}{{end}}
+{{define "title"}}Access points | {{.Data.Interface}} | Devices | Internet Access {{end}}
+{{define "description"}}View available access points for device {{.Data.Interface}}{{end}}
 
 {{define "content"}}
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
@@ -29,13 +29,13 @@
           <li class="is-active"><a href="{{urlJoin (dict
             "path" .Meta.Path
             "query" .Meta.Form.Encode
-          )}}" aria-current="page">External Wi-Fi networks</a></li>
+          )}}" aria-current="page">Access points</a></li>
         </ul>
       </nav>
     {{end}}
 
     <section class="section content">
-      <h1>External Wi-Fi networks available for {{.Data.Interface}}</h1>
+      <h1>Access points for {{.Data.Interface}}</h1>
       <turbo-frame id="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points">
         <form
           action="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points"
@@ -66,9 +66,12 @@
             "AvailableSSIDs" .Data.AvailableSSIDs
             "AvailableAPs" .Data.AvailableAPs
             "Columns" (dict
-              "ssid" "Network Name"
+              "ssid" ""
               "strength" ""
               "frequency" ""
+              "mode" ""
+              "security" ""
+              "last-seen" ""
             )
           }}
         </div>

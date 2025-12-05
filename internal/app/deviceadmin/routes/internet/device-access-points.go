@@ -18,9 +18,12 @@ import (
 func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 	t := "internet/devices/access-points/index.page.tmpl"
 	h.r.MustHave(t)
+	ta := "internet/devices/access-points/index.advanced.page.tmpl"
+	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Parse params
 		iface := c.Param("iface")
+		mode := c.QueryParam("mode")
 
 		// Run queries
 		vd, err := getDeviceAPsViewData(c.Request().Context(), iface)
@@ -28,7 +31,12 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 			return err
 		}
 		// Produce output
-		return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
+		switch mode {
+		default:
+			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
+		case "advanced":
+			return h.r.CacheablePage(c.Response(), c.Request(), ta, vd, struct{}{})
+		}
 	}
 }
 

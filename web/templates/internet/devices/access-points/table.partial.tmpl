@@ -1,19 +1,36 @@
 {{$availableSSIDs := (get . "AvailableSSIDs")}}
 {{$availableAPs := (get . "AvailableAPs")}}
+{{$columns := (get . "Columns")}}
 
 <table class="table is-narrow is-hoverable">
   <thead>
     <tr>
-      <th>SSID</th>
-      <th>Strength</th>
-      <th>Freq (GHz)</th>
-      <th><abbr title="802.11 mode">Mode</abbr></th>
-      <th><abbr title="security/authentication flags and requirements">Security</abbr></th>
       <th>
-        <abbr title="time (minutes since boot) that the access point was last found in scan results">
-          Last Seen
-        </abbr>
+        {{if get $columns "ssid"}}
+          {{get $columns "ssid"}}
+        {{else}}
+          SSID
+        {{end}}
       </th>
+      {{if hasKey $columns "strength"}}
+        <th>Strength</th>
+      {{end}}
+      {{if hasKey $columns "frequency"}}
+        <th>Freq (GHz)</th>
+      {{end}}
+      {{if hasKey $columns "mode"}}
+        <th><abbr title="802.11 mode">Mode</abbr></th>
+      {{end}}
+      {{if hasKey $columns "security"}}
+        <th><abbr title="security/authentication flags and requirements">Security</abbr></th>
+      {{end}}
+      {{if hasKey $columns "last-seen"}}
+        <th>
+          <abbr title="time (minutes since boot) that the access point was last found in scan results">
+            Last Seen
+          </abbr>
+        </th>
+      {{end}}
     </tr>
   </thead>
   <tbody>
@@ -29,61 +46,98 @@
                 <span class="tag is-warning">Unknown</span>
               {{end}}
           {{end}}
-          <td><progress
-            class="
-              {{if ge $accessPoint.Strength 70}}
-                is-success
-              {{else if ge $accessPoint.Strength 40}}
-                is-warning
-              {{else}}
-                is-danger
+          {{if hasKey $columns "strength"}}
+            <td><progress
+              class="
+                progress
+                {{if ge $accessPoint.Strength 70}}
+                  is-success
+                {{else if ge $accessPoint.Strength 40}}
+                  is-warning
+                {{else}}
+                  is-danger
+                {{end}}
+              "
+              value="{{$accessPoint.Strength}}"
+              max="100"
+            >
+              {{$accessPoint.Strength}}
+            </progress></td>
+          {{end}}
+          {{if hasKey $columns "frequency"}}
+            <td>
+              {{$freq := divf $accessPoint.Frequency 1000}}
+              {{$minFreq := 0}}
+              {{$maxFreq := 0}}
+              {{if and (ge $freq 2.4) (le $freq 2.5)}}
+                {{$minFreq = 2.4}}
+                {{$maxFreq = 2.5}}
+              {{else if and (ge $freq 5.1) (le $freq 5.9)}}
+                {{$minFreq = 5.1}}
+                {{$maxFreq = 5.9}}
               {{end}}
-              progress
-            "
-            value="{{$accessPoint.Strength}}"
-            max="100"
-          >
-            {{$accessPoint.Strength}}
-          </progress></td>
-          <td>{{divf $accessPoint.Frequency 1000}}</td>
-          <td>
-            {{$modeInfo := $accessPoint.Mode.Info}}
-            <span class="tag is-{{$modeInfo.Level}}">
-              {{if eq $modeInfo.Short "infrastructure"}}
-                <abbr title="the usual kind of Wi-Fi network">{{$modeInfo.Short}}</abbr>
-              {{else if $modeInfo.Details}}
-                <abbr title="{{$modeInfo.Details}}">{{$modeInfo.Short}}</abbr>
+              {{if eq $minFreq $maxFreq}}
+                {{$freq}}
               {{else}}
-                {{$modeInfo.Short}}
+                <progress
+                  class="
+                    progress
+                    {{if eq $minFreq 5.1}}
+                      is-link
+                    {{else}}
+                      is-info
+                    {{end}}
+                  "
+                  max="{{subf $maxFreq $minFreq}}" value="{{subf $freq $minFreq}}"
+                >{{$freq}}</progress>
+                {{$freq}}
               {{end}}
-            </span>
-          </td>
-          <td>
-            {{if $accessPoint.RSN.IsNone}}
-              <span class="tag is-warning">None</span>
-            {{end}}
-            {{if $accessPoint.RSN.SupportsPSK}}
-              <span class="tag is-success">WPA2 PSK</span>
-            {{end}}
-            {{if $accessPoint.RSN.SupportsSAE}}
-              <span class="tag is-success">WPA3 SAE</span>
-            {{end}}
-            {{if $accessPoint.RSN.SupportsOWE}}
-              <span class="tag is-success">WPA3 OWE</span>
-            {{end}}
-            {{if $accessPoint.RSN.SupportsEAPSuiteB192}}
-              <span class="tag is-success">WPA3 Enterprise Suite-B 192-bit mode</span>
-            {{end}}
-          </td>
-          <td>
-            {{if eq $accessPoint.LastSeen -1}}
-              <span class="tag is-warning">
-                <abbr title="access point has never been found in scan results">never</abbr>
+            </td>
+          {{end}}
+          {{if hasKey $columns "mode"}}
+            <td>
+              {{$modeInfo := $accessPoint.Mode.Info}}
+              <span class="tag is-{{$modeInfo.Level}}">
+                {{if eq $modeInfo.Short "infrastructure"}}
+                  <abbr title="the usual kind of Wi-Fi network">{{$modeInfo.Short}}</abbr>
+                {{else if $modeInfo.Details}}
+                  <abbr title="{{$modeInfo.Details}}">{{$modeInfo.Short}}</abbr>
+                {{else}}
+                  {{$modeInfo.Short}}
+                {{end}}
               </span>
-            {{else}}
-              {{round (divf $accessPoint.LastSeen.Seconds 60) 1}}
-            {{end}}
-          </td>
+            </td>
+          {{end}}
+          {{if hasKey $columns "security"}}
+            <td>
+              {{if $accessPoint.RSN.IsNone}}
+                <span class="tag is-warning">None</span>
+              {{end}}
+              {{if $accessPoint.RSN.SupportsPSK}}
+                <span class="tag is-success">WPA2 PSK</span>
+              {{end}}
+              {{if $accessPoint.RSN.SupportsSAE}}
+                <span class="tag is-success">WPA3 SAE</span>
+              {{end}}
+              {{if $accessPoint.RSN.SupportsOWE}}
+                <span class="tag is-success">WPA3 OWE</span>
+              {{end}}
+              {{if $accessPoint.RSN.SupportsEAPSuiteB192}}
+                <span class="tag is-success">WPA3 Enterprise Suite-B 192-bit mode</span>
+              {{end}}
+            </td>
+          {{end}}
+          {{if hasKey $columns "last-seen"}}
+            <td>
+              {{if eq $accessPoint.LastSeen -1}}
+                <span class="tag is-warning">
+                  <abbr title="access point has never been found in scan results">never</abbr>
+                </span>
+              {{else}}
+                {{round (divf $accessPoint.LastSeen.Seconds 60) 1}}
+              {{end}}
+            </td>
+          {{end}}
         </tr>
       {{end}}
     {{end}}

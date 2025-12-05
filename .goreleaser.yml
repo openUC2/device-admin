@@ -79,55 +79,55 @@ release:
       **Commit history**: [{{ .PreviousTag }}...{{ .ShortCommit }}]({{ .GitURL }}/compare/{{ .Commit }}...{{ .PreviousTag }})
     {{- end }}
 
-dockers:
-  # device-admin
-  - id: device-admin-amd64
-    ids:
-      - device-admin
-    dockerfile: "Dockerfile"
-    use: buildx
-    image_templates:
-      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"
-      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-amd64"
-    build_flag_templates:
-      - "--pull"
-      - "--platform=linux/amd64"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
-    extra_files:
-      - "web/templates"
-  - id: device-admin-arm64v8
-    ids:
-      - device-admin
-    dockerfile: "Dockerfile"
-    use: buildx
-    goarch: arm64
-    image_templates:
-      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-arm64v8"
-      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-arm64v8"
-    build_flag_templates:
-      - "--pull"
-      - "--platform=linux/arm64/v8"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
-    extra_files:
-      - "web/templates"
-
-docker_manifests:
-  # device-admin
-  - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:latest"
-    image_templates:
-      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"
-      - "ghcr.io/openuc2/{{ .ProjectName }}:latest-arm64v8"
-  - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}"
-    image_templates:
-      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-amd64"
-      - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+# dockers:
+#   # device-admin
+#   - id: device-admin-amd64
+#     ids:
+#       - device-admin
+#     dockerfile: "Dockerfile"
+#     use: buildx
+#     image_templates:
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-amd64"
+#     build_flag_templates:
+#       - "--pull"
+#       - "--platform=linux/amd64"
+#       - "--label=org.opencontainers.image.created={{.Date}}"
+#       - "--label=org.opencontainers.image.name={{.ProjectName}}"
+#       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+#       - "--label=org.opencontainers.image.version={{.Version}}"
+#       - "--label=org.opencontainers.image.source={{.GitURL}}"
+#       - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
+#     extra_files:
+#       - "web/templates"
+#   - id: device-admin-arm64v8
+#     ids:
+#       - device-admin
+#     dockerfile: "Dockerfile"
+#     use: buildx
+#     goarch: arm64
+#     image_templates:
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:latest-arm64v8"
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-arm64v8"
+#     build_flag_templates:
+#       - "--pull"
+#       - "--platform=linux/arm64/v8"
+#       - "--label=org.opencontainers.image.created={{.Date}}"
+#       - "--label=org.opencontainers.image.name={{.ProjectName}}"
+#       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+#       - "--label=org.opencontainers.image.version={{.Version}}"
+#       - "--label=org.opencontainers.image.source={{.GitURL}}"
+#       - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
+#     extra_files:
+#       - "web/templates"
+#
+# docker_manifests:
+#   # device-admin
+#   - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:latest"
+#     image_templates:
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:latest-arm64v8"
+#   - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}"
+#     image_templates:
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-amd64"
+#       - "ghcr.io/openuc2/{{ .ProjectName }}:{{ .Version }}-arm64v8"
