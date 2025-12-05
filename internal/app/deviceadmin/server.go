@@ -120,7 +120,7 @@ func (s *Server) configureHeaders(e *echo.Echo) error {
 			cspbuilder.ImgSrc:         {"*", "data:"},
 			cspbuilder.BaseURI:        {"'none'"},
 			cspbuilder.FormAction:     {"'self'"},
-			cspbuilder.FrameAncestors: {"'none'"},
+			cspbuilder.FrameAncestors: {"'self'"},
 			// TODO: add HTTPS-related settings for CSP, including upgrade-insecure-requests
 		},
 	}
