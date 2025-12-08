@@ -90,44 +90,11 @@
         -->
         <div class="card section-card">
           <div class="card-content">
-            <turbo-frame id="{{.Meta.BasePath}}internet/devices/wlan0/access-points">
-              <h3>External Wi-Fi network</h3>
-              <form
-                action="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
-                method="POST"
-                data-controller="form-submission"
-                data-action="submit->form-submission#submit"
-                data-turbo-frame="{{.Meta.BasePath}}internet/devices/wlan0/access-points"
-                class="is-inline-block mb-3"
-              >
-                <input type="hidden" name="state" value="refreshed">
-                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-                  "path" .Meta.Path
-                  "query" .Meta.Form.Encode
-                )}}">
-                <div class="field">
-                  <div class="control" data-form-submission-target="submitter">
-                    <input
-                      class="button is-info"
-                      type="submit"
-                      value="Rescan networks"
-                      data-form-submission-target="submit"
-                    >
-                  </div>
-                </div>
-              </form>
-              <datalist id="{{.Meta.BasePath}}internet/devices/wlan0/access-points/list">
-                {{range $ssid := .Data.AvailableSSIDs}}
-                  {{if not $ssid}}
-                    {{continue}}
-                  {{end}}
-                  <option value="{{$ssid}}"></option>
-                {{end}}
-              </datalist>
-            </turbo-frame>
+            <h3>External Wi-Fi network</h3>
             {{
               template "internet/external-network-form.partial.tmpl" dict
               "ConnProfile" .Data.Wlan0InternetConnProfile
+              "AvailableSSIDs" .Data.AvailableSSIDs
               "Meta" .Meta
             }}
           </div>
