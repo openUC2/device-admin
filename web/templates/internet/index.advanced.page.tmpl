@@ -2,7 +2,6 @@
 
 {{define "title"}}Internet Access{{end}}
 {{define "description"}}Manage configurations for internet access{{end}}
-{{define "mode"}}advanced{{end}}
 
 {{define "content"}}
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
@@ -32,7 +31,70 @@
           )}}">simplified view</a> of this page.
         </div>
       </article>
+      <p>
+        Status:
+        {{if .Data.NM.NetworkingEnabled}}
+          <span class="tag is-success">networking enabled</span>
+        {{else}}
+          <span class="tag is-warning">networking disabled</span>
+        {{end}}
+        {{if .Data.NM.WirelessEnabled}}
+          <span class="tag is-success">wireless enabled</span>
+        {{else}}
+          <span class="tag is-warning">wireless disabled</span>
+        {{end}}
+        {{if .Data.NM.WirelessHWEnabled}}
+          <span class="tag is-success">wireless hardware enabled</span>
+        {{else}}
+          <span class="tag is-warning">wireless hardware disabled</span>
+        {{end}}
+        {{$stateInfo := .Data.NM.State.Info}}
+        <span class="tag is-{{$stateInfo.Level}}">
+          {{if $stateInfo.Details}}
+            <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
+          {{else}}
+            {{$stateInfo.Short}}
+          {{end}}
+        </span>
+      </p>
+
+      <p>
+        NetworkManager version: {{.Data.NM.Version}}
+      </p>
+
+      <p>
+        Connectivity:
+        {{$connectivityInfo := .Data.NM.Connectivity.Info}}
+        <span class="tag is-{{$connectivityInfo.Level}}">
+          {{if $connectivityInfo.Details}}
+            <abbr title="{{$connectivityInfo.Details}}">{{$connectivityInfo.Short}}</abbr>
+          {{else}}
+            {{$connectivityInfo.Short}}
+          {{end}}
+        </span>
+      </p>
+      {{if .Data.NM.ConnectivityCheckURI}}
+        <p>
+          Connectivity check URI: {{.Data.NM.ConnectivityCheckURI}}
+        </p>
+      {{end}}
+      {{$primaryConn := .Data.NM.PrimaryConnection}}
+      {{if $primaryConn.HasData}}
+        <p>
+          <abbr title="the 'primary' active connection being used to access the network">
+            Primary connection
+            {{- /* make template ignore the line break */ -}}
+          </abbr>:
+          <a href="{{urlJoin (dict
+            "path" (print .Meta.BasePath "internet/conn-profiles/" $primaryConn.UUID)
+            "query" .Meta.Form.Encode
+          )}}" target="_top">
+            {{$primaryConn.ID}}
+          </a>
+        </p>
+      {{end}}
     </section>
+
     <section class="section content">
       <h2 id="wifi">Wi-Fi</h2>
       <h3 id="wifi-conn-profiles">Connection profiles</h3>
@@ -51,6 +113,7 @@
         }}
       {{end}}
     </section>
+
     <section class="section content">
       <h2 id="ethernet">Ethernet</h2>
       <h3 id="ethernet-conn-profiles">Connection profiles</h3>
@@ -69,6 +132,7 @@
         }}
       {{end}}
     </section>
+
     <section class="section content">
       <h2 id="other">Other network devices</h2>
       <p>
@@ -101,15 +165,14 @@
     </section>
 
     <!--
-      TODO: display more information from https://networkmanager.pages.freedesktop.org/NetworkManager/NetworkManager/gdbus-org.freedesktop.NetworkManager.html,
-      e.g. NetworkManager version, connectivity checks, overall connection state, overall state,
-      checkpoints, etc.
       TODO: display more information from https://networkmanager.pages.freedesktop.org/NetworkManager/NetworkManager/gdbus-org.freedesktop.NetworkManager.Settings.html,
       e.g. modifiability
-    -->
+
     <section class="section content">
       <h2 id="access-sharing">Internet access sharing</h2>
       <p>TODO: manage internet access sharing</p>
     </section>
+
+    -->
   </main>
 {{end}}

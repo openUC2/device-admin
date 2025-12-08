@@ -61,6 +61,8 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 }
 
 type InternetViewData struct {
+	NM nm.NetworkManager
+
 	AvailableSSIDs           []string
 	Wlan0InternetConnProfile nm.ConnProfile
 	Wlan0HotspotConnProfile  nm.ConnProfile
@@ -75,6 +77,10 @@ type InternetViewData struct {
 }
 
 func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
+	if vd.NM, err = nm.Get(ctx); err != nil {
+		return vd, errors.Wrap(err, "couldn't get overall information about NetworkManager")
+	}
+
 	const iface = "wlan0"
 	// Note(ethanjli): the list of APs is just for autocompletion in the simplified wifi management
 	// view, and it can be missing just after activating wlan0-hotspot; so it's fine if we don't
