@@ -14,6 +14,7 @@ import {
   TurboCacheController,
 } from '@sargassum-world/stimulated';
 import {
+  CheckableTextboxController,
   PasswordInputController,
   ThemeController,
 } from './sprinkles';
@@ -26,6 +27,7 @@ customElements.define(
 );
 
 const Stimulus = Application.start();
+Stimulus.register('checkable-textbox', CheckableTextboxController);
 Stimulus.register('csrf', CSRFController);
 Stimulus.register('default-scrollable', DefaultScrollableController);
 Stimulus.register('form-submission', FormSubmissionController);

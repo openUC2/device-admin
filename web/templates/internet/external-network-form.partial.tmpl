@@ -41,7 +41,7 @@
 
   <div class="field">
     <label class="label">Password</label>
-    <div class="control radios">
+    <div class="control radios" data-controller="checkable-textbox">
       <label class="radio is-block ml-0">
         <input type="radio"
           name="802-11-wireless-security.key-mgmt"
@@ -50,6 +50,9 @@
           autocomplete="off"
           class="is-inline-block is-vertical-align-top mt-1"
           {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
+          data-checkable-textbox-target="checkable"
+          data-action="change->checkable-textbox#toggle change->checkable-textbox#setPlaceholder"
+          data-checkable-textbox-placeholder-param="not shown here, for security reasons"
         />
         <div class="is-inline-block is-vertical-align-top">
           <p>Yes:</p>
@@ -62,6 +65,8 @@
                 placeholder="not shown here, for security reasons"
                 size=30
                 data-password-input-target="input"
+                data-checkable-textbox-target="textbox"
+                data-action="focus->checkable-textbox#edit input->password-input#edit"
               >
             </div>
             <div class="control">
@@ -89,6 +94,8 @@
           required
           autocomplete="off"
           {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
+          data-action="change->checkable-textbox#toggle change->checkable-textbox#setPlaceholder"
+          data-checkable-textbox-placeholder-param="none"
         />
         No
       </label>

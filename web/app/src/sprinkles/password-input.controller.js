@@ -6,9 +6,15 @@ export default class extends Controller {
   connect() {
     // The toggler only works with Javascript, so we only show it if Javascript is enabled
     this.togglerTarget.classList.remove('is-hidden');
+
+    this.togglerTarget.disabled = (this.inputTarget.value === '')
   }
+
+  edit() {
+    this.togglerTarget.disabled = (this.inputTarget.value === '')
+  }
+
   toggle() {
-    console.log('toggling...');
     if (this.inputTarget.type === 'password') {
       this.inputTarget.type = 'text';
     } else {
