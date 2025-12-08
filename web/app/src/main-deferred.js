@@ -13,7 +13,10 @@ import {
   TurboCableStreamSourceElement,
   TurboCacheController,
 } from '@sargassum-world/stimulated';
-import { ThemeController } from './sprinkles';
+import {
+  PasswordInputController,
+  ThemeController,
+} from './sprinkles';
 
 Turbo.session.drive = true;
 
@@ -32,6 +35,7 @@ Stimulus.register('load-focus', LoadFocusController);
 Stimulus.register('load-scroll', LoadScrollController);
 Stimulus.register('navigation-link', NavigationLinkController);
 Stimulus.register('navigation-menu', NavigationMenuController);
+Stimulus.register('password-input', PasswordInputController);
 Stimulus.register('theme', ThemeController);
 Stimulus.register('turbo-cache', TurboCacheController);
 

@@ -41,68 +41,83 @@
 
   <div class="field">
     <label class="label">Password</label>
-    <div class="field">
-      <div class="control">
-        <div class="control radios">
-          <label class="radio is-block ml-0">
-            <input type="radio"
-              name="802-11-wireless-security.key-mgmt"
-              value="wpa-psk"
-              required
-              autocomplete="off"
-              {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
-            />
-            <p class="is-inline-block">
-              Yes:
+    <div class="control radios">
+      <label class="radio is-block ml-0">
+        <input type="radio"
+          name="802-11-wireless-security.key-mgmt"
+          value="wpa-psk"
+          required
+          autocomplete="off"
+          class="is-inline-block is-vertical-align-top mt-1"
+          {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
+        />
+        <div class="is-inline-block is-vertical-align-top">
+          <p>Yes:</p>
+          <div class="field has-addons" data-controller="password-input">
+            <div class="control">
               <input
                 class="input" type="password"
                 name="802-11-wireless-security.psk"
                 minlength=1
                 placeholder="not shown here, for security reasons"
                 size=30
+                data-password-input-target="input"
               >
-            </p>
-          </label>
-          <label class="radio is-block ml-0">
-            <input type="radio"
-              name="802-11-wireless-security.key-mgmt"
-              value=""
-              required
-              autocomplete="off"
-              {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
-            />
-            No
-          </label>
+            </div>
+            <div class="control">
+              <button
+                class="button is-hidden"
+                data-password-input-target="toggler"
+                data-action="click->password-input#toggle:prevent"
+              >
+                <span class="icon">
+                  <img class="mdi mdi-inactive"
+                    src="{{.BasePath}}{{staticHashed "icons/eye-outline.svg"}}"
+                    width="20" height="20"
+                    alt="Toggle password visibility"
+                  >
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </label>
+      <label class="radio is-block ml-0">
+        <input type="radio"
+          name="802-11-wireless-security.key-mgmt"
+          value=""
+          required
+          autocomplete="off"
+          {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
+        />
+        No
+      </label>
     </div>
   </div>
 
   <div class="field">
     <label class="label">Behavior</label>
-    <div class="field">
-      <div class="control radios">
-        <label class="radio is-block">
-          <input type="radio"
-            name="connection.autoconnect"
-            value="on"
-            required
-            autocomplete="off"
-            {{if $conn.Autoconnect}}checked{{end}}
-          />
-          Automatically try to connect during boot
-        </label>
-        <label class="radio is-block ml-0">
-          <input type="radio"
-            name="connection.autoconnect"
-            value="off"
-            required
-            autocomplete="off"
-            {{if not $conn.Autoconnect}}checked{{end}}
-          />
-          Don't try to connect during boot
-        </label>
-      </div>
+    <div class="control radios">
+      <label class="radio is-block">
+        <input type="radio"
+          name="connection.autoconnect"
+          value="on"
+          required
+          autocomplete="off"
+          {{if $conn.Autoconnect}}checked{{end}}
+        />
+        Automatically try to connect during boot
+      </label>
+      <label class="radio is-block ml-0">
+        <input type="radio"
+          name="connection.autoconnect"
+          value="off"
+          required
+          autocomplete="off"
+          {{if not $conn.Autoconnect}}checked{{end}}
+        />
+        Don't try to connect during boot
+      </label>
     </div>
   </div>
 
