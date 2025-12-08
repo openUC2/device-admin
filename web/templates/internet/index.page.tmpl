@@ -22,7 +22,18 @@
 
     <section class="section content">
       <h1>Internet Access</h1>
-      <!-- <p>TODO: display an overview of internet connectivity from NetworkManager</p> -->
+      <p>
+        Connectivity:
+        {{$connectivityInfo := .Data.NM.Connectivity.Info}}
+        <span class="tag is-{{$connectivityInfo.Level}}">
+          {{if $connectivityInfo.Details}}
+            <abbr title="{{$connectivityInfo.Details}}">{{$connectivityInfo.Short}}</abbr>
+          {{else}}
+            {{$connectivityInfo.Short}}
+          {{end}}
+        </span>
+      </p>
+
       <article class="message is-info two-card-width">
         <div class="message-body">
           This is a simplified view of your internet settings. If you're an experienced Linux system
@@ -34,6 +45,7 @@
         </div>
       </article>
     </section>
+
     <section class="section content">
       <h2 id="wifi">Wi-Fi</h2>
       {{if not .Data.Wlan0InternetConnProfile.HasData}}
