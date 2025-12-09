@@ -12,7 +12,7 @@ export default class extends Controller {
       }
       this.textboxTarget.classList.add('is-hidden');
       this.inputTarget.required = false;
-    }
+    };
 
     this.updateSelect = () => {
       var previousValue = '';
