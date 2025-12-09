@@ -4,6 +4,16 @@ export default class extends Controller {
   static targets = ['datalist', 'dropdown', 'select', 'textbox', 'input'];
 
   connect() {
+    this.setTextboxVisibility = (visible) => {
+      if (visible) {
+        this.textboxTarget.classList.remove('is-hidden');
+        this.inputTarget.required = true;
+        return;
+      }
+      this.textboxTarget.classList.add('is-hidden');
+      this.inputTarget.required = false;
+    }
+
     this.updateSelect = () => {
       var previousValue = '';
       for (const option of this.selectTarget.options) {
@@ -27,7 +37,7 @@ export default class extends Controller {
         if (newOption.value === previousValue) {
           newOption.selected = true;
           optionSelected = true;
-          this.textboxTarget.classList.add('is-hidden');
+          this.setTextboxVisibility(false);
         }
         this.selectTarget.add(newOption);
       }
@@ -41,7 +51,7 @@ export default class extends Controller {
       emptyOption.setAttribute('label', '(other: specify below)');
       if (!optionSelected) {
         emptyOption.selected = true;
-        this.textboxTarget.classList.remove('is-hidden');
+        this.setTextboxVisibility(true);
         this.inputTarget.value = previousValue;
       }
       this.selectTarget.add(emptyOption);
@@ -59,11 +69,11 @@ export default class extends Controller {
         continue;
       }
       if (option.value === '') {
-        this.textboxTarget.classList.remove('is-hidden');
+        this.setTextboxVisibility(true);
         break;
       }
 
-      this.textboxTarget.classList.add('is-hidden');
+      this.setTextboxVisibility(false);
       break;
     }
   }
