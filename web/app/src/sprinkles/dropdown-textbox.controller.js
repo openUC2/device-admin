@@ -1,29 +1,59 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
-  static targets = ['input', 'datalist', 'dropdown', 'select'];
+  static targets = ['datalist', 'dropdown', 'select', 'textbox', 'input'];
 
   connect() {
-    // The dropdown only works with Javascript, so we only show it if Javascript is enabled
+    // The select is only populated via Javascript, so we only show it if Javascript is enabled
     this.dropdownTarget.classList.remove('is-hidden');
-    this.inputTarget.setAttribute('list', '');
 
-    this.updateDropdown = () => {
+    this.updateSelect = () => {
+      var previousValue = '';
+      for (const option of this.selectTarget.options) {
+        if (!option.selected || option.value === '') {
+          continue;
+        }
+        previousValue = option.value;
+        break;
+      }
+      if (previousValue === '') {
+        previousValue = this.inputTarget.value;
+      }
+
+      // Add options from the datalist
       this.selectTarget.innerHTML = '';
-      const emptyOption = document.createElement('option');
-      this.selectTarget.add(emptyOption);
+      var optionSelected = false;
       for (const option of this.datalistTarget.options) {
         const newOption = document.createElement('option');
         newOption.value = option.value;
-        newOption.setAttribute('label', option.value); // TODO: only set label when select is opened
+        newOption.setAttribute('label', option.value);
+        if (newOption.value === previousValue) {
+          newOption.selected = true;
+          optionSelected = true;
+          this.textboxTarget.classList.add('is-hidden');
+        }
         this.selectTarget.add(newOption);
       }
-    }
-    this.updateDropdown()
+
+      // Add the "other" option
+      const separatorOption = document.createElement('option');
+      separatorOption.setAttribute('label', '————');
+      separatorOption.disabled = true;
+      this.selectTarget.add(separatorOption);
+      const emptyOption = document.createElement('option');
+      emptyOption.setAttribute('label', '(other: specify below)');
+      if (!optionSelected) {
+        emptyOption.selected = true;
+        this.textboxTarget.classList.remove('is-hidden');
+        this.inputTarget.value = previousValue;
+      }
+      this.selectTarget.add(emptyOption);
+    };
+    this.updateSelect();
   }
 
-  updateDropdown() {
-    this.updateDropdown()
+  updateSelect() {
+    this.updateSelect();
   }
 
   select() {
@@ -32,13 +62,12 @@ export default class extends Controller {
         continue;
       }
       if (option.value === '') {
+        this.textboxTarget.classList.remove('is-hidden');
         break;
       }
 
-      this.inputTarget.value = option.value;
-      option.selected = false;
-      break; // TODO: maybe instead remove the label but restore it when the select is opened
+      this.textboxTarget.classList.add('is-hidden');
+      break;
     }
-    this.selectTarget.options[0].selected = true
   }
 }

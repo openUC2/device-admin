@@ -7,11 +7,11 @@ export default class extends Controller {
     // The toggler only works with Javascript, so we only show it if Javascript is enabled
     this.togglerTarget.classList.remove('is-hidden');
 
-    this.togglerTarget.disabled = (this.inputTarget.value === '')
+    this.togglerTarget.disabled = this.inputTarget.value === '';
   }
 
   edit() {
-    this.togglerTarget.disabled = (this.inputTarget.value === '')
+    this.togglerTarget.disabled = this.inputTarget.value === '';
   }
 
   toggle() {

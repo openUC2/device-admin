@@ -9,11 +9,12 @@
 <turbo-frame
   id="{{$Meta.BasePath}}internet/external-wifi"
   data-controller="dropdown-textbox"
+  data-action="turbo:frame-load->dropdown-textbox#updateSelect"
 >
 
   <turbo-frame
     id="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
-    data-action="turbo:frame-load->dropdown-textbox#updateDropdown"
+    data-action="turbo:frame-load->dropdown-textbox#updateSelect"
   >
     <form
       action="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
@@ -66,9 +67,31 @@
 
     <div class="field">
       <label class="label">Network</label>
-      <!-- TODO: instead of having a dropdown as an addon, just have an "Other" entry in the dropdown (as a separate option group which shows the text field -->
-      <div class="field has-addons">
-        <div class="control">
+      <div class="field">
+        <div
+          class="control"
+          data-dropdown-textbox-target="dropdown"
+        >
+          <div class="select">
+            <select
+              name="802-11-wireless.ssid"
+              data-dropdown-textbox-target="select"
+              data-action="change->dropdown-textbox#select"
+            >
+            </select>
+          </div>
+        </div>
+        <div
+          class="control"
+          data-dropdown-textbox-target="textbox"
+        >
+          <p
+            class="mt-1"
+            data-controller="hideable"
+            data-hideable-target="hider"
+          >
+            Other:
+          </p>
           <input
             class="input" type="text"
             name="802-11-wireless.ssid"
@@ -80,27 +103,14 @@
             data-dropdown-textbox-target="input"
           >
         </div>
-        <div
-          class="control is-hidden"
-          data-dropdown-textbox-target="dropdown"
-        >
-          <span class="select" autocomplete="off">
-            <select
-              name="detected-ssids"
-              data-dropdown-textbox-target="select"
-              data-action="change->dropdown-textbox#select focus->dropdown-textbox#showLabels"
-            >
-            </select>
-          </span>
-        </div>
+        <p>
+          (you can view details about all detected external networks
+          <a href="{{urlJoin (dict
+            "path" (print $Meta.BasePath "internet/devices/wlan0/access-points")
+            "query" $Meta.Form.Encode
+          )}}" target="_blank">here</a>)
+        </p>
       </div>
-      <p>
-        (you can view the details about all detected external Wi-Fi networks
-        <a href="{{urlJoin (dict
-          "path" (print $Meta.BasePath "internet/devices/wlan0/access-points")
-          "query" $Meta.Form.Encode
-        )}}" target="_blank">here</a>)
-      </p>
     </div>
 
     <div class="field">
