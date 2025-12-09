@@ -102,41 +102,39 @@
 
         {{$wlan0Internet := .Data.Wlan0InternetConnProfile}}
         {{$wlan0Hotspot := .Data.Wlan0HotspotConnProfile}}
-        {{if $wlan0Internet.HasData}}
-          {{if and $wlan0Hotspot.HasData}}
-            <p class="two-card-width">
-              This machine can try to temporarily switch between connecting to the external network
-              and making the hotspot, before the next boot:
-            </p>
-          {{else}}
-            <p class="two-card-width">
-              This machine can try to temporarily connect to the external network, before the next
-              boot:
-            </p>
-          {{end}}
-          <div class="field is-grouped">
-            <div class="control">
-              <form
-                action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Internet.Settings.Conn.UUID.String}}"
-                method="POST"
-                data-controller="form-submission"
-                data-action="submit->form-submission#submit"
-                data-form-submission-target="submitter"
-                class="mb-3"
+        {{if and $wlan0Hotspot.HasData}}
+          <p class="two-card-width">
+            This machine can try to temporarily switch between connecting to the external network
+            and making the hotspot, before the next boot:
+          </p>
+        {{else}}
+          <p class="two-card-width">
+            This machine can try to temporarily connect to the external network, before the next
+            boot:
+          </p>
+        {{end}}
+        <div class="field is-grouped">
+          <div class="control">
+            <form
+              action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Internet.Settings.Conn.UUID.String}}"
+              method="POST"
+              data-controller="form-submission"
+              data-action="submit->form-submission#submit"
+              data-form-submission-target="submitter"
+              class="mb-3"
+            >
+              <input type="hidden" name="state" value="activated-transiently">
+              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                "path" .Meta.Path
+                "query" .Meta.Form.Encode
+              )}}">
+              <input
+                class="button is-primary"
+                type="submit"
+                value="Use external network now"
+                data-form-submission-target="submit"
               >
-                <input type="hidden" name="state" value="activated-transiently">
-                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-                  "path" .Meta.Path
-                  "query" .Meta.Form.Encode
-                )}}">
-                <input
-                  class="button is-primary"
-                  type="submit"
-                  value="Use external network now"
-                  data-form-submission-target="submit"
-                >
-              </form>
-            </div>
+            </form>
           </div>
           {{if $wlan0Hotspot.HasData}}
             <div class="control">
@@ -162,18 +160,18 @@
               </form>
             </div>
           {{end}}
-        {{end}}
+        </div>
+      {{end}}
 
-        <h3 id="wifi-devices">All modules</h3>
-        {{range $device := .Data.WifiDevices}}
-          {{
-            template "internet/device-card.partial.tmpl" dict
-            "Device" $device
-            "Sections" (dict "basics" true)
-            "CollapseAll" false
-            "Meta" $.Meta
-          }}
-        {{end}}
+      <h3 id="wifi-devices">All modules</h3>
+      {{range $device := .Data.WifiDevices}}
+        {{
+          template "internet/device-card.partial.tmpl" dict
+          "Device" $device
+          "Sections" (dict "basics" true)
+          "CollapseAll" false
+          "Meta" $.Meta
+        }}
       {{end}}
     </section>
     <section class="section content">
