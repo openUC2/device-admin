@@ -100,58 +100,69 @@
           </div>
         </div>
 
-        <p class="two-card-width">
-          This machine can try to temporarily switch between connecting to the external network and
-          making the hotspot, before the next boot:
-        </p>
-        <div class="field is-grouped">
-          <div class="control">
-            {{$wlan0Internet := .Data.Wlan0InternetConnProfile}}
-            <form
-              action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Internet.Settings.Conn.UUID.String}}"
-              method="POST"
-              data-controller="form-submission"
-              data-action="submit->form-submission#submit"
-              data-form-submission-target="submitter"
-              class="mb-3"
-            >
-              <input type="hidden" name="state" value="activated-transiently">
-              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-                "path" .Meta.Path
-                "query" .Meta.Form.Encode
-              )}}">
-              <input
-                class="button is-primary"
-                type="submit"
-                value="Use external network now"
-                data-form-submission-target="submit"
+        {{$wlan0Internet := .Data.Wlan0InternetConnProfile}}
+        {{$wlan0Hotspot := .Data.Wlan0HotspotConnProfile}}
+        {{if $wlan0Internet.HasData}}
+          {{if and $wlan0Hotspot.HasData}}
+            <p class="two-card-width">
+              This machine can try to temporarily switch between connecting to the external network
+              and making the hotspot, before the next boot:
+            </p>
+          {{else}}
+            <p class="two-card-width">
+              This machine can try to temporarily connect to the external network, before the next
+              boot:
+            </p>
+          {{end}}
+          <div class="field is-grouped">
+            <div class="control">
+              <form
+                action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Internet.Settings.Conn.UUID.String}}"
+                method="POST"
+                data-controller="form-submission"
+                data-action="submit->form-submission#submit"
+                data-form-submission-target="submitter"
+                class="mb-3"
               >
-            </form>
+                <input type="hidden" name="state" value="activated-transiently">
+                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                  "path" .Meta.Path
+                  "query" .Meta.Form.Encode
+                )}}">
+                <input
+                  class="button is-primary"
+                  type="submit"
+                  value="Use external network now"
+                  data-form-submission-target="submit"
+                >
+              </form>
+            </div>
           </div>
-          <div class="control">
-          {{$wlan0Hotspot := .Data.Wlan0HotspotConnProfile}}
-          <form
-            action="{{.Meta.BasePath}}internet/conn-profiles/{{.Data.Wlan0HotspotConnProfile.Settings.Conn.UUID.String}}"
-            method="POST"
-            data-controller="form-submission"
-            data-action="submit->form-submission#submit"
-            data-form-submission-target="submitter"
-            class="mb-3"
-          >
-            <input type="hidden" name="state" value="activated-transiently">
-            <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-              "path" .Meta.Path
-              "query" .Meta.Form.Encode
-            )}}">
-            <input
-              class="button is-primary"
-              type="submit"
-              value="Activate hotspot now"
-              data-form-submission-target="submit"
-            >
-          </form>
-          </div>
-        </div>
+          {{if $wlan0Hotspot.HasData}}
+            <div class="control">
+              <form
+                action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Hotspot.Settings.Conn.UUID.String}}"
+                method="POST"
+                data-controller="form-submission"
+                data-action="submit->form-submission#submit"
+                data-form-submission-target="submitter"
+                class="mb-3"
+              >
+                <input type="hidden" name="state" value="activated-transiently">
+                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                  "path" .Meta.Path
+                  "query" .Meta.Form.Encode
+                )}}">
+                <input
+                  class="button is-primary"
+                  type="submit"
+                  value="Activate hotspot now"
+                  data-form-submission-target="submit"
+                >
+              </form>
+            </div>
+          {{end}}
+        {{end}}
 
         <h3 id="wifi-devices">All modules</h3>
         {{range $device := .Data.WifiDevices}}
