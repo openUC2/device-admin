@@ -4,9 +4,6 @@ export default class extends Controller {
   static targets = ['datalist', 'dropdown', 'select', 'textbox', 'input'];
 
   connect() {
-    // The select is only populated via Javascript, so we only show it if Javascript is enabled
-    this.dropdownTarget.classList.remove('is-hidden');
-
     this.updateSelect = () => {
       var previousValue = '';
       for (const option of this.selectTarget.options) {
