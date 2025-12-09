@@ -267,6 +267,11 @@ func parseConnProfileSettingsWifiField(
 		}
 		return mode, nil
 	case "ssid":
+		for _, rawValue = range rawValues { // select the first non-blank value, not the last value
+			if rawValue != "" {
+				break
+			}
+		}
 		ssid := []byte(rawValue)
 		const maxLen = 32
 		if len(ssid) > maxLen {

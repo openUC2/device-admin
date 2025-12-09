@@ -13,7 +13,12 @@ import {
   TurboCableStreamSourceElement,
   TurboCacheController,
 } from '@sargassum-world/stimulated';
-import { ThemeController } from './sprinkles';
+import {
+  CheckableTextboxController,
+  DropdownTextboxController,
+  PasswordInputController,
+  ThemeController,
+} from './sprinkles';
 
 Turbo.session.drive = true;
 
@@ -23,8 +28,10 @@ customElements.define(
 );
 
 const Stimulus = Application.start();
+Stimulus.register('checkable-textbox', CheckableTextboxController);
 Stimulus.register('csrf', CSRFController);
 Stimulus.register('default-scrollable', DefaultScrollableController);
+Stimulus.register('dropdown-textbox', DropdownTextboxController);
 Stimulus.register('form-submission', FormSubmissionController);
 Stimulus.register('hideable', HideableController);
 Stimulus.register('image-autoreload', ImageAutoreloadController);
@@ -32,6 +39,7 @@ Stimulus.register('load-focus', LoadFocusController);
 Stimulus.register('load-scroll', LoadScrollController);
 Stimulus.register('navigation-link', NavigationLinkController);
 Stimulus.register('navigation-menu', NavigationMenuController);
+Stimulus.register('password-input', PasswordInputController);
 Stimulus.register('theme', ThemeController);
 Stimulus.register('turbo-cache', TurboCacheController);
 

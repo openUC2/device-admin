@@ -1,86 +1,190 @@
 {{$connProfile := (get . "ConnProfile")}}
+{{$availableSSIDs := (get . "AvailableSSIDs")}}
 {{$Meta := (get . "Meta")}}
 
 {{$conn := $connProfile.Settings.Conn}}
 {{$wifi := $connProfile.Settings.Wifi}}
 {{$wifiSec := $connProfile.Settings.WifiSec}}
 
-<form
-  action="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}"
-  method="POST"
-  data-controller="form-submission"
-  data-action="submit->form-submission#submit"
+<turbo-frame
+  id="{{$Meta.BasePath}}internet/external-wifi"
+  data-controller="dropdown-textbox"
+  data-action="turbo:frame-load->dropdown-textbox#updateSelect"
 >
-  <input type="hidden" name="state" value="simplified-updated">
-  <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-    "path" $Meta.Path
-    "query" $Meta.Form.Encode
-  )}}">
 
-  <div class="field">
-    <label class="label">Network</label>
-    <div class="field">
-      <input
-        class="input" type="text"
-        name="802-11-wireless.ssid"
-        list="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list"
-        minlength=1 maxlength=32
-        value="{{toString $wifi.SSID}}"
-        required
-        size=30
-      >
-      <p>
-        (you can view the full list of external Wi-Fi networks
-        <a href="{{urlJoin (dict
-          "path" (print $Meta.BasePath "internet/devices/wlan0/access-points")
-          "query" $Meta.Form.Encode
-        )}}" target="_blank">here</a>)
-      </p>
-    </div>
-  </div>
-
-  <div class="field">
-    <label class="label">Password</label>
-    <div class="field">
-      <div class="control">
-        <div class="control radios">
-          <label class="radio is-block ml-0">
-            <input type="radio"
-              name="802-11-wireless-security.key-mgmt"
-              value="wpa-psk"
-              required
-              autocomplete="off"
-              {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
-            />
-            <p class="is-inline-block">
-              Yes:
-              <input
-                class="input" type="password"
-                name="802-11-wireless-security.psk"
-                minlength=1
-                placeholder="not shown here, for security reasons"
-                size=30
-              >
-            </p>
-          </label>
-          <label class="radio is-block ml-0">
-            <input type="radio"
-              name="802-11-wireless-security.key-mgmt"
-              value=""
-              required
-              autocomplete="off"
-              {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
-            />
-            No
-          </label>
+  <turbo-frame
+    id="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
+    data-action="turbo:frame-load->dropdown-textbox#updateSelect"
+  >
+    <form
+      action="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
+      method="POST"
+      data-controller="form-submission"
+      data-action="submit->form-submission#submit"
+      data-turbo-frame="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
+      class="is-inline-block mb-3"
+    >
+      <input type="hidden" name="state" value="refreshed">
+      <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+        "path" $Meta.Path
+        "query" $Meta.Form.Encode
+      )}}">
+      <div class="field">
+        <div class="control" data-form-submission-target="submitter">
+          <input
+            class="button is-info"
+            type="submit"
+            value="Rescan networks"
+            data-form-submission-target="submit"
+          >
         </div>
       </div>
-    </div>
-  </div>
+    </form>
+    <datalist
+      id="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list"
+      data-dropdown-textbox-target="datalist"
+    >
+      {{range $ssid := $availableSSIDs}}
+        {{if not $ssid}}
+          {{continue}}
+        {{end}}
+        <option value="{{$ssid}}"></option>
+      {{end}}
+    </datalist>
+  </turbo-frame>
 
-  <div class="field">
-    <label class="label">Behavior</label>
+  <form
+    action="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}"
+    method="POST"
+    data-controller="form-submission"
+    data-action="submit->form-submission#submit"
+  >
+    <input type="hidden" name="state" value="simplified-updated">
+    <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+      "path" $Meta.Path
+      "query" $Meta.Form.Encode
+    )}}">
+
     <div class="field">
+      <label class="label">Network</label>
+      <div class="field">
+        <div
+          class="control is-hidden"
+          data-controller="hideable"
+          data-hideable-target="hider"
+          data-dropdown-textbox-target="dropdown"
+        >
+          <div class="select">
+            <select
+              name="802-11-wireless.ssid"
+              data-dropdown-textbox-target="select"
+              data-action="change->dropdown-textbox#select"
+            >
+            </select>
+          </div>
+        </div>
+        <div
+          class="control"
+          data-dropdown-textbox-target="textbox"
+        >
+          <p
+            class="mt-1 is-hidden"
+            data-controller="hideable"
+            data-hideable-target="hider"
+          >
+            Other:
+          </p>
+          <input
+            class="input" type="text"
+            name="802-11-wireless.ssid"
+            list="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list"
+            minlength=1 maxlength=32
+            value="{{toString $wifi.SSID}}"
+            required
+            size=24
+            data-dropdown-textbox-target="input"
+          >
+        </div>
+        <p>
+          (you can view details about all detected external networks
+          <a href="{{urlJoin (dict
+            "path" (print $Meta.BasePath "internet/devices/wlan0/access-points")
+            "query" $Meta.Form.Encode
+          )}}" target="_blank">here</a>)
+        </p>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Password</label>
+      <div class="control radios" data-controller="checkable-textbox">
+        <label class="radio is-block ml-0">
+          <input type="radio"
+            name="802-11-wireless-security.key-mgmt"
+            value="wpa-psk"
+            required
+            autocomplete="off"
+            class="is-inline-block is-vertical-align-top mt-1"
+            {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
+            data-checkable-textbox-target="checkable"
+            data-action="change->checkable-textbox#toggle change->checkable-textbox#setPlaceholder"
+            data-checkable-textbox-placeholder-param="not shown here, for security reasons"
+          />
+          <div class="is-inline-block is-vertical-align-top">
+            <p>Yes:</p>
+            <div
+              class="field"
+              data-controller="password-input"
+              data-password-input-target="addons"
+            >
+              <div class="control">
+                <input
+                  class="input" type="password"
+                  name="802-11-wireless-security.psk"
+                  minlength=1
+                  placeholder="not shown here, for security reasons"
+                  size=30
+                  data-password-input-target="input"
+                  data-checkable-textbox-target="textbox"
+                  data-action="focus->checkable-textbox#edit focus->checkable-textbox#setPlaceholder input->password-input#edit"
+                  data-checkable-textbox-placeholder-param="not shown here, for security reasons"
+                >
+              </div>
+              <div class="control">
+                <button
+                  class="button is-hidden"
+                  data-password-input-target="toggler"
+                  data-action="click->password-input#toggle:prevent"
+                >
+                  <span class="icon">
+                    <img class="mdi mdi-inactive"
+                      src="{{.BasePath}}{{staticHashed "icons/eye-outline.svg"}}"
+                      width="20" height="20"
+                      alt="Toggle password visibility"
+                    >
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </label>
+        <label class="radio is-block ml-0">
+          <input type="radio"
+            name="802-11-wireless-security.key-mgmt"
+            value=""
+            required
+            autocomplete="off"
+            {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
+            data-action="change->checkable-textbox#toggle change->checkable-textbox#setPlaceholder"
+            data-checkable-textbox-placeholder-param="none"
+          />
+          No
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Behavior</label>
       <div class="control radios">
         <label class="radio is-block">
           <input type="radio"
@@ -104,17 +208,18 @@
         </label>
       </div>
     </div>
-  </div>
 
-  <div class="field" data-form-submission-target="submitter">
-    <div class="control">
-      <input
-        class="button is-primary"
-        type="submit"
-        name="update-type"
-        value="Save"
-        data-form-submission-target="submit"
-      >
+    <div class="field" data-form-submission-target="submitter">
+      <div class="control">
+        <input
+          class="button is-primary"
+          type="submit"
+          name="update-type"
+          value="Save"
+          data-form-submission-target="submit"
+        >
+      </div>
     </div>
-  </div>
-</form>
+  </form>
+
+</turbo-frame>
