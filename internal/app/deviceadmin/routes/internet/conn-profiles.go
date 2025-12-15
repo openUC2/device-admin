@@ -65,7 +65,7 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 
 type ConnProfileViewData struct {
 	ConnProfile nm.ConnProfile
-	Active      *nm.ActiveConn
+	Active      nm.ActiveConn
 }
 
 func getConnProfileViewData(
@@ -77,9 +77,9 @@ func getConnProfileViewData(
 	}
 
 	activeConns, err := nm.ListActiveConns(ctx)
-	if err == nil { // vd.Active is nil if we can't determine the active conns
+	if err == nil { // vd.Active is the empty value if we can't determine the active conns
 		activeConn := activeConns[vd.ConnProfile.Settings.Conn.UUID.String()]
-		vd.Active = &(activeConn)
+		vd.Active = activeConn
 	}
 
 	return vd, nil

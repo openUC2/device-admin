@@ -978,3 +978,14 @@ func dumpDeviceAvailableConnProfiles(
 	})
 	return dev, nil
 }
+
+func GetDeviceByIface(ctx context.Context, ipInterface string) (dev Device, err error) {
+	devo, bus, err := findDevice(ctx, ipInterface)
+	if err != nil {
+		return Device{}, errors.Wrapf(err, "couldn't find device %s", ipInterface)
+	}
+	if dev, err = dumpDevice(ctx, devo, bus); err != nil {
+		return Device{}, errors.Wrapf(err, "couldn't dump device %s (%s)", ipInterface, devo.Path())
+	}
+	return dev, nil
+}

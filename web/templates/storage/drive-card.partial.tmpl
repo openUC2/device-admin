@@ -6,8 +6,8 @@
 {{$collapseAll := (get . "CollapseAll")}}
 {{$Meta := (get . "Meta")}}
 
-<turbo-frame id="{{$Meta.BasePath}}storage/drives/{{$drive.ID}}">
-  <article class="panel entity-panel" id="drive-{{$drive.ID}}">
+<turbo-frame id="storage_drives_{{$drive.ID}}">
+  <article class="panel entity-panel" id="storage_drives_card_{{$drive.ID}}">
     <header class="panel-heading">{{$drive.ID}}</header>
 
     {{if or (not $sections) (get $sections "basics")}}

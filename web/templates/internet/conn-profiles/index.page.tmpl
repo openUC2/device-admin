@@ -19,11 +19,11 @@
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
           )}}" aria-current="page">Internet</a></li>
-          {{$connProfilesFragment := "other-conn-profiles"}}
+          {{$connProfilesFragment := "other_conn-profiles"}}
           {{if eq $conn.Type.Info.Short "wifi"}}
-            {{$connProfilesFragment = "wifi-conn-profiles"}}
+            {{$connProfilesFragment = "wifi_conn-profiles"}}
           {{else if eq $conn.Type.Info.Short "ethernet"}}
-            {{$connProfilesFragment = "ethernet-conn-profiles"}}
+            {{$connProfilesFragment = "ethernet_conn-profiles"}}
           {{end}}
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")

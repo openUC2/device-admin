@@ -1,0 +1,20 @@
+{{$networkmanager := (get . "NetworkManager")}}
+{{$Meta := (get . "Meta")}}
+
+<turbo-frame
+  id="internet_networkmanager"
+  data-turbo-reload
+  refresh="morph"
+>
+  <p>
+    Connectivity:
+    {{$connectivityInfo := $networkmanager.Connectivity.Info}}
+    <span class="tag is-{{$connectivityInfo.Level}}">
+      {{if $connectivityInfo.Details}}
+        <abbr title="{{$connectivityInfo.Details}}">{{$connectivityInfo.Short}}</abbr>
+      {{else}}
+        {{$connectivityInfo.Short}}
+      {{end}}
+    </span>
+  </p>
+</turbo-frame>

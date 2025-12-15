@@ -12,7 +12,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 
-	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
 func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
@@ -34,7 +35,7 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 		switch mode {
 		default:
 			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
-		case "advanced":
+		case dah.ViewModeAdvanced:
 			return h.r.CacheablePage(c.Response(), c.Request(), ta, vd, struct{}{})
 		}
 	}
@@ -43,7 +44,7 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 type DeviceAPsViewData struct {
 	Interface      string
 	AvailableSSIDs []string
-	AvailableAPs   map[string][]networkmanager.AccessPoint
+	AvailableAPs   map[string][]nm.AccessPoint
 }
 
 func getDeviceAPsViewData(
@@ -52,7 +53,7 @@ func getDeviceAPsViewData(
 ) (vd DeviceAPsViewData, err error) {
 	vd.Interface = iface
 
-	if vd.AvailableAPs, err = networkmanager.ScanNetworks(ctx, iface); err != nil {
+	if vd.AvailableAPs, err = nm.ScanNetworks(ctx, iface); err != nil {
 		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
 	}
 	for ssid, aps := range vd.AvailableAPs {
@@ -60,7 +61,7 @@ func getDeviceAPsViewData(
 			delete(vd.AvailableAPs, ssid)
 			continue
 		}
-		slices.SortFunc(aps, func(a, b networkmanager.AccessPoint) int {
+		slices.SortFunc(aps, func(a, b nm.AccessPoint) int {
 			return cmp.Compare(b.Strength, a.Strength)
 		})
 		vd.AvailableAPs[ssid] = aps
@@ -88,7 +89,7 @@ func (h *Handlers) HandleDeviceAPsPost() echo.HandlerFunc {
 			))
 		case "refreshed":
 			// Note: this function call will block until the scan finishes:
-			if err := networkmanager.RescanNetworks(c.Request().Context(), iface); err != nil {
+			if err := nm.RescanNetworks(c.Request().Context(), iface); err != nil {
 				return err
 			}
 			// Redirect user

@@ -19,12 +19,12 @@
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-            "fragment" "wifi-devices"
+            "fragment" "internet_wifi_devices"
           )}}" aria-current="page">Devices</a></li>
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-            "fragment" (print "device-" .Data.Interface)
+            "fragment" (print "internet_devices_card_" .Data.Interface)
           )}}" aria-current="page">{{.Data.Interface}}</a></li>
           <li class="is-active"><a href="{{urlJoin (dict
             "path" .Meta.Path
@@ -36,7 +36,7 @@
 
     <section class="section content">
       <h1>External Wi-Fi networks available for {{.Data.Interface}}</h1>
-      <turbo-frame id="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points">
+      <turbo-frame id="internet_devices_{{.Data.Interface}}_access-points">
         <form
           action="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points"
           method="POST"

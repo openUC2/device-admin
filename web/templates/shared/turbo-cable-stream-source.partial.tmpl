@@ -1,0 +1,11 @@
+{{$name := (get . "Name")}}
+{{$basePath := (get . "BasePath")}}
+
+<turbo-cable-stream-source
+  cable-route={{print $basePath "cable"}}
+  channel="Turbo::StreamsChannel"
+  name="{{$name}}"
+  integrity="{{signTurboStream $name}}"
+  websocket-subprotocol="actioncable-v1-msgpack"
+>
+</turbo-cable-stream-source>

@@ -1,9 +1,11 @@
 package deviceadmin
 
 import (
+	"fmt"
 	"io/fs"
 	"net/http"
 
+	csrf "filippo.io/csrf/gorilla"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
@@ -46,6 +48,36 @@ func NewHTTPErrorHandler(tr godest.TemplateRenderer, templatesFS fs.FS) echo.HTT
 			if perr != nil {
 				c.Logger().Error(errors.Wrap(perr, "couldn't send fallback error page in error handler"))
 			}
+		}
+	}
+}
+
+func NewCSRFErrorHandler(
+	tr godest.TemplateRenderer, l echo.Logger,
+) http.HandlerFunc {
+	tr.MustHave("app/httperr.page.tmpl")
+	return func(w http.ResponseWriter, r *http.Request) {
+		l.Error(csrf.FailureReason(r))
+		// Generate error code
+		code := http.StatusForbidden
+		errorData := ErrorData{
+			Code:  code,
+			Error: httperr.Describe(code),
+			Messages: []string{
+				fmt.Sprintf(
+					"%s. If you disabled Javascript after signing in, "+
+						"please clear your cookies for this site and sign in again.",
+					csrf.FailureReason(r).Error(),
+				),
+			},
+		}
+
+		// Produce output
+
+		if rerr := tr.Page(
+			w, r, code, "app/httperr.page.tmpl", errorData, struct{}{}, godest.WithUncacheable(),
+		); rerr != nil {
+			l.Error(errors.Wrap(rerr, "couldn't render error page in error handler"))
 		}
 	}
 }

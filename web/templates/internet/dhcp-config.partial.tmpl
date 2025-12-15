@@ -1,4 +1,4 @@
-{{$dhcpConfig := (get . "IPConfig")}}
+{{$dhcpConfig := (get . "DHCPConfig")}}
 
 {{if $dhcpConfig.Options}}
   <p><abbrev title="configuration options returned by the DHCP server">Options</abbrev>:</p>

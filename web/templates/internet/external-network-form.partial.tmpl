@@ -7,13 +7,13 @@
 {{$wifiSec := $connProfile.Settings.WifiSec}}
 
 <turbo-frame
-  id="{{$Meta.BasePath}}internet/external-wifi"
+  id="internet_external-wifi"
   data-controller="dropdown-textbox"
   data-action="turbo:frame-load->dropdown-textbox#updateSelect"
 >
 
   <turbo-frame
-    id="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
+    id="internet_devices_wlan0_access-points"
     data-action="turbo:frame-load->dropdown-textbox#updateSelect"
   >
     <form
@@ -41,7 +41,7 @@
       </div>
     </form>
     <datalist
-      id="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list"
+      id="internet_devices_wlan0_access-points_list"
       data-dropdown-textbox-target="datalist"
     >
       {{range $ssid := $availableSSIDs}}

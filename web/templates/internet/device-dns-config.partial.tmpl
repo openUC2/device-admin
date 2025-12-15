@@ -1,0 +1,31 @@
+{{$ipv4DNS := (get . "IPv4DNS")}}
+{{$ipv6DNS := (get . "IPv6DNS")}}
+{{$interface := (get . "Interface")}}
+{{$Meta := (get . "Meta")}}
+
+<turbo-frame
+  id="internet_devices_{{$interface}}_dns-config"
+  data-turbo-reload
+  refresh="morph"
+  {{if (or $ipv4DNS.HasData $ipv6DNS.HasData)}}
+    data-action="turbo:before-morph-element->showable#show"
+  {{else}}
+    data-action="turbo:before-morph-element->showable#hide"
+  {{end}}
+>
+  {{if $ipv4DNS.HasData}}
+    <h4>IPv4</h4>
+    {{
+      template "internet/dns-config.partial.tmpl" dict
+      "DNSConfig" $ipv4DNS
+    }}
+  {{end}}
+
+  {{if $ipv6DNS.HasData}}
+    <h4>IPv6</h4>
+    {{
+      template "internet/dns-config.partial.tmpl" dict
+      "DNSConfig" $ipv6DNS
+    }}
+  {{end}}
+</turbo-frame>
