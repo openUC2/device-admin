@@ -60,7 +60,7 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 		mode := c.QueryParam("mode")
 
 		// Run queries
-		vd, err := getInternetViewData(c.Request().Context())
+		vd, err := getInternetViewData(c.Request().Context(), h.nmc)
 		if err != nil {
 			return err
 		}
@@ -92,8 +92,8 @@ type InternetViewData struct {
 	IsStreamPage bool
 }
 
-func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
-	if vd.NM, err = nm.Get(ctx); err != nil {
+func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewData, err error) {
+	if vd.NM, err = nmc.Get(); err != nil {
 		return vd, errors.Wrap(err, "couldn't get overall information about NetworkManager")
 	}
 
@@ -101,7 +101,7 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 	// Note(ethanjli): the list of APs is just for autocompletion in the simplified wifi management
 	// view, and it can be missing just after activating wlan0-hotspot; so it's fine if we don't
 	// provide any data about available APs on this page:
-	availableAPs, _ := nm.ScanNetworks(ctx, iface)
+	availableAPs, _ := nmc.ScanNetworks(ctx, iface)
 	for ssid, aps := range availableAPs {
 		if len(aps) == 0 {
 			continue
@@ -110,7 +110,7 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 	}
 	slices.Sort(vd.AvailableSSIDs)
 
-	allDevices, err := nm.GetDevices(ctx)
+	allDevices, err := nmc.GetDevices(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list network devices")
 	}
@@ -125,7 +125,7 @@ func getInternetViewData(ctx context.Context) (vd InternetViewData, err error) {
 		}
 	}
 
-	connProfiles, err := nm.ListConnProfiles(ctx)
+	connProfiles, err := nmc.ListConnProfiles(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list connection profiles")
 	}
@@ -179,7 +179,7 @@ func (h *Handlers) HandleInternetPub() turbostreams.HandlerFunc {
 			}
 
 			// Run queries
-			vd, err := getInternetViewData(ctx)
+			vd, err := getInternetViewData(ctx, h.nmc)
 			if err != nil {
 				return false, err
 			}

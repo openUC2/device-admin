@@ -217,6 +217,13 @@ func (s *Server) runWorkersInContext(ctx context.Context) error {
 		}
 		return nil
 	})
+	eg.Go(func() error {
+		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
+			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
+			// Even if NetworkManager is unavailable, other parts of device-admin are still useful
+		}
+		return nil
+	})
 	return eg.Wait()
 }
 

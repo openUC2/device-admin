@@ -45,8 +45,10 @@ func (f ConnProfileFlags) External() bool {
 	return f&0x8 > 0
 }
 
-func GetConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conn ConnProfile, err error) {
-	conno, err := findConnProfileByUUID(ctx, uid)
+func (c *Client) GetConnProfileByUUID(
+	ctx context.Context, uid uuid.UUID,
+) (conn ConnProfile, err error) {
+	conno, err := c.findConnProfileByUUID(ctx, uid)
 	if err != nil {
 		return ConnProfile{}, errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid)
 	}
@@ -56,11 +58,10 @@ func GetConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conn ConnProfile,
 	return conn, nil
 }
 
-func findConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conno dbus.BusObject, err error) {
-	nm, bus, err := getNetworkManagerSettings(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) findConnProfileByUUID(
+	ctx context.Context, uid uuid.UUID,
+) (conno dbus.BusObject, err error) {
+	nm := c.getNetworkManagerSettings()
 
 	var connPath dbus.ObjectPath
 	if err = nm.CallWithContext(
@@ -69,7 +70,7 @@ func findConnProfileByUUID(ctx context.Context, uid uuid.UUID) (conno dbus.BusOb
 		return nil, errors.Wrapf(err, "couldn't query for connection profile with uuid %s", uid)
 	}
 
-	return bus.Object(nmName, connPath), nil
+	return c.bus.Object(nmName, connPath), nil
 }
 
 func dumpConnProfile(ctx context.Context, conno dbus.BusObject) (conn ConnProfile, err error) {
@@ -96,11 +97,8 @@ func dumpConnProfile(ctx context.Context, conno dbus.BusObject) (conn ConnProfil
 	return conn, nil
 }
 
-func ListConnProfiles(ctx context.Context) (conns []ConnProfile, err error) {
-	nm, bus, err := getNetworkManagerSettings(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) ListConnProfiles(ctx context.Context) (conns []ConnProfile, err error) {
+	nm := c.getNetworkManagerSettings()
 
 	var connPaths []dbus.ObjectPath
 	if err = nm.CallWithContext(
@@ -110,7 +108,7 @@ func ListConnProfiles(ctx context.Context) (conns []ConnProfile, err error) {
 	}
 
 	for _, connPath := range connPaths {
-		conn, err := dumpConnProfile(ctx, bus.Object(nmName, connPath))
+		conn, err := dumpConnProfile(ctx, c.bus.Object(nmName, connPath))
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump connection profile %s", connPath)
 		}
@@ -124,16 +122,14 @@ func ListConnProfiles(ctx context.Context) (conns []ConnProfile, err error) {
 	return conns, nil
 }
 
-func ReloadConnProfiles(ctx context.Context) error {
-	nm, _, err := getNetworkManagerSettings(ctx)
-	if err != nil {
-		return err
-	}
+func (c *Client) ReloadConnProfiles(ctx context.Context) error {
+	nm := c.getNetworkManagerSettings()
 
 	var status bool
-	if err = nm.CallWithContext(
+	err := nm.CallWithContext(
 		ctx, nmName+".Settings.ReloadConnections", 0,
-	).Store(&status); err != nil {
+	).Store(&status)
+	if err != nil {
 		return errors.Wrap(err, "couldn't reload connection profiles")
 	}
 	if !status {
@@ -143,12 +139,9 @@ func ReloadConnProfiles(ctx context.Context) error {
 	return nil
 }
 
-func ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {
-	nm, _, err := getNetworkManager(ctx)
-	if err != nil {
-		return err
-	}
-	conno, err := findConnProfileByUUID(ctx, uid)
+func (c *Client) ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {
+	nm := c.getNetworkManager()
+	conno, err := c.findConnProfileByUUID(ctx, uid)
 	if err != nil {
 		return errors.Wrap(err, "couldn't find connection profile to activate")
 	}
@@ -189,10 +182,10 @@ func (k ConnProfileSettingsKey) String() string {
 	return fmt.Sprintf("%s.%s", k.Section, k.Key)
 }
 
-func UpdateConnProfileByUUID(
+func (c *Client) UpdateConnProfileByUUID(
 	ctx context.Context, uid uuid.UUID, updateType string, newSettings map[ConnProfileSettingsKey]any,
 ) error {
-	conno, err := findConnProfileByUUID(ctx, uid)
+	conno, err := c.findConnProfileByUUID(ctx, uid)
 	if err != nil {
 		return errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid.String())
 	}

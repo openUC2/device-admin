@@ -27,7 +27,7 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 		mode := c.QueryParam("mode")
 
 		// Run queries
-		vd, err := getDeviceAPsViewData(c.Request().Context(), iface)
+		vd, err := getDeviceAPsViewData(c.Request().Context(), iface, h.nmc)
 		if err != nil {
 			return err
 		}
@@ -50,10 +50,11 @@ type DeviceAPsViewData struct {
 func getDeviceAPsViewData(
 	ctx context.Context,
 	iface string,
+	nmc *nm.Client,
 ) (vd DeviceAPsViewData, err error) {
 	vd.Interface = iface
 
-	if vd.AvailableAPs, err = nm.ScanNetworks(ctx, iface); err != nil {
+	if vd.AvailableAPs, err = nmc.ScanNetworks(ctx, iface); err != nil {
 		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
 	}
 	for ssid, aps := range vd.AvailableAPs {
@@ -89,7 +90,7 @@ func (h *Handlers) HandleDeviceAPsPost() echo.HandlerFunc {
 			))
 		case "refreshed":
 			// Note: this function call will block until the scan finishes:
-			if err := nm.RescanNetworks(c.Request().Context(), iface); err != nil {
+			if err := h.nmc.RescanNetworks(c.Request().Context(), iface); err != nil {
 				return err
 			}
 			// Redirect user

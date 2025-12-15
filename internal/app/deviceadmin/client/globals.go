@@ -61,8 +61,7 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 	g = &Globals{
 		Config: config,
 	}
-	g.Base, err = NewBaseGlobals(config, l)
-	if err != nil {
+	if g.Base, err = NewBaseGlobals(config, l); err != nil {
 		return nil, errors.Wrap(err, "couldn't set up base globals")
 	}
 

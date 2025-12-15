@@ -28,7 +28,7 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 				"invalid connection profiles state %s", state,
 			))
 		case "reloaded":
-			if err := nm.ReloadConnProfiles(c.Request().Context()); err != nil {
+			if err := h.nmc.ReloadConnProfiles(c.Request().Context()); err != nil {
 				return err
 			}
 			// Redirect user
@@ -51,7 +51,7 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 		}
 
 		// Run queries
-		vd, err := getConnProfileViewData(c.Request().Context(), uid)
+		vd, err := getConnProfileViewData(c.Request().Context(), uid, h.nmc)
 		if err != nil {
 			return err
 		}
@@ -71,12 +71,13 @@ type ConnProfileViewData struct {
 func getConnProfileViewData(
 	ctx context.Context,
 	uid uuid.UUID,
+	nmc *nm.Client,
 ) (vd ConnProfileViewData, err error) {
-	if vd.ConnProfile, err = nm.GetConnProfileByUUID(ctx, uid); err != nil {
+	if vd.ConnProfile, err = nmc.GetConnProfileByUUID(ctx, uid); err != nil {
 		return vd, errors.Wrapf(err, "couldn't get connection profile %s", uid)
 	}
 
-	activeConns, err := nm.ListActiveConns(ctx)
+	activeConns, err := nmc.ListActiveConns()
 	if err == nil { // vd.Active is the empty value if we can't determine the active conns
 		activeConn := activeConns[vd.ConnProfile.Settings.Conn.UUID.String()]
 		vd.Active = activeConn
@@ -103,7 +104,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				"invalid connection profiles state %s", state,
 			))
 		case "activated-transiently":
-			if err := nm.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+			if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
 				return err
 			}
 			// Redirect user
@@ -114,7 +115,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				return errors.Wrap(err, "couldn't load form parameters")
 			}
 			if err := updateConnProfile(
-				c.Request().Context(), uid, "save and apply", formValues,
+				c.Request().Context(), uid, "save and apply", formValues, h.nmc,
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
@@ -126,7 +127,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				return errors.Wrap(err, "couldn't load form parameters")
 			}
 			if err := updateConnProfile(
-				c.Request().Context(), uid, c.FormValue("update-type"), formValues,
+				c.Request().Context(), uid, c.FormValue("update-type"), formValues, h.nmc,
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
@@ -138,6 +139,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 
 func updateConnProfile(
 	ctx context.Context, uid uuid.UUID, updateType string, formValues url.Values,
+	nmc *nm.Client,
 ) error {
 	updateValues := make(map[nm.ConnProfileSettingsKey]any)
 
@@ -174,7 +176,7 @@ func updateConnProfile(
 	if err := checkConnProfile(formValues); err != nil {
 		return err
 	}
-	return nm.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
+	return nmc.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
 }
 
 func parseConnProfileSettingsConnField(

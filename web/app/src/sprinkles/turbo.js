@@ -5,9 +5,11 @@ export { Turbo };
 
 export function streamActionReload() {
   document.querySelectorAll(`turbo-frame`).forEach((frame) => {
-    if (frame.dataset.turboReload === undefined || (
-      frame.dataset.turboReload !== '' && frame.dataset.turboReload.toLowerCase !== 'turbo-reload'
-    )) {
+    if (
+      frame.dataset.turboReload === undefined ||
+      (frame.dataset.turboReload !== '' &&
+        frame.dataset.turboReload.toLowerCase !== 'turbo-reload')
+    ) {
       return;
     }
 

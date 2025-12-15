@@ -716,17 +716,14 @@ func (f DeviceInterfaceFlags) LLDPClient() bool {
 	return f&0x20000 > 0
 }
 
-func GetDevices(ctx context.Context) (devs []Device, err error) {
-	nm, bus, err := getNetworkManager(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) GetDevices(ctx context.Context) (devs []Device, err error) {
+	nm := c.getNetworkManager()
 	devPaths := make([]dbus.ObjectPath, 0)
 	if err = nm.CallWithContext(ctx, nmName+".GetDevices", 0).Store(&devPaths); err != nil {
 		return nil, errors.Wrap(err, "couldn't query for devices")
 	}
 	for _, devPath := range devPaths {
-		dev, err := dumpDevice(ctx, bus.Object(nmName, devPath), bus)
+		dev, err := dumpDevice(ctx, c.bus.Object(nmName, devPath), c.bus)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump device %s", devPath)
 		}
@@ -741,22 +738,19 @@ func GetDevices(ctx context.Context) (devs []Device, err error) {
 	return devs, nil
 }
 
-func findDevice(
+func (c *Client) findDevice(
 	ctx context.Context, ipInterface string,
-) (dev dbus.BusObject, bus *dbus.Conn, err error) {
-	nm, bus, err := getNetworkManager(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
+) (dev dbus.BusObject, err error) {
+	nm := c.getNetworkManager()
 
 	var devPath dbus.ObjectPath
 	if err = nm.CallWithContext(
 		ctx, nmName+".GetDeviceByIpIface", 0, ipInterface,
 	).Store(&devPath); err != nil {
-		return nil, nil, errors.Wrapf(err, "couldn't query for %s device", ipInterface)
+		return nil, errors.Wrapf(err, "couldn't query for %s device", ipInterface)
 	}
 
-	return bus.Object(nmName, devPath), bus, nil
+	return c.bus.Object(nmName, devPath), nil
 }
 
 func dumpDevice(ctx context.Context, devo dbus.BusObject, bus *dbus.Conn) (dev Device, err error) {
@@ -979,12 +973,12 @@ func dumpDeviceAvailableConnProfiles(
 	return dev, nil
 }
 
-func GetDeviceByIface(ctx context.Context, ipInterface string) (dev Device, err error) {
-	devo, bus, err := findDevice(ctx, ipInterface)
+func (c *Client) GetDeviceByIface(ctx context.Context, ipInterface string) (dev Device, err error) {
+	devo, err := c.findDevice(ctx, ipInterface)
 	if err != nil {
 		return Device{}, errors.Wrapf(err, "couldn't find device %s", ipInterface)
 	}
-	if dev, err = dumpDevice(ctx, devo, bus); err != nil {
+	if dev, err = dumpDevice(ctx, devo, c.bus); err != nil {
 		return Device{}, errors.Wrapf(err, "couldn't dump device %s (%s)", ipInterface, devo.Path())
 	}
 	return dev, nil
