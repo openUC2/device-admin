@@ -2,6 +2,7 @@ export { default as CheckableTextboxController } from './checkable-textbox.contr
 export { default as DefaultScrollableController } from './default-scrollable.controller';
 export { default as DropdownTextboxController } from './dropdown-textbox.controller';
 export { default as FormSubmissionController } from './form-submission.controller';
+export { default as EventController } from './event.controller';
 export { default as HideableController } from './hideable.controller';
 export { default as NavigationLinkController } from './navigation-link.controller';
 export { default as NavigationMenuController } from './navigation-menu.controller';

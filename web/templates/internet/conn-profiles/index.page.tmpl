@@ -69,57 +69,57 @@
           TODO: the connection profile file is auto-generated from drop-in snippet files, show a
           button to re-generate the connection profile file.
         </p>
+        <!--
+          TODO: change this to reload only the current profile (and move the "reload all profiles"
+          button to the home page), using org.freedesktop.NetworkManager.Settings.LoadConnections
+        -->
+        <div class="field is-grouped">
+          <div class="control">
+            <form
+              action="{{.Meta.BasePath}}internet/conn-profiles"
+              method="POST"
+              data-controller="form-submission"
+              data-action="submit->form-submission#submit"
+              data-form-submission-target="submitter"
+              class="mt-4 mb-3"
+            >
+              <input type="hidden" name="state" value="reloaded">
+              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                "path" .Meta.Path
+                "query" .Meta.Form.Encode
+              )}}">
+              <input
+                class="button is-primary"
+                type="submit"
+                value="Reload all profiles"
+                data-form-submission-target="submit"
+              >
+            </form>
+          </div>
+          <div class="control">
+            <form
+              action="{{.Meta.Path}}"
+              method="POST"
+              data-controller="form-submission"
+              data-action="submit->form-submission#submit"
+              data-form-submission-target="submitter"
+              class="mt-4 mb-3"
+            >
+              <input type="hidden" name="state" value="activated-transiently">
+              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                "path" .Meta.Path
+                "query" .Meta.Form.Encode
+              )}}">
+              <input
+                class="button is-primary"
+                type="submit"
+                value="{{if .Data.Active.HasData}}Reactivate profile{{else}}Activate temporarily{{end}}"
+                data-form-submission-target="submit"
+              >
+            </form>
+          </div>
+        </div>
       </turbo-frame>
-      <!--
-        TODO: change this to reload only the current profile (and move the "reload all profiles"
-        button to the home page), using org.freedesktop.NetworkManager.Settings.LoadConnections
-      -->
-      <div class="field is-grouped">
-        <div class="control">
-          <form
-            action="{{.Meta.BasePath}}internet/conn-profiles"
-            method="POST"
-            data-controller="form-submission"
-            data-action="submit->form-submission#submit"
-            data-form-submission-target="submitter"
-            class="mt-4 mb-3"
-          >
-            <input type="hidden" name="state" value="reloaded">
-            <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-              "path" .Meta.Path
-              "query" .Meta.Form.Encode
-            )}}">
-            <input
-              class="button is-primary"
-              type="submit"
-              value="Reload all profiles"
-              data-form-submission-target="submit"
-            >
-          </form>
-        </div>
-        <div class="control">
-          <form
-            action="{{.Meta.Path}}"
-            method="POST"
-            data-controller="form-submission"
-            data-action="submit->form-submission#submit"
-            data-form-submission-target="submitter"
-            class="mt-4 mb-3"
-          >
-            <input type="hidden" name="state" value="activated-transiently">
-            <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-              "path" .Meta.Path
-              "query" .Meta.Form.Encode
-            )}}">
-            <input
-              class="button is-primary"
-              type="submit"
-              value="{{if .Data.Active.HasData}}Reactivate profile{{else}}Activate temporarily{{end}}"
-              data-form-submission-target="submit"
-            >
-          </form>
-        </div>
-      </div>
     </section>
 
     <section class="section content">

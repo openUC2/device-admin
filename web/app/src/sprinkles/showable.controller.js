@@ -1,10 +1,12 @@
 import { Controller } from '@hotwired/stimulus';
 
 export default class extends Controller {
+  static targets = ['shower'];
+
   show() {
-    this.element.classList.remove('is-hidden');
+    this.showerTarget.classList.remove('is-hidden');
   }
   hide() {
-    this.element.classList.add('is-hidden');
+    this.showerTarget.classList.add('is-hidden');
   }
 }

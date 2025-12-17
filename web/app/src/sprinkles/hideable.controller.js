@@ -8,7 +8,7 @@ export default class extends Controller {
     this.hiderTarget.classList.remove('is-hidden');
   }
 
-  hide(event) {
-    this.element.classList.add('is-hidden');
+  hide() {
+    this.hiderTarget.classList.add('is-hidden');
   }
 }

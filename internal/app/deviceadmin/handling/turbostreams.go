@@ -17,7 +17,7 @@ func HandleTSMsg(r godest.TemplateRenderer) turbostreams.HandlerFunc {
 	}
 }
 
-func AllowTSSub(_ godest.Logger) turbostreams.HandlerFunc {
+func AllowTSSub() turbostreams.HandlerFunc {
 	return func(c *turbostreams.Context) error {
 		fmt.Println("SUB", c.Topic())
 		return nil

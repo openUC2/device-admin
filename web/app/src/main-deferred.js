@@ -3,6 +3,7 @@ import {
   CheckableTextboxController,
   DefaultScrollableController,
   DropdownTextboxController,
+  EventController,
   FormSubmissionController,
   HideableController,
   NavigationLinkController,
@@ -28,6 +29,7 @@ const Stimulus = Application.start();
 Stimulus.register('checkable-textbox', CheckableTextboxController);
 Stimulus.register('default-scrollable', DefaultScrollableController);
 Stimulus.register('dropdown-textbox', DropdownTextboxController);
+Stimulus.register('event', EventController);
 Stimulus.register('form-submission', FormSubmissionController);
 Stimulus.register('hideable', HideableController);
 Stimulus.register('navigation-link', NavigationLinkController);

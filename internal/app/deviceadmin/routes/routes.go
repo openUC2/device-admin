@@ -49,13 +49,13 @@ func (h *Handlers) Register(er godest.EchoRouter, tsr turbostreams.Router, em go
 	identity.New(h.r).Register(er)
 	internet.New(h.r, tsh, h.globals.NetworkManager, l).Register(er, tsr)
 	h.remote = remote.New(h.r, h.globals.Tailscale)
-	if err := h.remote.Register(er); err != nil {
+	if err := h.remote.Register(er, tsr); err != nil {
 		return errors.Wrap(err, "couldn't register handlers for remote routes")
 	}
 	storage.New(h.r, h.globals.UDisks2, l).Register(er)
 	osconfig.New(h.r).Register(er)
 
-	tsr.SUB(h.r.BasePath+"refresh", dah.AllowTSSub(l))
+	tsr.SUB(h.r.BasePath+"refresh", dah.AllowTSSub())
 	tsr.PUB(h.r.BasePath+"refresh", h.HandleRefreshPub())
 
 	tsr.MSG(h.r.BasePath+"*", dah.HandleTSMsg(h.r))
