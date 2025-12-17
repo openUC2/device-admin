@@ -497,19 +497,37 @@
         </label>
       </div>
       <div class="field-body">
-        <div class="field">
+        <div
+          class="field"
+          data-controller="password-input"
+          data-password-input-target="addons"
+        >
           <div class="control">
             <input
               class="input" type="password"
               name="802-11-wireless-security.psk"
               minlength=1
-              {{if $wifiSec.PSK}}
-                placeholder="not shown here, for security reasons"
-              {{else}}
-                placeholder="required except for 'None' and 'OWE' modes"
-              {{end}}
-              size=40
+              placeholder="not shown here, for security reasons"
+              size=30
+              data-password-input-target="input"
+              data-checkable-textbox-target="textbox"
+              data-action="input->password-input#edit"
             >
+          </div>
+          <div class="control">
+            <button
+              class="button is-hidden"
+              data-password-input-target="toggler"
+              data-action="click->password-input#toggle:prevent"
+            >
+              <span class="icon">
+                <img class="mdi mdi-inactive"
+                  src="{{$Meta.BasePath}}{{staticHashed "icons/eye-outline.svg"}}"
+                  width="20" height="20"
+                  alt="Toggle password visibility"
+                >
+              </span>
+            </button>
           </div>
         </div>
       </div>
