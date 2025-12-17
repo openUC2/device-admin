@@ -43,144 +43,150 @@
   </div>
 
   <h3>Connection</h3>
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">
-        ID
-      </label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          {{if $conn.ID}}
-            {{$conn.ID}}
-          {{else}}
-            <span class="tag is-error">none</span>
-          {{end}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">
-        UUID
-      </label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          {{if $conn.UUID.String}}
-            {{$conn.UUID.String}}
-          {{else}}
-            <span class="tag is-error">none</span>
-          {{end}}
-        </div>
-      </div>
-    </div>
-  </div>
-
-  {{if $conn.StableID}}
+  <turbo-frame
+    id="internet_conn-profiles_{{$conn.UUID}}_connection"
+    data-turbo-reload
+    refresh="morph"
+  >
     <div class="field is-horizontal">
       <div class="field-label">
         <label class="label">
-          Stable ID
+          ID
         </label>
       </div>
       <div class="field-body">
         <div class="field">
           <div class="control">
-            {{$conn.StableID}}
+            {{if $conn.ID}}
+              {{$conn.ID}}
+            {{else}}
+              <span class="tag is-error">none</span>
+            {{end}}
           </div>
         </div>
       </div>
     </div>
-  {{end}}
 
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">
-        Type
-      </label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          {{if $conn.Type}}
-            {{if eq $conn.Type.Info.Short $conn.Type}}
-              {{$conn.Type}}
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          UUID
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            {{if $conn.UUID.String}}
+              {{$conn.UUID.String}}
             {{else}}
-              <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
+              <span class="tag is-error">none</span>
             {{end}}
-          {{else}}
-            <span class="tag is-error">none</span>
-          {{end}}
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">
-        <abbr title="the network interface which this connection is allowed for">Device</abbr>
-      </label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          {{if $conn.InterfaceName}}
-            <a href="{{$internetPagePath}}#internet_devices_card_{{$conn.InterfaceName}}" target="_top">
-              {{$conn.InterfaceName}}
-            </a>
-          {{else}}
-            <span class="tag is-info">any appropriate interface</span>
-          {{end}}
+    {{if $conn.StableID}}
+      <div class="field is-horizontal">
+        <div class="field-label">
+          <label class="label">
+            Stable ID
+          </label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <div class="control">
+              {{$conn.StableID}}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+    {{end}}
 
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">
-        <abbr title="when the connection was last successfully fully activated">Last used</abbr>
-      </label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          {{if $conn.Timestamp.IsZero}}
-            <span class="tag is-info">never, or unknown</span>
-          {{else}}
-            <abbr title="at {{dateInZone "2006-01-2 15:04 MST" $conn.Timestamp "UTC"}}">
-              {{durationRound (ago $conn.Timestamp)}} ago
-            </abbr>
-          {{end}}
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          Type
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            {{if $conn.Type}}
+              {{if eq $conn.Type.Info.Short $conn.Type}}
+                {{$conn.Type}}
+              {{else}}
+                <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
+              {{end}}
+            {{else}}
+              <span class="tag is-error">none</span>
+            {{end}}
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="field is-horizontal">
-    <div class="field-label">
-      <label class="label">
-        <abbr title="firewall trust level">Zone</abbr>
-      </label>
-    </div>
-    <div class="field-body">
-      <div class="field">
-        <div class="control">
-          {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
-            {{$conn.Zone}}
-          {{else}}
-            <span class="tag is-info">the firewall's default zone</span>
-          {{end}}
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="the network interface which this connection is allowed for">Device</abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            {{if $conn.InterfaceName}}
+              <a href="{{$internetPagePath}}#internet_devices_card_{{$conn.InterfaceName}}" target="_top">
+                {{$conn.InterfaceName}}
+              </a>
+            {{else}}
+              <span class="tag is-info">any appropriate interface</span>
+            {{end}}
+          </div>
         </div>
       </div>
     </div>
-  </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="when the connection was last successfully fully activated">Last used</abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            {{if $conn.Timestamp.IsZero}}
+              <span class="tag is-info">never, or unknown</span>
+            {{else}}
+              <abbr title="at {{dateInZone "2006-01-2 15:04 MST" $conn.Timestamp "UTC"}}">
+                {{durationRound (ago $conn.Timestamp)}} ago
+              </abbr>
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field is-horizontal">
+      <div class="field-label">
+        <label class="label">
+          <abbr title="firewall trust level">Zone</abbr>
+        </label>
+      </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
+              {{$conn.Zone}}
+            {{else}}
+              <span class="tag is-info">the firewall's default zone</span>
+            {{end}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </turbo-frame>
 
   <h4>Autoconnect</h4>
   <p class="mb-3">

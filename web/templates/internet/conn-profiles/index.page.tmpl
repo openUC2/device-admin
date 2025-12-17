@@ -1,4 +1,8 @@
-{{template "shared/base.layout.tmpl" .}}
+{{if .Data.IsStreamPage}}
+  {{template "shared/stream-page.layout.tmpl" .}}
+{{else}}
+  {{template "shared/base.layout.tmpl" .}}
+{{end}}
 
 {{define "title"}}{{.Data.ConnProfile.Settings.Conn.ID}} | Connection profiles | Internet Access {{end}}
 {{define "description"}}Manage network connection profile{{end}}
@@ -6,6 +10,12 @@
 
 {{define "content"}}
   {{$conn := .Data.ConnProfile.Settings.Conn}}
+
+  {{
+    template "shared/turbo-cable-stream-source.partial.tmpl" dict
+    "Name" (print .Meta.BasePath "internet/conn-profiles/" $conn.UUID)
+    "BasePath" .Meta.BasePath
+  }}
 
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
@@ -38,23 +48,28 @@
     <section class="section content">
       <h1>Connection profile: {{$conn.ID}}</h1>
       <h3>Activation</h3>
-      <p>TODO: automatically refresh this section periodically, to detect status changes</p>
-      <p>
-        Status:
-        {{if not .Data.Active}}
-          {{/*i.e. .Data.Active is nil*/}}
-          <span class="tag is-warning">unknown</span>
-        {{else if not .Data.Active.HasData}}
-          <span class="tag is-info">inactive</span>
-        {{else}}
-          <span class="tag is-success">active</span> on {{.Data.Active.DeviceInterfaces | join ", "}}
-        {{end}}
-      </p>
-      <p>TODO: if active, display some more info about the active connection</p>
-      <p>
-        TODO: the connection profile file is auto-generated from drop-in snippet files, show a
-        button to re-generate the connection profile file.
-      </p>
+      <turbo-frame
+        id="internet_conn-profiles_{{$conn.UUID}}_activation"
+        data-turbo-reload
+        refresh="morph"
+      >
+        <p>
+          Status:
+          {{if not .Data.Active}}
+            {{/*i.e. .Data.Active is nil*/}}
+            <span class="tag is-warning">unknown</span>
+          {{else if not .Data.Active.HasData}}
+            <span class="tag is-info">inactive</span>
+          {{else}}
+            <span class="tag is-success">active</span> on {{.Data.Active.DeviceInterfaces | join ", "}}
+          {{end}}
+        </p>
+        <p>TODO: if active, display some more info about the active connection</p>
+        <p>
+          TODO: the connection profile file is auto-generated from drop-in snippet files, show a
+          button to re-generate the connection profile file.
+        </p>
+      </turbo-frame>
       <!--
         TODO: change this to reload only the current profile (and move the "reload all profiles"
         button to the home page), using org.freedesktop.NetworkManager.Settings.LoadConnections

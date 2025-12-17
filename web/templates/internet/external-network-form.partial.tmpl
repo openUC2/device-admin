@@ -14,15 +14,18 @@
 
   <turbo-frame
     id="internet_devices_wlan0_access-points"
-    data-action="turbo:frame-load->dropdown-textbox#updateSelect"
+    data-turbo-reload
+    refresh="morph"
+    data-action="turbo:frame-load->dropdown-textbox#updateSelect turbo:morph-element->dropdown-textbox#updateSelect"
   >
     <form
       action="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
       method="POST"
-      data-controller="form-submission"
+      class="is-inline-block mb-3"
+      data-controller="form-submission hideable"
       data-action="submit->form-submission#submit"
       data-turbo-frame="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
-      class="is-inline-block mb-3"
+      data-hideable-target="hider"
     >
       <input type="hidden" name="state" value="refreshed">
       <input type="hidden" name="redirect-target" value="{{urlJoin (dict

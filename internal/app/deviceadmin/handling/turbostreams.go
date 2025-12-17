@@ -2,12 +2,14 @@
 package handling
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
 	"github.com/sargassum-world/godest/turbostreams"
 )
 
-// Rendering
+// Handlers
 
 func HandleTSMsg(r godest.TemplateRenderer) turbostreams.HandlerFunc {
 	return func(c *turbostreams.Context) (err error) {
@@ -15,11 +17,28 @@ func HandleTSMsg(r godest.TemplateRenderer) turbostreams.HandlerFunc {
 	}
 }
 
-func AllowTSSub(l godest.Logger) turbostreams.HandlerFunc {
+func AllowTSSub(_ godest.Logger) turbostreams.HandlerFunc {
 	return func(c *turbostreams.Context) error {
-		l.Info("SUB " + c.Topic())
+		fmt.Println("SUB", c.Topic())
 		return nil
 	}
+}
+
+// Rendering
+
+func PublishPageReload(
+	c *turbostreams.Context, r godest.TemplateRenderer, templateName string, viewData any,
+) error {
+	rd, err := NewRenderData(c, r, viewData)
+	if err != nil {
+		return errors.Wrap(err, "couldn't make render data for turbostreams message")
+	}
+	c.Publish(turbostreams.Message{
+		Action:   turbostreams.ActionReload,
+		Data:     rd,
+		Template: templateName,
+	})
+	return nil
 }
 
 func NewRenderData(

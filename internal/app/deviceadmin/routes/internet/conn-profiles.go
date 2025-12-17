@@ -7,11 +7,15 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
+	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
@@ -66,6 +70,8 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 type ConnProfileViewData struct {
 	ConnProfile nm.ConnProfile
 	Active      nm.ActiveConn
+
+	IsStreamPage bool
 }
 
 func getConnProfileViewData(
@@ -84,6 +90,32 @@ func getConnProfileViewData(
 	}
 
 	return vd, nil
+}
+
+func (h *Handlers) HandleConnProfilePubByUUID() turbostreams.HandlerFunc {
+	t := "internet/conn-profiles/index.page.tmpl"
+	h.r.MustHave(t)
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		rawUUID := c.Param("uuid")
+		uid, err := uuid.Parse(rawUUID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unparsable UUID %s", rawUUID))
+		}
+
+		// Publish periodically
+		const pubInterval = 4 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			vd, err := getConnProfileViewData(c.Context(), uid, h.nmc)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			return false, dah.PublishPageReload(c, h.r, t, vd)
+		})
+	}
 }
 
 func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {

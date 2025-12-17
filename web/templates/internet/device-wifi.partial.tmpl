@@ -7,9 +7,9 @@
   data-turbo-reload
   refresh="morph"
   {{if $wifi.HasData}}
-    data-action="turbo:before-morph-element->showable#show"
+    data-action="turbo:morph-element->showable#show"
   {{else}}
-    data-action="turbo:before-morph-element->showable#hide"
+    data-action="turbo:morph-element->showable#hide"
   {{end}}
 >
   <p>

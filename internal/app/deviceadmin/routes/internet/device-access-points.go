@@ -8,9 +8,12 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
 	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
@@ -45,6 +48,8 @@ type DeviceAPsViewData struct {
 	Interface      string
 	AvailableSSIDs []string
 	AvailableAPs   map[string][]nm.AccessPoint
+
+	IsStreamPage bool
 }
 
 func getDeviceAPsViewData(
@@ -73,6 +78,41 @@ func getDeviceAPsViewData(
 	})
 
 	return vd, nil
+}
+
+func (h *Handlers) HandleDeviceAPsPub() turbostreams.HandlerFunc {
+	t := "internet/devices/access-points/index.page.tmpl"
+	h.r.MustHave(t)
+	ta := "internet/devices/access-points/index.advanced.page.tmpl"
+	h.r.MustHave(t)
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		iface := c.Param("iface")
+		mode, err := c.QueryParam("mode")
+		if err != nil {
+			return errors.Wrap(err, "couldn't get query param 'mode'")
+		}
+
+		// Publish periodically
+		const pubInterval = 4 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			if err := h.nmc.RescanNetworks(c.Context(), iface); err != nil {
+				return false, err
+			}
+			vd, err := getDeviceAPsViewData(c.Context(), iface, h.nmc)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			template := t
+			if mode == dah.ViewModeAdvanced {
+				template = ta
+			}
+			return false, dah.PublishPageReload(c, h.r, template, vd)
+		})
+	}
 }
 
 func (h *Handlers) HandleDeviceAPsPost() echo.HandlerFunc {

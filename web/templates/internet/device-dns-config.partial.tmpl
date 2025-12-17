@@ -8,9 +8,9 @@
   data-turbo-reload
   refresh="morph"
   {{if (or $ipv4DNS.HasData $ipv6DNS.HasData)}}
-    data-action="turbo:before-morph-element->showable#show"
+    data-action="turbo:morph-element->showable#show"
   {{else}}
-    data-action="turbo:before-morph-element->showable#hide"
+    data-action="turbo:morph-element->showable#hide"
   {{end}}
 >
   {{if $ipv4DNS.HasData}}

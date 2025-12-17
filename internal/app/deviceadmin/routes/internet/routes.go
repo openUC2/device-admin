@@ -43,11 +43,15 @@ func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 	tr.PUB(h.r.BasePath+"internet", h.HandleInternetPub())
 	// device-access-points
 	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGet())
+	tr.SUB(h.r.BasePath+"internet/devices/:iface/access-points", dah.AllowTSSub(h.l))
+	tr.PUB(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPub())
 	er.POST(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPost())
 	// conn-profiles
-	er.GET(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfileGetByUUID())
-	er.POST(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilePostByUUID())
 	er.POST(h.r.BasePath+"internet/conn-profiles", h.HandleConnProfilesPost())
+	er.GET(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfileGetByUUID())
+	tr.SUB(h.r.BasePath+"internet/conn-profiles/:uuid", dah.AllowTSSub(h.l))
+	tr.PUB(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilePubByUUID())
+	er.POST(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilePostByUUID())
 }
 
 func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
@@ -155,50 +159,30 @@ func (h *Handlers) HandleInternetPub() turbostreams.HandlerFunc {
 	ta := "internet/index.advanced.page.tmpl"
 	h.r.MustHave(ta)
 	return func(c *turbostreams.Context) error {
-		initialized := false
-
 		// Parse params
-		ctx := c.Context()
-		queryParams, err := c.QueryParams()
+		mode, err := c.QueryParam("mode")
 		if err != nil {
-			return errors.Wrap(err, "couldn't parse query params")
-		}
-		mode := ""
-		if rawMode, ok := queryParams["mode"]; ok {
-			mode = rawMode[0]
+			return errors.Wrap(err, "couldn't get query param 'mode'")
 		}
 
 		// Publish periodically
 		const pubInterval = 4 * time.Second
-		return handling.RepeatImmediate(ctx, pubInterval, func() (done bool, err error) {
-			if !initialized {
-				// We just started publishing because a page added a subscription, so there's no need to
-				// send the devices list again - that page already has the latest version
-				initialized = true
-				return false, nil
-			}
-
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
 			// Run queries
-			vd, err := getInternetViewData(ctx, h.nmc)
+			if mode != dah.ViewModeAdvanced {
+				_ = h.nmc.RescanNetworks(c.Context(), "wlan0")
+			}
+			vd, err := getInternetViewData(c.Context(), h.nmc)
 			if err != nil {
 				return false, err
 			}
+			// Produce output
 			vd.IsStreamPage = true
 			template := t
 			if mode == dah.ViewModeAdvanced {
 				template = ta
 			}
-			// Produce output
-			rd, err := dah.NewRenderData(c, h.r, vd)
-			if err != nil {
-				return false, errors.Wrap(err, "couldn't make render data for turbostreams message")
-			}
-			c.Publish(turbostreams.Message{
-				Action:   turbostreams.ActionReload,
-				Data:     rd,
-				Template: template,
-			})
-			return false, nil
+			return false, dah.PublishPageReload(c, h.r, template, vd)
 		})
 	}
 }

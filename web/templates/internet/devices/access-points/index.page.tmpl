@@ -1,9 +1,19 @@
-{{template "shared/base.layout.tmpl" .}}
+{{if .Data.IsStreamPage}}
+  {{template "shared/stream-page.layout.tmpl" .}}
+{{else}}
+  {{template "shared/base.layout.tmpl" .}}
+{{end}}
 
 {{define "title"}}External Wi-Fi networks | {{.Data.Interface}} | Devices | Internet Access {{end}}
 {{define "description"}}View available external Wi-Fi networks for device {{.Data.Interface}}{{end}}
 
 {{define "content"}}
+  {{
+    template "shared/turbo-cable-stream-source.partial.tmpl" dict
+    "Name" (print .Meta.BasePath "internet/devices/" .Data.Interface "/access-points")
+    "BasePath" .Meta.BasePath
+  }}
+
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
@@ -36,7 +46,11 @@
 
     <section class="section content">
       <h1>External Wi-Fi networks available for {{.Data.Interface}}</h1>
-      <turbo-frame id="internet_devices_{{.Data.Interface}}_access-points">
+      <turbo-frame
+        id="internet_devices_{{.Data.Interface}}_access-points"
+        data-turbo-reload
+        refresh="morph"
+      >
         <form
           action="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points"
           method="POST"
