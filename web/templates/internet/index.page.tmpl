@@ -167,30 +167,42 @@
       {{end}}
 
       <h3 id="internet_wifi_devices">All modules</h3>
-      {{range $device := .Data.WifiDevices}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "Sections" (dict "basics" true)
-          "CollapseAll" false
-          "WithTurboStreamSource" true
-          "Meta" $.Meta
-        }}
-      {{end}}
+      <turbo-frame
+        id="internet_wifi-modules"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.WifiDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "Sections" (dict "basics" true)
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
     <section class="section content">
       <h2 id="internet_ethernet">Ethernet</h2>
       <h3 id="internet_ethernet_devices">All modules</h3>
-      {{range $device := .Data.EthernetDevices}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "Sections" (dict "basics" true)
-          "CollapseAll" false
-          "WithTurboStreamSource" true
-          "Meta" $.Meta
-        }}
-      {{end}}
+      <turbo-frame
+        id="internet_ethernet-modules"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.EthernetDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "Sections" (dict "basics" true)
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
   </main>
 {{end}}

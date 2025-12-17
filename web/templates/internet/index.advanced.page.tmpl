@@ -51,41 +51,65 @@
     <section class="section content">
       <h2 id="internet_wifi">Wi-Fi</h2>
       <h3 id="internet_wifi_conn-profiles">Connection profiles</h3>
-      {{
-        template "internet/conn-profiles-list.partial.tmpl" dict
-        "ConnProfiles" .Data.WifiConnProfiles
-        "Meta" .Meta
-      }}
-      <h3 id="internet_wifi_devices">Devices</h3>
-      {{range $device := .Data.WifiDevices}}
+      <turbo-frame
+        id="internet_wifi-conn-profiles"
+        data-turbo-reload
+        refresh="morph"
+      >
         {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" false
-          "WithTurboStreamSource" true
-          "Meta" $.Meta
+          template "internet/conn-profiles-list.partial.tmpl" dict
+          "ConnProfiles" .Data.WifiConnProfiles
+          "Meta" .Meta
         }}
-      {{end}}
+      </turbo-frame>
+      <h3 id="internet_wifi_devices">Devices</h3>
+      <turbo-frame
+        id="internet_wifi-devices"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.WifiDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
 
     <section class="section content">
       <h2 id="internet_ethernet">Ethernet</h2>
       <h3 id="internet_ethernet_conn-profiles">Connection profiles</h3>
-      {{
-        template "internet/conn-profiles-list.partial.tmpl" dict
-        "ConnProfiles" .Data.EthernetConnProfiles
-        "Meta" .Meta
-      }}
-      <h3 id="internet_ethernet_devices">Devices</h3>
-      {{range $device := .Data.EthernetDevices}}
+      <turbo-frame
+        id="internet_ethernet-conn-profiles"
+        data-turbo-reload
+        refresh="morph"
+      >
         {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" false
-          "WithTurboStreamSource" true
-          "Meta" $.Meta
+          template "internet/conn-profiles-list.partial.tmpl" dict
+          "ConnProfiles" .Data.EthernetConnProfiles
+          "Meta" .Meta
         }}
-      {{end}}
+      </turbo-frame>
+      <h3 id="internet_ethernet_devices">Devices</h3>
+      <turbo-frame
+        id="internet_ethernet-devices"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.EthernetDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
 
     <section class="section content">
@@ -95,28 +119,40 @@
         profiles are not shown here.
       </p>
       <h3 id="internet_other_conn-profiles">Connection profiles</h3>
-      {{
-        template "internet/conn-profiles-list.partial.tmpl" dict
-        "ConnProfiles" .Data.OtherConnProfiles
-        "Meta" .Meta
-      }}
-      <h3 id="internet_other_devices">Other network devices</h3>
-      {{range $device := .Data.OtherDevices}}
-        {{$interface := or $device.IpInterface $device.ControlInterface}}
-        {{$typeInfo := $device.Type.Info}}
-        {{if or
-          (eq $typeInfo.Short "bridge")
-          (eq $typeInfo.Short "veth")
-        }}
-          {{continue}}
-        {{end}}
+      <turbo-frame
+        id="internet_other-conn-profiles"
+        data-turbo-reload
+        refresh="morph"
+      >
         {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" true
-          "Meta" $.Meta
+          template "internet/conn-profiles-list.partial.tmpl" dict
+          "ConnProfiles" .Data.OtherConnProfiles
+          "Meta" .Meta
         }}
-      {{end}}
+      </turbo-frame>
+      <h3 id="internet_other_devices">Other network devices</h3>
+      <turbo-frame
+        id="internet_other-devices"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.OtherDevices}}
+          {{$interface := or $device.IpInterface $device.ControlInterface}}
+          {{$typeInfo := $device.Type.Info}}
+          {{if or
+            (eq $typeInfo.Short "bridge")
+            (eq $typeInfo.Short "veth")
+          }}
+            {{continue}}
+          {{end}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "CollapseAll" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
 
     <!--
