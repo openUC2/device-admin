@@ -14,14 +14,14 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@sargassum-world/styles": "^0.3.0",
     "bulma": "~0.9.4",
-    "eslint": "^9.39.0",
+    "eslint": "^9.39.2",
     "eslint-plugin-import": "^2.32.0",
-    "prettier": "^3.6.2",
-    "rollup": "^4.52.5",
+    "prettier": "^3.7.4",
+    "rollup": "^4.53.5",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-css-only": "^4.5.5",
     "rollup-plugin-scss": "^4.0.1",
-    "sass": "^1.93.3"
+    "sass": "^1.97.0"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.2.8",
@@ -29,8 +29,8 @@
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo": "^8.0.20",
     "@sargassum-world/stimulated": "^0.5.0",
-    "workbox-expiration": "^7.3.0",
-    "workbox-recipes": "^7.3.0",
+    "workbox-expiration": "^7.4.0",
+    "workbox-recipes": "^7.4.0",
     "workbox-routing": "^7.3.0",
     "workbox-strategies": "^7.3.0"
   }
