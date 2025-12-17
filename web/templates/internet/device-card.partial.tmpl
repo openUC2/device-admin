@@ -7,6 +7,7 @@
 
 <turbo-frame
   id="internet_devices_{{$interface}}"
+  data-turbo-reload
   refresh="morph"
 >
   <article class="panel entity-panel" id="internet_devices_card_{{$interface}}">
@@ -19,6 +20,8 @@
         {{if not $collapseAll}}
           open
         {{end}}
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           Basic status
@@ -37,21 +40,16 @@
 
     {{if and
       (or (not $sections) (get $sections "conn-profiles"))
+      (or $device.ActiveConn.HasData (gt (len $device.AvailableConns) 0))
     }}
       <details
         data-accordion-item
-        class="
-          panel-block
-          accordion-item
-          {{if not (or $device.ActiveConn.HasData (gt (len $device.AvailableConns) 0))}}
-            is-hidden
-          {{end}}
-        "
+        class="panel-block accordion-item"
         {{if not $collapseAll}}
           open
         {{end}}
-        data-controller="showable"
-        data-showable-target="shower"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           Connection profiles
@@ -71,21 +69,16 @@
 
     {{if and
       (or (not $sections) (get $sections "wifi"))
+      $device.Wifi.HasData
     }}
       <details
         data-accordion-item
-        class="
-          panel-block
-          accordion-item
-          {{if not $device.Wifi.HasData}}
-            is-hidden
-          {{end}}
-        "
+        class="panel-block accordion-item"
         {{if not $collapseAll}}
           open
         {{end}}
-        data-controller="showable"
-        data-showable-target="shower"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           Wi-Fi
@@ -104,18 +97,13 @@
 
     {{if and
       (or (not $sections) (get $sections "ip-config"))
+      (or $device.IPv4Config $device.IPv6Config)
     }}
       <details
         data-accordion-item
-        class="
-          panel-block
-          accordion-item
-          {{if not (or $device.IPv4Config $device.IPv6Config)}}
-            is-hidden
-          {{end}}
-        "
-        data-controller="showable"
-        data-showable-target="shower"
+        class="panel-block accordion-item"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           IP configuration
@@ -135,18 +123,16 @@
 
     {{if and
       (or (not $sections) (get $sections "dns-config"))
+      (or $device.IPv4Config.DNS.HasData $device.IPv6Config.DNS.HasData)
     }}
       <details
       data-accordion-item
       class="
         panel-block
         accordion-item
-        {{if not (or $device.IPv4Config.DNS.HasData $device.IPv6Config.DNS.HasData)}}
-          is-hidden
-        {{end}}
       "
-        data-controller="showable"
-        data-showable-target="shower"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           DNS configuration
@@ -166,18 +152,16 @@
 
     {{if and
       (or (not $sections) (get $sections "dhcp-config"))
+      (or $device.DHCPv4Config.HasData $device.DHCPv6Config.HasData)
     }}
       <details
         data-accordion-item
         class="
           panel-block
           accordion-item
-          {{if not (or $device.DHCPv4Config.HasData $device.DHCPv6Config.HasData)}}
-            is-hidden
-          {{end}}
         "
-        data-controller="showable"
-        data-showable-target="shower"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           DHCP configuration
@@ -196,7 +180,11 @@
     {{end}}
 
     {{if or (not $sections) (get $sections "other")}}
-      <details data-accordion-item class="panel-block accordion-item">
+      <details
+        data-accordion-item class="panel-block accordion-item"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
+      >
         <summary class="accordion-header level">
           Other
           {{template "shared/accordion-icon.partial.tmpl" $Meta}}

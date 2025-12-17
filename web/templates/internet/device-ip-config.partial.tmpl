@@ -3,29 +3,18 @@
 {{$interface := (get . "Interface")}}
 {{$Meta := (get . "Meta")}}
 
-<turbo-frame
-  id="internet_devices_{{$interface}}_ip-config"
-  data-turbo-reload
-  refresh="morph"
-  {{if (or $ipv4Config $ipv6Config)}}
-    data-action="turbo:morph-element->showable#show"
-  {{else}}
-    data-action="turbo:morph-element->showable#hide"
-  {{end}}
->
-  {{if $ipv4Config}}
-    <h4>IPv4</h4>
-    {{
-      template "internet/ip-config.partial.tmpl" dict
-      "IPConfig" $ipv4Config
-    }}
-  {{end}}
+{{if $ipv4Config}}
+  <h4>IPv4</h4>
+  {{
+    template "internet/ip-config.partial.tmpl" dict
+    "IPConfig" $ipv4Config
+  }}
+{{end}}
 
-  {{if $ipv6Config}}
-    <h4>IPv6</h4>
-    {{
-      template "internet/ip-config.partial.tmpl" dict
-      "IPConfig" $ipv6Config
-    }}
-  {{end}}
-</turbo-frame>
+{{if $ipv6Config}}
+  <h4>IPv6</h4>
+  {{
+    template "internet/ip-config.partial.tmpl" dict
+    "IPConfig" $ipv6Config
+  }}
+{{end}}
