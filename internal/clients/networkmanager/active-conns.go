@@ -2,7 +2,6 @@ package networkmanager
 
 import (
 	"cmp"
-	"context"
 	"fmt"
 	"slices"
 
@@ -185,13 +184,11 @@ func dumpActiveConnDevices(
 	return interfaces, nil
 }
 
-func ListActiveConns(
-	ctx context.Context,
-) (conns map[string]ActiveConn, err error) { // keyed by UUID strings
-	nm, bus, err := getNetworkManager(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (c *Client) ListActiveConns() (
+	conns map[string]ActiveConn, // keyed by UUID strings
+	err error,
+) {
+	nm := c.getNetworkManager()
 
 	var connPaths []dbus.ObjectPath
 	if err = nm.StoreProperty(nmName+".ActiveConnections", &connPaths); err != nil {
@@ -200,7 +197,7 @@ func ListActiveConns(
 
 	conns = make(map[string]ActiveConn)
 	for _, connPath := range connPaths {
-		conn, err := dumpActiveConn(bus.Object(nmName, connPath), bus)
+		conn, err := dumpActiveConn(c.bus.Object(nmName, connPath), c.bus)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump active connection %s", connPath)
 		}

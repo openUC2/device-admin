@@ -1,0 +1,71 @@
+{{$networkmanager := (get . "NetworkManager")}}
+{{$Meta := (get . "Meta")}}
+
+<turbo-frame
+  id="internet_networkmanager"
+  data-turbo-reload
+  refresh="morph"
+>
+  <p>
+    Status:
+    {{if $networkmanager.NetworkingEnabled}}
+      <span class="tag is-success">networking enabled</span>
+    {{else}}
+      <span class="tag is-warning">networking disabled</span>
+    {{end}}
+    {{if $networkmanager.WirelessEnabled}}
+      <span class="tag is-success">wireless enabled</span>
+    {{else}}
+      <span class="tag is-warning">wireless disabled</span>
+    {{end}}
+    {{if $networkmanager.WirelessHWEnabled}}
+      <span class="tag is-success">wireless hardware enabled</span>
+    {{else}}
+      <span class="tag is-warning">wireless hardware disabled</span>
+    {{end}}
+    {{$stateInfo := $networkmanager.State.Info}}
+    <span class="tag is-{{$stateInfo.Level}}">
+      {{if $stateInfo.Details}}
+        <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
+      {{else}}
+        {{$stateInfo.Short}}
+      {{end}}
+    </span>
+  </p>
+
+  <p>
+    NetworkManager version: {{$networkmanager.Version}}
+  </p>
+
+  <p>
+    Connectivity:
+    {{$connectivityInfo := $networkmanager.Connectivity.Info}}
+    <span class="tag is-{{$connectivityInfo.Level}}">
+      {{if $connectivityInfo.Details}}
+        <abbr title="{{$connectivityInfo.Details}}">{{$connectivityInfo.Short}}</abbr>
+      {{else}}
+        {{$connectivityInfo.Short}}
+      {{end}}
+    </span>
+  </p>
+  {{if $networkmanager.ConnectivityCheckURI}}
+    <p>
+      Connectivity check URI: {{$networkmanager.ConnectivityCheckURI}}
+    </p>
+  {{end}}
+  {{$primaryConn := $networkmanager.PrimaryConnection}}
+  {{if $primaryConn.HasData}}
+    <p>
+      <abbr title="the 'primary' active connection being used to access the network">
+        Primary connection
+        {{- /* make template ignore the line break */ -}}
+      </abbr>:
+      <a href="{{urlJoin (dict
+        "path" (print $Meta.BasePath "internet/conn-profiles/" $primaryConn.UUID)
+        "query" $Meta.Form.Encode
+      )}}" target="_top">
+        {{$primaryConn.ID}}
+      </a>
+    </p>
+  {{end}}
+</turbo-frame>

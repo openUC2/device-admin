@@ -1,9 +1,19 @@
-{{template "shared/base.layout.tmpl" .}}
+{{if .Data.IsStreamPage}}
+  {{template "shared/stream-page.layout.tmpl" .}}
+{{else}}
+  {{template "shared/base.layout.tmpl" .}}
+{{end}}
 
 {{define "title"}}Internet Access{{end}}
 {{define "description"}}Manage configurations for internet access{{end}}
 
 {{define "content"}}
+  {{
+    template "shared/turbo-cable-stream-source.partial.tmpl" dict
+    "Name" (print .Meta.BasePath "internet")
+    "BasePath" .Meta.BasePath
+  }}
+
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
@@ -22,18 +32,6 @@
 
     <section class="section content">
       <h1>Internet Access</h1>
-      <p>
-        Connectivity:
-        {{$connectivityInfo := .Data.NM.Connectivity.Info}}
-        <span class="tag is-{{$connectivityInfo.Level}}">
-          {{if $connectivityInfo.Details}}
-            <abbr title="{{$connectivityInfo.Details}}">{{$connectivityInfo.Short}}</abbr>
-          {{else}}
-            {{$connectivityInfo.Short}}
-          {{end}}
-        </span>
-      </p>
-
       <article class="message is-info two-card-width">
         <div class="message-body">
           This is a simplified view of your internet settings. If you're an experienced Linux system
@@ -44,10 +42,15 @@
           )}}">advanced view</a> of this page.
         </div>
       </article>
+      {{
+        template "internet/status.partial.tmpl" dict
+        "NetworkManager" .Data.NM
+        "Meta" $.Meta
+      }}
     </section>
 
     <section class="section content">
-      <h2 id="wifi">Wi-Fi</h2>
+      <h2 id="internet_wifi">Wi-Fi</h2>
       {{if not .Data.Wlan0InternetConnProfile.HasData}}
         <article class="message is-error two-card-width">
           <div class="message-body">
@@ -163,29 +166,43 @@
         </div>
       {{end}}
 
-      <h3 id="wifi-devices">All modules</h3>
-      {{range $device := .Data.WifiDevices}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "Sections" (dict "basics" true)
-          "CollapseAll" false
-          "Meta" $.Meta
-        }}
-      {{end}}
+      <h3 id="internet_wifi_devices">All modules</h3>
+      <turbo-frame
+        id="internet_wifi-modules"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.WifiDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "Sections" (dict "basics" true)
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
     <section class="section content">
-      <h2 id="ethernet">Ethernet</h2>
-      <h3 id="ethernet-devices">All modules</h3>
-      {{range $device := .Data.EthernetDevices}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "Sections" (dict "basics" true)
-          "CollapseAll" false
-          "Meta" $.Meta
-        }}
-      {{end}}
+      <h2 id="internet_ethernet">Ethernet</h2>
+      <h3 id="internet_ethernet_devices">All modules</h3>
+      <turbo-frame
+        id="internet_ethernet-modules"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.EthernetDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "Sections" (dict "basics" true)
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
   </main>
 {{end}}

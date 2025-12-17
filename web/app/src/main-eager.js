@@ -1,3 +1,3 @@
-import { ThemeToggle } from '@sargassum-world/stimulated/util';
+import { ThemeToggle } from './sprinkles/util';
 
 ThemeToggle.onLoad();

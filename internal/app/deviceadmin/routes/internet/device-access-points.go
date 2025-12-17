@@ -8,14 +8,18 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
-	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
-func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
+func (h *Handlers) HandleDeviceAPsGetByIface() echo.HandlerFunc {
 	t := "internet/devices/access-points/index.page.tmpl"
 	h.r.MustHave(t)
 	ta := "internet/devices/access-points/index.advanced.page.tmpl"
@@ -26,7 +30,7 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 		mode := c.QueryParam("mode")
 
 		// Run queries
-		vd, err := getDeviceAPsViewData(c.Request().Context(), iface)
+		vd, err := getDeviceAPsViewData(c.Request().Context(), iface, h.nmc)
 		if err != nil {
 			return err
 		}
@@ -34,7 +38,7 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 		switch mode {
 		default:
 			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
-		case "advanced":
+		case dah.ViewModeAdvanced:
 			return h.r.CacheablePage(c.Response(), c.Request(), ta, vd, struct{}{})
 		}
 	}
@@ -43,16 +47,19 @@ func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
 type DeviceAPsViewData struct {
 	Interface      string
 	AvailableSSIDs []string
-	AvailableAPs   map[string][]networkmanager.AccessPoint
+	AvailableAPs   map[string][]nm.AccessPoint
+
+	IsStreamPage bool
 }
 
 func getDeviceAPsViewData(
 	ctx context.Context,
 	iface string,
+	nmc *nm.Client,
 ) (vd DeviceAPsViewData, err error) {
 	vd.Interface = iface
 
-	if vd.AvailableAPs, err = networkmanager.ScanNetworks(ctx, iface); err != nil {
+	if vd.AvailableAPs, err = nmc.ScanNetworks(ctx, iface); err != nil {
 		return vd, errors.Wrap(err, "couldn't scan for Wi-Fi networks")
 	}
 	for ssid, aps := range vd.AvailableAPs {
@@ -60,7 +67,7 @@ func getDeviceAPsViewData(
 			delete(vd.AvailableAPs, ssid)
 			continue
 		}
-		slices.SortFunc(aps, func(a, b networkmanager.AccessPoint) int {
+		slices.SortFunc(aps, func(a, b nm.AccessPoint) int {
 			return cmp.Compare(b.Strength, a.Strength)
 		})
 		vd.AvailableAPs[ssid] = aps
@@ -73,7 +80,57 @@ func getDeviceAPsViewData(
 	return vd, nil
 }
 
-func (h *Handlers) HandleDeviceAPsPost() echo.HandlerFunc {
+func (h *Handlers) HandleDeviceAPsSubByIface() turbostreams.HandlerFunc {
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		iface := c.Param("iface")
+
+		// Run queries
+		if _, err := h.nmc.GetDeviceByIface(c.Context(), iface); err != nil {
+			return err
+		}
+
+		// Allow subscription
+		return nil
+	}
+}
+
+func (h *Handlers) HandleDeviceAPsPubByIface() turbostreams.HandlerFunc {
+	t := "internet/devices/access-points/index.page.tmpl"
+	h.r.MustHave(t)
+	ta := "internet/devices/access-points/index.advanced.page.tmpl"
+	h.r.MustHave(t)
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		iface := c.Param("iface")
+		mode, err := c.QueryParam("mode")
+		if err != nil {
+			return errors.Wrap(err, "couldn't get query param 'mode'")
+		}
+
+		// Publish periodically
+		const pubInterval = 4 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			if err := h.nmc.RescanNetworks(c.Context(), iface); err != nil {
+				return false, err
+			}
+			vd, err := getDeviceAPsViewData(c.Context(), iface, h.nmc)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			template := t
+			if mode == dah.ViewModeAdvanced {
+				template = ta
+			}
+			return false, dah.PublishPageReload(c, h.r, template, vd)
+		})
+	}
+}
+
+func (h *Handlers) HandleDeviceAPsPostByIface() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Parse params
 		iface := c.Param("iface")
@@ -88,7 +145,7 @@ func (h *Handlers) HandleDeviceAPsPost() echo.HandlerFunc {
 			))
 		case "refreshed":
 			// Note: this function call will block until the scan finishes:
-			if err := networkmanager.RescanNetworks(c.Request().Context(), iface); err != nil {
+			if err := h.nmc.RescanNetworks(c.Request().Context(), iface); err != nil {
 				return err
 			}
 			// Redirect user

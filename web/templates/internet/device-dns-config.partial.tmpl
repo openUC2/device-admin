@@ -1,0 +1,20 @@
+{{$ipv4DNS := (get . "IPv4DNS")}}
+{{$ipv6DNS := (get . "IPv6DNS")}}
+{{$interface := (get . "Interface")}}
+{{$Meta := (get . "Meta")}}
+
+{{if $ipv4DNS.HasData}}
+  <h4>IPv4</h4>
+  {{
+    template "internet/dns-config.partial.tmpl" dict
+    "DNSConfig" $ipv4DNS
+  }}
+{{end}}
+
+{{if $ipv6DNS.HasData}}
+  <h4>IPv6</h4>
+  {{
+    template "internet/dns-config.partial.tmpl" dict
+    "DNSConfig" $ipv6DNS
+  }}
+{{end}}

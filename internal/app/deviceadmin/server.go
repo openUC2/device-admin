@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	csrf "filippo.io/csrf/gorilla"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -41,7 +42,7 @@ func NewServer(config conf.Config, logger godest.Logger) (s *Server, err error) 
 
 	s.Embeds = web.NewEmbeds()
 	templatesOverlay := &OverlayFS{
-		Upper: s.Globals.Templates.GetFS(),
+		Upper: s.Globals.Base.Templates.GetFS(),
 		Lower: s.Embeds.TemplatesFS,
 	}
 	s.Embeds.TemplatesFS = templatesOverlay
@@ -49,6 +50,7 @@ func NewServer(config conf.Config, logger godest.Logger) (s *Server, err error) 
 	if s.Renderer, err = godest.NewLazyTemplateRenderer(
 		s.Embeds, s.Inlines, sprig.FuncMap(), tmplfunc.FuncMap(
 			tmplfunc.NewHashedNamers(assets.AppURLPrefix, assets.StaticURLPrefix, s.Embeds),
+			s.Globals.Base.ACSigner.Sign,
 		),
 	); err != nil {
 		return nil, errors.Wrap(err, "couldn't make template renderer")
@@ -62,9 +64,24 @@ func NewServer(config conf.Config, logger godest.Logger) (s *Server, err error) 
 // Echo
 
 func (s *Server) configureLogging(e *echo.Echo) {
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${remote_ip} ${method} ${uri} (${bytes_in}b) => " +
-			"(${bytes_out}b after ${latency_human}) ${status} ${error}\n",
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			err := ""
+			if v.Error != nil {
+				err = v.Error.Error()
+			}
+			fmt.Printf("%s %s %s => (%d after %s) %d %s\n",
+				v.Method, v.URI, v.RemoteIP, v.ResponseSize, v.Latency, v.Status, err,
+			)
+			return nil
+		},
+		LogLatency:      true,
+		LogRemoteIP:     true,
+		LogMethod:       true,
+		LogURI:          true,
+		LogStatus:       true,
+		LogError:        true,
+		LogResponseSize: true,
 	}))
 	e.HideBanner = true
 	e.HidePort = true
@@ -160,13 +177,15 @@ func (s *Server) Register(e *echo.Echo) error {
 	e.Pre(middleware.RemoveTrailingSlashWithConfig(middleware.TrailingSlashConfig{
 		Skipper: s.Handlers.TrailingSlashSkipper,
 	}))
+	e.Use(echo.WrapMiddleware(
+		csrf.Protect(nil, csrf.ErrorHandler(NewCSRFErrorHandler(s.Renderer, e.Logger)))))
 	// application/JSON is needed by the Tailscale web GUI:
 	e.Use(gmw.RequireContentTypes(echo.MIMEApplicationForm, echo.MIMEApplicationJSON))
 	// TODO: enable Prometheus and rate-limiting
 
 	// Handlers
 	e.HTTPErrorHandler = NewHTTPErrorHandler(s.Renderer, s.Embeds.TemplatesFS)
-	if err := s.Handlers.Register(e, s.Embeds); err != nil {
+	if err := s.Handlers.Register(e, s.Globals.Base.TSBroker, s.Embeds); err != nil {
 		return errors.Wrap(err, "couldn't register HTTP route handlers")
 	}
 
@@ -182,7 +201,16 @@ func (s *Server) Run(e *echo.Echo) error {
 	// stop blocking execution on context cancelation - so we use the background context here. The
 	// http server should instead be stopped gracefully by calling the Shutdown method, or forcefully
 	// by calling the Close method.
-	eg, _ := errgroup.WithContext(context.Background())
+	eg, egctx := errgroup.WithContext(context.Background())
+	eg.Go(func() error {
+		s.Globals.Base.Logger.Info("starting background workers")
+		if err := s.runWorkersInContext(egctx); err != nil {
+			s.Globals.Base.Logger.Error(errors.Wrap(
+				err, "background worker encountered error",
+			))
+		}
+		return nil
+	})
 	eg.Go(func() error {
 		address := fmt.Sprintf(":%d", s.Globals.Config.HTTP.Port)
 		s.Globals.Base.Logger.Infof("starting http server on %s", address)
@@ -192,6 +220,26 @@ func (s *Server) Run(e *echo.Echo) error {
 		return errors.Wrap(err, "http server encountered error")
 	}
 	return nil
+}
+
+func (s *Server) runWorkersInContext(ctx context.Context) error {
+	eg, _ := errgroup.WithContext(ctx) // Workers run independently, so we don't need egctx
+	eg.Go(func() error {
+		if err := s.Globals.Base.TSBroker.Serve(ctx); err != nil && err != context.Canceled {
+			s.Globals.Base.Logger.Error(errors.Wrap(
+				err, "turbo streams broker encountered error while serving",
+			))
+		}
+		return nil
+	})
+	eg.Go(func() error {
+		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
+			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
+			// Even if NetworkManager is unavailable, other parts of device-admin are still useful
+		}
+		return nil
+	})
+	return eg.Wait()
 }
 
 func (s *Server) Shutdown(ctx context.Context, e *echo.Echo) (err error) {

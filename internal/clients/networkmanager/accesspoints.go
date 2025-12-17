@@ -53,10 +53,10 @@ func (f RSNFlags) SupportsEAPSuiteB192() bool {
 	return f&0x2000 > 0
 }
 
-func ScanNetworks(
+func (c *Client) ScanNetworks(
 	ctx context.Context, iface string,
 ) (networks map[string][]AccessPoint, err error) {
-	dev, bus, err := findDevice(ctx, iface)
+	dev, err := c.findDevice(ctx, iface)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func ScanNetworks(
 
 	networks = make(map[string][]AccessPoint)
 	for _, apPath := range apPaths {
-		ap, err := dumpAccessPoint(bus.Object(nmName, apPath))
+		ap, err := dumpAccessPoint(c.bus.Object(nmName, apPath))
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't query for access point %s", apPath)
 		}
@@ -116,8 +116,8 @@ func dumpAccessPoint(apo dbus.BusObject) (ap AccessPoint, err error) {
 	return ap, err
 }
 
-func RescanNetworks(ctx context.Context, iface string) (err error) {
-	dev, _, err := findDevice(ctx, iface)
+func (c *Client) RescanNetworks(ctx context.Context, iface string) (err error) {
+	dev, err := c.findDevice(ctx, iface)
 	if err != nil {
 		return err
 	}

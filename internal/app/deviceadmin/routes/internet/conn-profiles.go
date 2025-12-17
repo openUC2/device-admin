@@ -7,11 +7,15 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
+	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
@@ -28,7 +32,7 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 				"invalid connection profiles state %s", state,
 			))
 		case "reloaded":
-			if err := nm.ReloadConnProfiles(c.Request().Context()); err != nil {
+			if err := h.nmc.ReloadConnProfiles(c.Request().Context()); err != nil {
 				return err
 			}
 			// Redirect user
@@ -51,7 +55,7 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 		}
 
 		// Run queries
-		vd, err := getConnProfileViewData(c.Request().Context(), uid)
+		vd, err := getConnProfileViewData(c.Request().Context(), uid, h.nmc)
 		if err != nil {
 			return err
 		}
@@ -65,24 +69,72 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 
 type ConnProfileViewData struct {
 	ConnProfile nm.ConnProfile
-	Active      *nm.ActiveConn
+	Active      nm.ActiveConn
+
+	IsStreamPage bool
 }
 
 func getConnProfileViewData(
 	ctx context.Context,
 	uid uuid.UUID,
+	nmc *nm.Client,
 ) (vd ConnProfileViewData, err error) {
-	if vd.ConnProfile, err = nm.GetConnProfileByUUID(ctx, uid); err != nil {
+	if vd.ConnProfile, err = nmc.GetConnProfileByUUID(ctx, uid); err != nil {
 		return vd, errors.Wrapf(err, "couldn't get connection profile %s", uid)
 	}
 
-	activeConns, err := nm.ListActiveConns(ctx)
-	if err == nil { // vd.Active is nil if we can't determine the active conns
+	activeConns, err := nmc.ListActiveConns()
+	if err == nil { // vd.Active is the empty value if we can't determine the active conns
 		activeConn := activeConns[vd.ConnProfile.Settings.Conn.UUID.String()]
-		vd.Active = &(activeConn)
+		vd.Active = activeConn
 	}
 
 	return vd, nil
+}
+
+func (h *Handlers) HandleConnProfileSubByUUID() turbostreams.HandlerFunc {
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		rawUUID := c.Param("uuid")
+		uid, err := uuid.Parse(rawUUID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unparsable UUID %s", rawUUID))
+		}
+
+		// Run queries
+		if _, err = h.nmc.GetConnProfileByUUID(c.Context(), uid); err != nil {
+			return err
+		}
+
+		// Allow subscription
+		return nil
+	}
+}
+
+func (h *Handlers) HandleConnProfilePubByUUID() turbostreams.HandlerFunc {
+	t := "internet/conn-profiles/index.page.tmpl"
+	h.r.MustHave(t)
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		rawUUID := c.Param("uuid")
+		uid, err := uuid.Parse(rawUUID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unparsable UUID %s", rawUUID))
+		}
+
+		// Publish periodically
+		const pubInterval = 4 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			vd, err := getConnProfileViewData(c.Context(), uid, h.nmc)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			return false, dah.PublishPageReload(c, h.r, t, vd)
+		})
+	}
 }
 
 func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
@@ -103,7 +155,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				"invalid connection profiles state %s", state,
 			))
 		case "activated-transiently":
-			if err := nm.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+			if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
 				return err
 			}
 			// Redirect user
@@ -114,7 +166,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				return errors.Wrap(err, "couldn't load form parameters")
 			}
 			if err := updateConnProfile(
-				c.Request().Context(), uid, "save and apply", formValues,
+				c.Request().Context(), uid, "save and apply", formValues, h.nmc,
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
@@ -126,7 +178,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				return errors.Wrap(err, "couldn't load form parameters")
 			}
 			if err := updateConnProfile(
-				c.Request().Context(), uid, c.FormValue("update-type"), formValues,
+				c.Request().Context(), uid, c.FormValue("update-type"), formValues, h.nmc,
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
@@ -138,6 +190,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 
 func updateConnProfile(
 	ctx context.Context, uid uuid.UUID, updateType string, formValues url.Values,
+	nmc *nm.Client,
 ) error {
 	updateValues := make(map[nm.ConnProfileSettingsKey]any)
 
@@ -174,7 +227,7 @@ func updateConnProfile(
 	if err := checkConnProfile(formValues); err != nil {
 		return err
 	}
-	return nm.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
+	return nmc.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
 }
 
 func parseConnProfileSettingsConnField(

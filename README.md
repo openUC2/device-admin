@@ -37,9 +37,9 @@ tar -xzf device-admin_{version number}_{os}_{cpu architecture}.tar.gz device-adm
 
 Then you may need to move the device-admin binary into a directory in your system path, or you can just run the device-admin binary in your current directory (in which case you should replace `device-admin` with `./device-admin` in the commands listed below).
 
-Once you have device-admin, you can run it as the `root` user on a Raspberry Pi:
+Once you have device-admin, you can run it as the `pi` user on a Raspberry Pi:
 ```
-sudo ./device-admin
+./device-admin
 ```
 
 Then you can view the landing page at <http://localhost:3001> . Note that if you are running it on a
@@ -87,9 +87,9 @@ You can override the default webpage templates embedded in the device-admin bina
 and then running the following command:
 ```
 # If you downloaded a device-admin binary:
-sudo TEMPLATES_PATH=custom-templates ./device-admin
+TEMPLATES_PATH=custom-templates ./device-admin
 # If you are developing the project:
-sudo TEMPLATES_PATH=custom-templates make run
+TEMPLATES_PATH=custom-templates make run
 ```
 
 #### HTTP Server
@@ -97,11 +97,23 @@ sudo TEMPLATES_PATH=custom-templates make run
 You can override the default port (`3001`) or base path (`/`) of the HTTP server with the `HTTP_PORT` and `HTTP_BASEPATH` environment variables, respectively. For example, you could run the web server on port 3002 with base path `/admin/panel/` by running the following command:
 ```
 # If you downloaded a device-admin binary:
-sudo HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" ./device-admin
+HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" ./device-admin
 # If you are developing the project:
-sudo HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" make run
+HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" make run
 ```
 Note that `HTTP_BASEPATH` should end with a trailing slash.
+
+#### Action Cable
+
+Action Cable is used to push live page updates to web browsers without the need for page refreshes. Action Cable subscriptions are signed with a hash key for security reasons; that hash key will need to be persisted in a keyfile in order for web browsers to maintain subscriptions across restarts of the device-admin server. You should override the default path of that keyfile (`/tmp/action-cable.key`) with the `ACTIONCABLE_HASH_KEYFILE` environment variable. For example, you could run the web server with a keyfile in the HOME directory by running the following command:
+```
+# If you downloaded a device-admin binary:
+ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" ./device-admin
+# If you are developing the project:
+ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" make run
+```
+
+If the file doesn't exist, a new key will be randomly generated and saved to the file.
 
 ### Embedding
 

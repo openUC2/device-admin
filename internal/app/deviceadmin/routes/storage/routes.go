@@ -5,11 +5,15 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
+	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
 	du "github.com/openUC2/device-admin/internal/clients/diskusage"
 	ud "github.com/openUC2/device-admin/internal/clients/udisks2"
 )
@@ -29,9 +33,13 @@ func New(r godest.TemplateRenderer, udc *ud.Client, l godest.Logger) *Handlers {
 	}
 }
 
-func (h *Handlers) Register(er godest.EchoRouter) {
+func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 	er.GET(h.r.BasePath+"storage", h.HandleStorageGet())
+	tr.SUB(h.r.BasePath+"storage", dah.AllowTSSub())
+	tr.PUB(h.r.BasePath+"storage", h.HandleStoragePub())
+	// drives
 	er.POST(h.r.BasePath+"storage/drives/:id", h.HandleDrivePostByID())
+	// block devices
 	er.POST(h.r.BasePath+"storage/block-devices/:id", h.HandleBlockDevicePostByID())
 }
 
@@ -54,6 +62,8 @@ type StorageViewData struct {
 	RemovableDrives []ud.Drive
 	BlockDevices    map[string][]ud.BlockDevice    // keyed by drive ID
 	DiskUsages      map[string]map[string]du.Usage // keyed by drive ID, then mount point
+
+	IsStreamPage bool
 }
 
 func getStorageViewData(ctx context.Context, l godest.Logger) (vd StorageViewData, err error) {
@@ -96,6 +106,25 @@ func getStorageViewData(ctx context.Context, l godest.Logger) (vd StorageViewDat
 		vd.RemovableDrives = append(vd.RemovableDrives, drive)
 	}
 	return vd, nil
+}
+
+func (h *Handlers) HandleStoragePub() turbostreams.HandlerFunc {
+	t := "storage/index.page.tmpl"
+	h.r.MustHave(t)
+	return func(c *turbostreams.Context) error {
+		// Publish periodically
+		const pubInterval = 4 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			vd, err := getStorageViewData(c.Context(), h.l)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			return false, dah.PublishPageReload(c, h.r, t, vd)
+		})
+	}
 }
 
 func (h *Handlers) HandleDrivePostByID() echo.HandlerFunc {

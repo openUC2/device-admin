@@ -4,8 +4,13 @@
 {{$Meta := (get . "Meta")}}
 
 {{$interface := or $device.IpInterface $device.ControlInterface}}
-<turbo-frame id="{{$Meta.BasePath}}internet/wifi/devices/{{$interface}}">
-  <article class="panel entity-panel" id="device-{{$interface}}">
+
+<turbo-frame
+  id="internet_devices_{{$interface}}"
+  data-turbo-reload
+  refresh="morph"
+>
+  <article class="panel entity-panel" id="internet_devices_card_{{$interface}}">
     <header class="panel-heading">{{$interface}}</header>
 
     {{if or (not $sections) (get $sections "basics")}}
@@ -15,6 +20,8 @@
         {{if not $collapseAll}}
           open
         {{end}}
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           Basic status
@@ -24,6 +31,8 @@
           {{
             template "internet/device-basics.partial.tmpl" dict
             "Device" $device
+            "Interface" $interface
+            "Meta" $Meta
           }}
         </div>
       </details>
@@ -31,7 +40,7 @@
 
     {{if and
       (or (not $sections) (get $sections "conn-profiles"))
-      $device.ActiveConn.HasData
+      (or $device.ActiveConn.HasData (gt (len $device.AvailableConns) 0))
     }}
       <details
         data-accordion-item
@@ -39,6 +48,8 @@
         {{if not $collapseAll}}
           open
         {{end}}
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           Connection profiles
@@ -49,6 +60,7 @@
             template "internet/device-conn-profiles.partial.tmpl" dict
             "ActiveConn" $device.ActiveConn
             "AvailableConns" $device.AvailableConns
+            "Interface" $interface
             "Meta" $Meta
           }}
         </div>
@@ -65,6 +77,8 @@
         {{if not $collapseAll}}
           open
         {{end}}
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
       >
         <summary class="accordion-header level">
           Wi-Fi
@@ -85,27 +99,24 @@
       (or (not $sections) (get $sections "ip-config"))
       (or $device.IPv4Config $device.IPv6Config)
     }}
-      <details data-accordion-item class="panel-block accordion-item">
+      <details
+        data-accordion-item
+        class="panel-block accordion-item"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
+      >
         <summary class="accordion-header level">
           IP configuration
           {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
-          {{if $device.IPv4Config}}
-            <h4>IPv4</h4>
-            {{
-              template "internet/ip-config.partial.tmpl" dict
-              "IPConfig" $device.IPv4Config
-            }}
-          {{end}}
-
-          {{if $device.IPv6Config}}
-            <h4>IPv6</h4>
-            {{
-              template "internet/ip-config.partial.tmpl" dict
-              "IPConfig" $device.IPv6Config
-            }}
-          {{end}}
+          {{
+            template "internet/device-ip-config.partial.tmpl" dict
+            "IPv4Config" $device.IPv4Config
+            "IPv6Config" $device.IPv6Config
+            "Interface" $interface
+            "Meta" $Meta
+          }}
         </div>
       </details>
     {{end}}
@@ -114,27 +125,27 @@
       (or (not $sections) (get $sections "dns-config"))
       (or $device.IPv4Config.DNS.HasData $device.IPv6Config.DNS.HasData)
     }}
-      <details data-accordion-item class="panel-block accordion-item">
+      <details
+      data-accordion-item
+      class="
+        panel-block
+        accordion-item
+      "
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
+      >
         <summary class="accordion-header level">
           DNS configuration
           {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
-          {{if $device.IPv4Config.DNS.HasData}}
-            <h4>IPv4</h4>
-            {{
-              template "internet/dns-config.partial.tmpl" dict
-              "DNSConfig" $device.IPv4Config.DNS
-            }}
-          {{end}}
-
-          {{if $device.IPv6Config.DNS.HasData}}
-            <h4>IPv6</h4>
-            {{
-              template "internet/dns-config.partial.tmpl" dict
-              "DNSConfig" $device.IPv6Config.DNS
-            }}
-          {{end}}
+          {{
+            template "internet/device-dns-config.partial.tmpl" dict
+            "IPv4DNS" $device.IPv4Config.DNS
+            "IPv6DNS" $device.IPv6Config.DNS
+            "Interface" $interface
+            "Meta" $Meta
+          }}
         </div>
       </details>
     {{end}}
@@ -143,33 +154,37 @@
       (or (not $sections) (get $sections "dhcp-config"))
       (or $device.DHCPv4Config.HasData $device.DHCPv6Config.HasData)
     }}
-      <details data-accordion-item class="panel-block accordion-item">
+      <details
+        data-accordion-item
+        class="
+          panel-block
+          accordion-item
+        "
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
+      >
         <summary class="accordion-header level">
           DHCP configuration
           {{template "shared/accordion-icon.partial.tmpl" $Meta}}
         </summary>
         <div class="accordion-content">
-          {{if $device.DHCPv4Config.HasData}}
-            <h4>DHCPv4</h4>
-            {{
-              template "internet/dhcp-config.partial.tmpl" dict
-              "IPConfig" $device.DHCPv4Config
-            }}
-          {{end}}
-
-          {{if $device.DHCPv6Config.HasData}}
-            <h4>DHCPv6</h4>
-            {{
-              template "internet/dhcp-config.partial.tmpl" dict
-              "IPConfig" $device.DHCPv6Config
-            }}
-          {{end}}
+          {{
+            template "internet/device-dhcp-config.partial.tmpl" dict
+            "IPv4DHCP" $device.DHCPv4Config
+            "IPv6DHCP" $device.DHCPv6Config
+            "Interface" $interface
+            "Meta" $Meta
+          }}
         </div>
       </details>
     {{end}}
 
     {{if or (not $sections) (get $sections "other")}}
-      <details data-accordion-item class="panel-block accordion-item">
+      <details
+        data-accordion-item class="panel-block accordion-item"
+        data-controller="event"
+        data-action="turbo:before-morph-attribute->event#cancel"
+      >
         <summary class="accordion-header level">
           Other
           {{template "shared/accordion-icon.partial.tmpl" $Meta}}
@@ -178,6 +193,7 @@
           {{
             template "internet/device-other.partial.tmpl" dict
             "Device" $device
+            "Meta" $Meta
           }}
         </div>
       </details>

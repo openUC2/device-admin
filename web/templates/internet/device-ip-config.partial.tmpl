@@ -1,0 +1,20 @@
+{{$ipv4Config := (get . "IPv4Config")}}
+{{$ipv6Config := (get . "IPv6Config")}}
+{{$interface := (get . "Interface")}}
+{{$Meta := (get . "Meta")}}
+
+{{if $ipv4Config}}
+  <h4>IPv4</h4>
+  {{
+    template "internet/ip-config.partial.tmpl" dict
+    "IPConfig" $ipv4Config
+  }}
+{{end}}
+
+{{if $ipv6Config}}
+  <h4>IPv6</h4>
+  {{
+    template "internet/ip-config.partial.tmpl" dict
+    "IPConfig" $ipv6Config
+  }}
+{{end}}

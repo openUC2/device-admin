@@ -1,5 +1,6 @@
 {{$activeConn := (get . "ActiveConn")}}
 {{$availableConns := (get . "AvailableConns")}}
+{{$interface := (get . "Interface")}}
 {{$Meta := (get . "Meta")}}
 
 {{if $activeConn.HasData}}
@@ -79,22 +80,22 @@
       {{end}}
     </ul>
   {{end}}
+{{end}}
 
-  <h4>
-    <abbr title="the NetworkManager connection profiles available to use for the device">
-      Available
-    </abbr>
-  </h4>
-  {{if gt (len $availableConns) 0}}
-    <ul class="mt-0">
-      {{range $conn := $availableConns}}
-        <li>
-          <a href="{{urlJoin (dict
-            "path" (print $Meta.BasePath "internet/conn-profiles/" $conn.UUID)
-            "query" $Meta.Form.Encode
-          )}}" target="_top">{{$conn.ID}}</a>
-        </li>
-      {{end}}
-    </ul>
-  {{end}}
+<h4>
+  <abbr title="the NetworkManager connection profiles available to use for the device">
+    Available
+  </abbr>
+</h4>
+{{if gt (len $availableConns) 0}}
+  <ul class="mt-0">
+    {{range $conn := $availableConns}}
+      <li>
+        <a href="{{urlJoin (dict
+          "path" (print $Meta.BasePath "internet/conn-profiles/" $conn.UUID)
+          "query" $Meta.Form.Encode
+        )}}" target="_top">{{$conn.ID}}</a>
+      </li>
+    {{end}}
+  </ul>
 {{end}}

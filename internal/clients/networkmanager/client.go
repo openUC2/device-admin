@@ -13,6 +13,8 @@ import (
 type Client struct {
 	Config Config
 
+	bus *dbus.Conn
+
 	l godest.Logger
 }
 
@@ -23,24 +25,19 @@ func NewClient(c Config, l godest.Logger) *Client {
 	}
 }
 
-func getNetworkManager(ctx context.Context) (nm dbus.BusObject, bus *dbus.Conn, err error) {
-	if bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
-		return nil, bus, errors.Wrap(
-			err, "couldn't connect to SystemBus bus to query NetworkManager",
-		)
+func (c *Client) Open(ctx context.Context) (err error) {
+	if c.bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
+		return errors.Wrap(err, "couldn't connect to SystemBus bus to interact with NetworkManager")
 	}
-
-	return bus.Object(nmName, "/org/freedesktop/NetworkManager"), bus, nil
+	return nil
 }
 
-func getNetworkManagerSettings(ctx context.Context) (nm dbus.BusObject, bus *dbus.Conn, err error) {
-	if bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
-		return nil, bus, errors.Wrap(
-			err, "couldn't connect to SystemBus bus to query NetworkManager settings",
-		)
-	}
+func (c *Client) getNetworkManager() dbus.BusObject {
+	return c.bus.Object(nmName, "/org/freedesktop/NetworkManager")
+}
 
-	return bus.Object(nmName, "/org/freedesktop/NetworkManager/Settings"), bus, nil
+func (c *Client) getNetworkManagerSettings() dbus.BusObject {
+	return c.bus.Object(nmName, "/org/freedesktop/NetworkManager/Settings")
 }
 
 const nmName = "org.freedesktop.NetworkManager"
@@ -155,11 +152,8 @@ func (c NetworkManagerConnectivity) Info() EnumInfo {
 	return info
 }
 
-func Get(ctx context.Context) (nm NetworkManager, err error) {
-	nmo, bus, err := getNetworkManager(ctx)
-	if err != nil {
-		return nm, err
-	}
+func (c *Client) Get() (nm NetworkManager, err error) {
+	nmo := c.getNetworkManager()
 
 	if err = nmo.StoreProperty(nmName+".NetworkingEnabled", &nm.NetworkingEnabled); err != nil {
 		return nm, errors.Wrap(err, "couldn't query for networking enablement")
@@ -194,7 +188,9 @@ func Get(ctx context.Context) (nm NetworkManager, err error) {
 		return nm, errors.Wrap(err, "couldn't query for primary connection")
 	}
 	if connPath != "/" {
-		if nm.PrimaryConnection, err = dumpActiveConn(bus.Object(nmName, connPath), bus); err != nil {
+		if nm.PrimaryConnection, err = dumpActiveConn(
+			c.bus.Object(nmName, connPath), c.bus,
+		); err != nil {
 			return nm, errors.Wrapf(err, "couldn't query for connection %s", connPath)
 		}
 	}

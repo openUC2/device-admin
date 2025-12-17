@@ -7,11 +7,15 @@ import (
 	"net/http"
 	"net/netip"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
+	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
 	ts "github.com/openUC2/device-admin/internal/clients/tailscale"
 )
 
@@ -27,8 +31,10 @@ func New(r godest.TemplateRenderer, tsc *ts.Client) *Handlers {
 	}
 }
 
-func (h *Handlers) Register(er godest.EchoRouter) error {
+func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) error {
 	er.GET(h.r.BasePath+"remote", h.HandleRemoteGet())
+	tr.SUB(h.r.BasePath+"remote", dah.AllowTSSub())
+	tr.PUB(h.r.BasePath+"remote", h.HandleRemotePub())
 	// assistance
 	er.POST(h.r.BasePath+"remote/assistance", h.HandleAssistancePost())
 	// tailscale
@@ -55,6 +61,20 @@ func (h *Handlers) GzipSkipper(c echo.Context) bool {
 	return strings.HasPrefix(c.Request().URL.Path, h.r.BasePath+"remote/tailscale/")
 }
 
+func (h *Handlers) HandleRemoteGet() echo.HandlerFunc {
+	t := "remote/index.page.tmpl"
+	h.r.MustHave(t)
+	return func(c echo.Context) error {
+		// Run queries
+		remoteViewData, err := getRemoteViewData(c.Request().Context(), h.tsc)
+		if err != nil {
+			return err
+		}
+		// Produce output
+		return h.r.CacheablePage(c.Response(), c.Request(), t, remoteViewData, struct{}{})
+	}
+}
+
 type RemoteViewData struct {
 	State ts.State
 	// HealthProblems []string
@@ -64,6 +84,8 @@ type RemoteViewData struct {
 	Online bool
 	// KeyExpiration time.Time
 	NetworkName string
+
+	IsStreamPage bool
 }
 
 func getRemoteViewData(ctx context.Context, tc *ts.Client) (vd RemoteViewData, err error) {
@@ -95,17 +117,22 @@ func getRemoteViewData(ctx context.Context, tc *ts.Client) (vd RemoteViewData, e
 	return vd, nil
 }
 
-func (h *Handlers) HandleRemoteGet() echo.HandlerFunc {
+func (h *Handlers) HandleRemotePub() turbostreams.HandlerFunc {
 	t := "remote/index.page.tmpl"
 	h.r.MustHave(t)
-	return func(c echo.Context) error {
-		// Run queries
-		remoteViewData, err := getRemoteViewData(c.Request().Context(), h.tsc)
-		if err != nil {
-			return err
-		}
-		// Produce output
-		return h.r.CacheablePage(c.Response(), c.Request(), t, remoteViewData, struct{}{})
+	return func(c *turbostreams.Context) error {
+		// Publish periodically
+		const pubInterval = 4 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			vd, err := getRemoteViewData(c.Context(), h.tsc)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			return false, dah.PublishPageReload(c, h.r, t, vd)
+		})
 	}
 }
 

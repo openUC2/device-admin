@@ -1,9 +1,19 @@
-{{template "shared/base.layout.tmpl" .}}
+{{if .Data.IsStreamPage}}
+  {{template "shared/stream-page.layout.tmpl" .}}
+{{else}}
+  {{template "shared/base.layout.tmpl" .}}
+{{end}}
 
 {{define "title"}}Internet Access{{end}}
 {{define "description"}}Manage configurations for internet access{{end}}
 
 {{define "content"}}
+  {{
+    template "shared/turbo-cable-stream-source.partial.tmpl" dict
+    "Name" (print .Meta.BasePath "internet?mode=" (.Meta.Form.Get "mode"))
+    "BasePath" .Meta.BasePath
+  }}
+
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
@@ -31,137 +41,118 @@
           )}}">simplified view</a> of this page.
         </div>
       </article>
-      <p>
-        Status:
-        {{if .Data.NM.NetworkingEnabled}}
-          <span class="tag is-success">networking enabled</span>
-        {{else}}
-          <span class="tag is-warning">networking disabled</span>
-        {{end}}
-        {{if .Data.NM.WirelessEnabled}}
-          <span class="tag is-success">wireless enabled</span>
-        {{else}}
-          <span class="tag is-warning">wireless disabled</span>
-        {{end}}
-        {{if .Data.NM.WirelessHWEnabled}}
-          <span class="tag is-success">wireless hardware enabled</span>
-        {{else}}
-          <span class="tag is-warning">wireless hardware disabled</span>
-        {{end}}
-        {{$stateInfo := .Data.NM.State.Info}}
-        <span class="tag is-{{$stateInfo.Level}}">
-          {{if $stateInfo.Details}}
-            <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
-          {{else}}
-            {{$stateInfo.Short}}
-          {{end}}
-        </span>
-      </p>
-
-      <p>
-        NetworkManager version: {{.Data.NM.Version}}
-      </p>
-
-      <p>
-        Connectivity:
-        {{$connectivityInfo := .Data.NM.Connectivity.Info}}
-        <span class="tag is-{{$connectivityInfo.Level}}">
-          {{if $connectivityInfo.Details}}
-            <abbr title="{{$connectivityInfo.Details}}">{{$connectivityInfo.Short}}</abbr>
-          {{else}}
-            {{$connectivityInfo.Short}}
-          {{end}}
-        </span>
-      </p>
-      {{if .Data.NM.ConnectivityCheckURI}}
-        <p>
-          Connectivity check URI: {{.Data.NM.ConnectivityCheckURI}}
-        </p>
-      {{end}}
-      {{$primaryConn := .Data.NM.PrimaryConnection}}
-      {{if $primaryConn.HasData}}
-        <p>
-          <abbr title="the 'primary' active connection being used to access the network">
-            Primary connection
-            {{- /* make template ignore the line break */ -}}
-          </abbr>:
-          <a href="{{urlJoin (dict
-            "path" (print .Meta.BasePath "internet/conn-profiles/" $primaryConn.UUID)
-            "query" .Meta.Form.Encode
-          )}}" target="_top">
-            {{$primaryConn.ID}}
-          </a>
-        </p>
-      {{end}}
-    </section>
-
-    <section class="section content">
-      <h2 id="wifi">Wi-Fi</h2>
-      <h3 id="wifi-conn-profiles">Connection profiles</h3>
       {{
-        template "internet/conn-profiles-list.partial.tmpl" dict
-        "ConnProfiles" .Data.WifiConnProfiles
-        "Meta" .Meta
+        template "internet/status.advanced.partial.tmpl" dict
+        "NetworkManager" .Data.NM
+        "Meta" $.Meta
       }}
-      <h3 id="wifi-devices">Devices</h3>
-      {{range $device := .Data.WifiDevices}}
-        {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" false
-          "Meta" $.Meta
-        }}
-      {{end}}
     </section>
 
     <section class="section content">
-      <h2 id="ethernet">Ethernet</h2>
-      <h3 id="ethernet-conn-profiles">Connection profiles</h3>
-      {{
-        template "internet/conn-profiles-list.partial.tmpl" dict
-        "ConnProfiles" .Data.EthernetConnProfiles
-        "Meta" .Meta
-      }}
-      <h3 id="ethernet-devices">Devices</h3>
-      {{range $device := .Data.EthernetDevices}}
+      <h2 id="internet_wifi">Wi-Fi</h2>
+      <h3 id="internet_wifi_conn-profiles">Connection profiles</h3>
+      <turbo-frame
+        id="internet_wifi-conn-profiles"
+        data-turbo-reload
+        refresh="morph"
+      >
         {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" false
-          "Meta" $.Meta
+          template "internet/conn-profiles-list.partial.tmpl" dict
+          "ConnProfiles" .Data.WifiConnProfiles
+          "Meta" .Meta
         }}
-      {{end}}
+      </turbo-frame>
+      <h3 id="internet_wifi_devices">Devices</h3>
+      <turbo-frame
+        id="internet_wifi-devices"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.WifiDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
 
     <section class="section content">
-      <h2 id="other">Other network devices</h2>
+      <h2 id="internet_ethernet">Ethernet</h2>
+      <h3 id="internet_ethernet_conn-profiles">Connection profiles</h3>
+      <turbo-frame
+        id="internet_ethernet-conn-profiles"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{
+          template "internet/conn-profiles-list.partial.tmpl" dict
+          "ConnProfiles" .Data.EthernetConnProfiles
+          "Meta" .Meta
+        }}
+      </turbo-frame>
+      <h3 id="internet_ethernet_devices">Devices</h3>
+      <turbo-frame
+        id="internet_ethernet-devices"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.EthernetDevices}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "CollapseAll" false
+            "WithTurboStreamSource" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
+    </section>
+
+    <section class="section content">
+      <h2 id="internet_other">Other network devices</h2>
       <p>
         Note: "bridge" and "<abbr title="virtual Ethernet">veth</abbr>" devices and connection
         profiles are not shown here.
       </p>
-      <h3 id="other-conn-profiles">Connection profiles</h3>
-      {{
-        template "internet/conn-profiles-list.partial.tmpl" dict
-        "ConnProfiles" .Data.OtherConnProfiles
-        "Meta" .Meta
-      }}
-      <h3 id="other-devices">Other network devices</h3>
-      {{range $device := .Data.OtherDevices}}
-        {{$interface := or $device.IpInterface $device.ControlInterface}}
-        {{$typeInfo := $device.Type.Info}}
-        {{if or
-          (eq $typeInfo.Short "bridge")
-          (eq $typeInfo.Short "veth")
-        }}
-          {{continue}}
-        {{end}}
+      <h3 id="internet_other_conn-profiles">Connection profiles</h3>
+      <turbo-frame
+        id="internet_other-conn-profiles"
+        data-turbo-reload
+        refresh="morph"
+      >
         {{
-          template "internet/device-card.partial.tmpl" dict
-          "Device" $device
-          "CollapseAll" true
-          "Meta" $.Meta
+          template "internet/conn-profiles-list.partial.tmpl" dict
+          "ConnProfiles" .Data.OtherConnProfiles
+          "Meta" .Meta
         }}
-      {{end}}
+      </turbo-frame>
+      <h3 id="internet_other_devices">Other network devices</h3>
+      <turbo-frame
+        id="internet_other-devices"
+        data-turbo-reload
+        refresh="morph"
+      >
+        {{range $device := .Data.OtherDevices}}
+          {{$interface := or $device.IpInterface $device.ControlInterface}}
+          {{$typeInfo := $device.Type.Info}}
+          {{if or
+            (eq $typeInfo.Short "bridge")
+            (eq $typeInfo.Short "veth")
+          }}
+            {{continue}}
+          {{end}}
+          {{
+            template "internet/device-card.partial.tmpl" dict
+            "Device" $device
+            "CollapseAll" true
+            "Meta" $.Meta
+          }}
+        {{end}}
+      </turbo-frame>
     </section>
 
     <!--
@@ -169,7 +160,7 @@
       e.g. modifiability
 
     <section class="section content">
-      <h2 id="access-sharing">Internet access sharing</h2>
+      <h2 id="internet_access-sharing">Internet access sharing</h2>
       <p>TODO: manage internet access sharing</p>
     </section>
 

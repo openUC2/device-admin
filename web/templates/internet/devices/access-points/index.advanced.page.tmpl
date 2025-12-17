@@ -1,9 +1,22 @@
-{{template "shared/base.layout.tmpl" .}}
+{{if .Data.IsStreamPage}}
+  {{template "shared/stream-page.layout.tmpl" .}}
+{{else}}
+  {{template "shared/base.layout.tmpl" .}}
+{{end}}
 
 {{define "title"}}Access points | {{.Data.Interface}} | Devices | Internet Access {{end}}
 {{define "description"}}View available access points for device {{.Data.Interface}}{{end}}
 
 {{define "content"}}
+  {{
+    template "shared/turbo-cable-stream-source.partial.tmpl" dict
+    "Name" (print
+      .Meta.BasePath "internet/devices/" .Data.Interface "/access-points"
+      "?mode=" (.Meta.Form.Get "mode")
+    )
+    "BasePath" .Meta.BasePath
+  }}
+
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
@@ -19,12 +32,12 @@
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-            "fragment" "wifi-devices"
+            "fragment" "internet_wifi_devices"
           )}}" aria-current="page">Devices</a></li>
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-            "fragment" (print "device-" .Data.Interface)
+            "fragment" (print "internet_devices_card_" .Data.Interface)
           )}}" aria-current="page">{{.Data.Interface}}</a></li>
           <li class="is-active"><a href="{{urlJoin (dict
             "path" .Meta.Path
@@ -36,7 +49,11 @@
 
     <section class="section content">
       <h1>Access points for {{.Data.Interface}}</h1>
-      <turbo-frame id="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points">
+      <turbo-frame
+        id="internet_devices_{{.Data.Interface}}_access-points"
+        data-turbo-reload
+        refresh="morph"
+      >
         <form
           action="{{.Meta.BasePath}}internet/devices/{{.Data.Interface}}/access-points"
           method="POST"
