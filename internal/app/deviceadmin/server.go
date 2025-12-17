@@ -64,9 +64,24 @@ func NewServer(config conf.Config, logger godest.Logger) (s *Server, err error) 
 // Echo
 
 func (s *Server) configureLogging(e *echo.Echo) {
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "${remote_ip} ${method} ${uri} (${bytes_in}b) => " +
-			"(${bytes_out}b after ${latency_human}) ${status} ${error}\n",
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+			err := ""
+			if v.Error != nil {
+				err = v.Error.Error()
+			}
+			fmt.Printf("%s %s %s => (%d after %s) %d %s\n",
+				v.Method, v.URI, v.RemoteIP, v.ResponseSize, v.Latency, v.Status, err,
+			)
+			return nil
+		},
+		LogLatency:      true,
+		LogRemoteIP:     true,
+		LogMethod:       true,
+		LogURI:          true,
+		LogStatus:       true,
+		LogError:        true,
+		LogResponseSize: true,
 	}))
 	e.HideBanner = true
 	e.HidePort = true
