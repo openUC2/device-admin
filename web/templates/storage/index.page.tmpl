@@ -1,9 +1,19 @@
-{{template "shared/base.layout.tmpl" .}}
+{{if .Data.IsStreamPage}}
+  {{template "shared/stream-page.layout.tmpl" .}}
+{{else}}
+  {{template "shared/base.layout.tmpl" .}}
+{{end}}
 
 {{define "title"}}Storage Drives{{end}}
 {{define "description"}}Manage settings for data storage drives{{end}}
 
 {{define "content"}}
+  {{
+    template "shared/turbo-cable-stream-source.partial.tmpl" dict
+    "Name" (print .Meta.BasePath "storage")
+    "BasePath" .Meta.BasePath
+  }}
+
   <main class="main-container" tabindex="-1" data-controller="default-scrollable">
     {{if ne (.Meta.Form.Get "nav") "hidden"}}
       <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
@@ -24,42 +34,54 @@
       <h1>Storage Drives</h1>
     </section>
 
-    {{if gt (len .Data.RemovableDrives) 0}}
+    <turbo-frame
+      id="storage_removable-drives"
+      data-turbo-reload
+      refresh="morph"
+    >
+      {{if gt (len .Data.RemovableDrives) 0}}
+        <section class="section content">
+          <h2>Removable drives</h2>
+          <p>These devices are probably external USB drives.</p>
+          {{range $drive := .Data.RemovableDrives}}
+            {{
+              template "storage/drive-card.partial.tmpl" dict
+              "Drive" $drive
+              "BlockDevices" (index $.Data.BlockDevices $drive.ID)
+              "DiskUsages" (index $.Data.DiskUsages $drive.ID)
+              "IsSystem" false
+              "CollapseAll" false
+              "Meta" $.Meta
+            }}
+          {{end}}
+        </section>
+      {{end}}
+    </turbo-frame>
+
+    <turbo-frame
+      id="storage_system-drives"
+      data-turbo-reload
+      refresh="morph"
+    >
       <section class="section content">
-        <h2>Removable drives</h2>
-        <p>These devices are probably external USB drives.</p>
-        {{range $drive := .Data.RemovableDrives}}
+        <h2>System drives</h2>
+        <p>
+          These devices are probably required for running the operating system. Don't unplug them!
+        </p>
+        {{range $drive := .Data.SystemDrives}}
           {{
             template "storage/drive-card.partial.tmpl" dict
             "Drive" $drive
             "BlockDevices" (index $.Data.BlockDevices $drive.ID)
             "DiskUsages" (index $.Data.DiskUsages $drive.ID)
-            "IsSystem" false
+            "IsSystem" true
             "CollapseAll" false
             "Meta" $.Meta
           }}
+        {{else}}
+          <p>(none detected!)</p>
         {{end}}
       </section>
-    {{end}}
-
-    <section class="section content">
-      <h2>System drives</h2>
-      <p>
-        These devices are probably required for running the operating system. Don't unplug them!
-      </p>
-      {{range $drive := .Data.SystemDrives}}
-        {{
-          template "storage/drive-card.partial.tmpl" dict
-          "Drive" $drive
-          "BlockDevices" (index $.Data.BlockDevices $drive.ID)
-          "DiskUsages" (index $.Data.DiskUsages $drive.ID)
-          "IsSystem" true
-          "CollapseAll" false
-          "Meta" $.Meta
-        }}
-      {{else}}
-        <p>(none detected!)</p>
-      {{end}}
-    </section>
+    </turbo-frame>
   </main>
 {{end}}

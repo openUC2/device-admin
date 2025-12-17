@@ -52,7 +52,7 @@ func (h *Handlers) Register(er godest.EchoRouter, tsr turbostreams.Router, em go
 	if err := h.remote.Register(er, tsr); err != nil {
 		return errors.Wrap(err, "couldn't register handlers for remote routes")
 	}
-	storage.New(h.r, h.globals.UDisks2, l).Register(er)
+	storage.New(h.r, h.globals.UDisks2, l).Register(er, tsr)
 	osconfig.New(h.r).Register(er)
 
 	tsr.SUB(h.r.BasePath+"refresh", dah.AllowTSSub())
