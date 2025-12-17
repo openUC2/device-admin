@@ -1113,6 +1113,8 @@ github.com/sargassum-world/godest v0.6.2 h1:IVxO6ihX78vOSx4SLx1mhxOp1GwIMErL5arv
 github.com/sargassum-world/godest v0.6.2/go.mod h1:vkYeKpV/JjTa26vC9Xhb9NhLdqfugj4LC6e7KzlA2iU=
 github.com/sargassum-world/godest v0.7.0 h1:0pvcOf9JeL4dzQn+Ofn2c699SWh0dN5R6VdzOnyzrc4=
 github.com/sargassum-world/godest v0.7.0/go.mod h1:H6OuqlJQYxQAs1RzeIFLzt2yC45ZqyRq0XzrKl85XO8=
+github.com/sargassum-world/godest v0.7.1 h1:3xCKWVpOiYtKWHdavgpk8IWNOasH/3ik1WlDTOZWcUo=
+github.com/sargassum-world/godest v0.7.1/go.mod h1:H6OuqlJQYxQAs1RzeIFLzt2yC45ZqyRq0XzrKl85XO8=
 github.com/sashamelentyev/interfacebloat v1.1.0 h1:xdRdJp0irL086OyW1H/RTZTr1h/tMEOsumirXcOJqAw=
 github.com/sashamelentyev/interfacebloat v1.1.0/go.mod h1:+Y9yU5YdTkrNvoX0xHc84dxiN1iBi9+G8zZIhPVoNjQ=
 github.com/sashamelentyev/usestdlibvars v1.29.0 h1:8J0MoRrw4/NAXtjQqTHrbW9NN+3iMf7Knkq057v4XOQ=

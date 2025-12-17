@@ -15,7 +15,7 @@ require (
 	github.com/labstack/gommon v0.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/quasoft/memstore v0.0.0-20191010062613-2bce066d2b0b
-	github.com/sargassum-world/godest v0.7.0
+	github.com/sargassum-world/godest v0.7.1
 	github.com/unrolled/secure v1.17.0
 	golang.org/x/sync v0.19.0
 	tailscale.com v1.92.0
