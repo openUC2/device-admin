@@ -42,16 +42,14 @@ func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 	tr.SUB(h.r.BasePath+"internet", dah.AllowTSSub())
 	tr.PUB(h.r.BasePath+"internet", h.HandleInternetPub())
 	// device-access-points
-	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGet())
-	// FIXME: only allow if iface exists!
-	tr.SUB(h.r.BasePath+"internet/devices/:iface/access-points", dah.AllowTSSub())
-	tr.PUB(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPub())
-	er.POST(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPost())
+	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGetByIface())
+	tr.SUB(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsSubByIface())
+	tr.PUB(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPubByIface())
+	er.POST(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsPostByIface())
 	// conn-profiles
 	er.POST(h.r.BasePath+"internet/conn-profiles", h.HandleConnProfilesPost())
 	er.GET(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfileGetByUUID())
-	// FIXME: only allow if conn profile exists!
-	tr.SUB(h.r.BasePath+"internet/conn-profiles/:uuid", dah.AllowTSSub())
+	tr.SUB(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfileSubByUUID())
 	tr.PUB(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilePubByUUID())
 	er.POST(h.r.BasePath+"internet/conn-profiles/:uuid", h.HandleConnProfilePostByUUID())
 }

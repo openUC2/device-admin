@@ -92,6 +92,25 @@ func getConnProfileViewData(
 	return vd, nil
 }
 
+func (h *Handlers) HandleConnProfileSubByUUID() turbostreams.HandlerFunc {
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		rawUUID := c.Param("uuid")
+		uid, err := uuid.Parse(rawUUID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unparsable UUID %s", rawUUID))
+		}
+
+		// Run queries
+		if _, err = h.nmc.GetConnProfileByUUID(c.Context(), uid); err != nil {
+			return err
+		}
+
+		// Allow subscription
+		return nil
+	}
+}
+
 func (h *Handlers) HandleConnProfilePubByUUID() turbostreams.HandlerFunc {
 	t := "internet/conn-profiles/index.page.tmpl"
 	h.r.MustHave(t)

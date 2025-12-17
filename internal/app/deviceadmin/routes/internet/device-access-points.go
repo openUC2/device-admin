@@ -19,7 +19,7 @@ import (
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
-func (h *Handlers) HandleDeviceAPsGet() echo.HandlerFunc {
+func (h *Handlers) HandleDeviceAPsGetByIface() echo.HandlerFunc {
 	t := "internet/devices/access-points/index.page.tmpl"
 	h.r.MustHave(t)
 	ta := "internet/devices/access-points/index.advanced.page.tmpl"
@@ -80,7 +80,22 @@ func getDeviceAPsViewData(
 	return vd, nil
 }
 
-func (h *Handlers) HandleDeviceAPsPub() turbostreams.HandlerFunc {
+func (h *Handlers) HandleDeviceAPsSubByIface() turbostreams.HandlerFunc {
+	return func(c *turbostreams.Context) error {
+		// Parse params
+		iface := c.Param("iface")
+
+		// Run queries
+		if _, err := h.nmc.GetDeviceByIface(c.Context(), iface); err != nil {
+			return err
+		}
+
+		// Allow subscription
+		return nil
+	}
+}
+
+func (h *Handlers) HandleDeviceAPsPubByIface() turbostreams.HandlerFunc {
 	t := "internet/devices/access-points/index.page.tmpl"
 	h.r.MustHave(t)
 	ta := "internet/devices/access-points/index.advanced.page.tmpl"
@@ -115,7 +130,7 @@ func (h *Handlers) HandleDeviceAPsPub() turbostreams.HandlerFunc {
 	}
 }
 
-func (h *Handlers) HandleDeviceAPsPost() echo.HandlerFunc {
+func (h *Handlers) HandleDeviceAPsPostByIface() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Parse params
 		iface := c.Param("iface")
