@@ -34,7 +34,10 @@ export default class extends Controller {
         const newOption = document.createElement('option');
         newOption.value = option.value;
         newOption.setAttribute('label', option.value);
-        if (newOption.value === previousValue && document.activeElement !== this.inputTarget) {
+        if (
+          newOption.value === previousValue &&
+          document.activeElement !== this.inputTarget
+        ) {
           newOption.selected = true;
           optionSelected = true;
           this.setTextboxVisibility(false);
