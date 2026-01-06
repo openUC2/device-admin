@@ -34,7 +34,7 @@ export default class extends Controller {
         const newOption = document.createElement('option');
         newOption.value = option.value;
         newOption.setAttribute('label', option.value);
-        if (newOption.value === previousValue) {
+        if (newOption.value === previousValue && document.activeElement !== this.inputTarget) {
           newOption.selected = true;
           optionSelected = true;
           this.setTextboxVisibility(false);
@@ -56,6 +56,7 @@ export default class extends Controller {
       }
       this.selectTarget.add(emptyOption);
     };
+
     this.updateSelect();
   }
 
@@ -70,6 +71,7 @@ export default class extends Controller {
       }
       if (option.value === '') {
         this.setTextboxVisibility(true);
+        this.inputTarget.focus();
         break;
       }
 
