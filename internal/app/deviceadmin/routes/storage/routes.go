@@ -86,12 +86,15 @@ func getStorageViewData(
 		vd.DiskUsages[dev.Drive.ID] = make(map[string]du.Usage)
 		for _, mp := range dev.Filesystem.MountPoints {
 			if vd.DiskUsages[dev.Drive.ID][mp], err = du.GetUsage(mp); err != nil {
-				switch {
-				default:
+				ignored := false
+				for _, ignoredPrefix := range ignoredMountPrefixes {
+					if strings.HasPrefix(mp, ignoredPrefix) {
+						ignored = true
+						break
+					}
+				}
+				if !ignored {
 					l.Warn(errors.Wrapf(err, "couldn't check disk usage of %s", mp))
-				case strings.HasPrefix(mp, "/sysroot/"):
-				case strings.HasPrefix(mp, "/run/forklift/"):
-				case strings.HasPrefix(mp, "/home/pi/.local/share/forklift/"):
 				}
 			}
 		}
@@ -116,6 +119,13 @@ func getStorageViewData(
 		vd.RemovableDrives = append(vd.RemovableDrives, drive)
 	}
 	return vd, nil
+}
+
+var ignoredMountPrefixes = []string{
+	"/boot/",
+	"/sysroot/",
+	"/run/forklift/",
+	"/home/pi/.local/share/forklift/",
 }
 
 func (h *Handlers) HandleStoragePub() turbostreams.HandlerFunc {
