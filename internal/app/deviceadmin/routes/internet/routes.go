@@ -82,8 +82,8 @@ type InternetViewData struct {
 	NM nm.NetworkManager
 
 	AvailableSSIDs           []string
-	Wlan0InternetConnProfile nm.ConnProfile
 	Wlan0HotspotConnProfile  nm.ConnProfile
+	Wlan1InternetConnProfile nm.ConnProfile
 
 	WifiDevices     []nm.Device
 	EthernetDevices []nm.Device
@@ -101,11 +101,11 @@ func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewDa
 		return vd, errors.Wrap(err, "couldn't get overall information about NetworkManager")
 	}
 
-	const iface = "wlan0"
+	const internetIface = "wlan1"
 	// Note(ethanjli): the list of APs is just for autocompletion in the simplified wifi management
 	// view, and it can be missing just after activating wlan0-hotspot; so it's fine if we don't
 	// provide any data about available APs on this page:
-	availableAPs, _ := nmc.ScanNetworks(ctx, iface)
+	availableAPs, _ := nmc.ScanNetworks(ctx, internetIface)
 	for ssid, aps := range availableAPs {
 		if len(aps) == 0 {
 			continue
@@ -138,10 +138,10 @@ func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewDa
 		case "wifi":
 			vd.WifiConnProfiles = append(vd.WifiConnProfiles, connProfile.Settings.Conn)
 			switch conn := connProfile.Settings.Conn; conn.ID {
-			case "wlan0-internet":
-				vd.Wlan0InternetConnProfile = connProfile
 			case "wlan0-hotspot":
 				vd.Wlan0HotspotConnProfile = connProfile
+			case "wlan1-internet":
+				vd.Wlan1InternetConnProfile = connProfile
 			}
 		case "ethernet":
 			vd.EthernetConnProfiles = append(vd.EthernetConnProfiles, connProfile.Settings.Conn)

@@ -13,13 +13,16 @@
 >
 
   <turbo-frame
-    id="internet_devices_wlan0_access-points.frame"
+    id="internet_devices_wlan1_access-points.frame"
     data-turbo-reload
     refresh="morph"
-    data-action="turbo:frame-load->dropdown-textbox#updateSelect turbo:morph-element->dropdown-textbox#updateSelect"
+    data-action="
+      turbo:frame-load->dropdown-textbox#updateSelect
+      turbo:morph-element->dropdown-textbox#updateSelect
+    "
   >
     <form
-      action="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
+      action="{{$Meta.BasePath}}internet/devices/wlan1/access-points"
       method="POST"
       class="is-inline-block mb-3"
       data-controller="form-submission hideable"
@@ -43,7 +46,7 @@
       </div>
     </form>
     <datalist
-      id="internet_devices_wlan0_access-points.datalist"
+      id="internet_devices_wlan1_access-points.datalist"
       data-dropdown-textbox-target="datalist"
     >
       {{range $ssid := $availableSSIDs}}
@@ -99,7 +102,7 @@
           <input
             class="input" type="text"
             name="802-11-wireless.ssid"
-            list="{{$Meta.BasePath}}internet/devices/wlan0/access-points/list"
+            list="{{$Meta.BasePath}}internet/devices/wlan1/access-points/list"
             minlength=1 maxlength=32
             value="{{toString $wifi.SSID}}"
             required
@@ -110,7 +113,7 @@
         <p>
           (you can view details about all detected external networks
           <a href="{{urlJoin (dict
-            "path" (print $Meta.BasePath "internet/devices/wlan0/access-points")
+            "path" (print $Meta.BasePath "internet/devices/wlan1/access-points")
             "query" $Meta.Form.Encode
           )}}" target="_blank">here</a>)
         </p>
@@ -129,7 +132,10 @@
             class="is-inline-block is-vertical-align-top mt-1"
             {{if not (eq $wifiSec.KeyMgmt "")}}checked{{end}}
             data-checkable-textbox-target="checkable"
-            data-action="change->checkable-textbox#toggle change->checkable-textbox#setPlaceholder"
+            data-action="
+              change->checkable-textbox#toggle
+              change->checkable-textbox#setPlaceholder
+            "
             data-checkable-textbox-placeholder-param="not shown here, for security reasons"
           />
           <div class="is-inline-block is-vertical-align-top">
@@ -148,7 +154,11 @@
                   size=30
                   data-password-input-target="input"
                   data-checkable-textbox-target="textbox"
-                  data-action="focus->checkable-textbox#edit focus->checkable-textbox#setPlaceholder input->password-input#edit"
+                  data-action="
+                    focus->checkable-textbox#edit
+                    focus->checkable-textbox#setPlaceholder
+                    input->password-input#edit
+                  "
                   data-checkable-textbox-placeholder-param="not shown here, for security reasons"
                 >
               </div>
@@ -177,7 +187,10 @@
             required
             autocomplete="off"
             {{if eq $wifiSec.KeyMgmt ""}}checked{{end}}
-            data-action="change->checkable-textbox#toggle change->checkable-textbox#setPlaceholder"
+            data-action="
+              change->checkable-textbox#toggle
+              change->checkable-textbox#setPlaceholder
+            "
             data-checkable-textbox-placeholder-param="none"
           />
           No
@@ -186,7 +199,7 @@
     </div>
 
     <div class="field">
-      <label class="label">Behavior</label>
+      <label class="label">Automatic connection</label>
       <div class="control radios">
         <label class="radio is-block">
           <input type="radio"
@@ -196,7 +209,7 @@
             autocomplete="off"
             {{if $conn.Autoconnect}}checked{{end}}
           />
-          Automatically try to connect during boot
+          Always connect when available
         </label>
         <label class="radio is-block ml-0">
           <input type="radio"
@@ -206,20 +219,22 @@
             autocomplete="off"
             {{if not $conn.Autoconnect}}checked{{end}}
           />
-          Don't try to connect during boot
+          Don't automatically connect
         </label>
       </div>
     </div>
 
     <div class="field" data-form-submission-target="submitter">
-      <div class="control">
-        <input
-          class="button is-primary"
-          type="submit"
-          name="update-type"
-          value="Save"
-          data-form-submission-target="submit"
-        >
+      <div class="field is-grouped">
+        <div class="control">
+          <input
+            class="button is-primary"
+            type="submit"
+            name="update-type"
+            value="Save and connect"
+            data-form-submission-target="submit"
+          >
+        </div>
       </div>
     </div>
   </form>
