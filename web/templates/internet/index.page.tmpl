@@ -51,7 +51,7 @@
 
     <section class="section content">
       <h2 id="internet_wifi">Wi-Fi</h2>
-      {{if not .Data.Wlan0InternetConnProfile.HasData}}
+      {{if not .Data.Wlan1InternetConnProfile.HasData}}
         <article class="message is-error two-card-width">
           <div class="message-body">
             The basic configuration file for internet access could not be found! Was it removed?
@@ -60,109 +60,21 @@
               "path" .Meta.Path
               "query" (.Meta.Form.WithInstead "mode" "advanced").Encode
             )}}">advanced view</a> of this page to check whether
-            the "wlan0-internet" connection profile is listed, and if so, what its contents are.
-            It should have ID "wlan0-internet" and be of type "wifi".
+            the "wlan1-internet" connection profile is listed, and if so, what its contents are.
+            It should have ID "wlan1-internet" and be of type "wifi".
           </div>
         </article>
       {{else}}
-        <p class="two-card-width">
-          This machine's internal Wi-Fi module (wlan0) can either connect to an
-          <strong>external Wi-Fi network</strong> created by a Wi-Fi router (to give this machine
-          internet access) or create its own <strong>Wi-Fi hotspot</strong> (as a way for your
-          computer to connect directly to this machine). Whenever a connection to an external Wi-Fi
-          network fails or is lost, this machine will automatically switch to creating its own Wi-Fi
-          hotspot instead.
-        </p>
-        <article class="message is-info two-card-width">
-          <div class="message-body">
-            Once this machine has started making its own Wi-Fi hotspot, it will not automatically
-            try to connect to the external Wi-Fi network before the next boot. However, you can
-            manually make the machine try to connect to the external Wi-Fi network by clicking the
-            "Use external network now" button further down this page.
-          </div>
-        </article>
-        <!--
-          <p>
-            TODO: simplify this behavior by making a system service which checks whether the
-            wlan0-internet profile's autoconnect behavior is enabled and, if so, deactivate
-            wlan0-hotspot and activate wlan0-internet instead whenever the wlan0-internet's network
-            is within range. This would effectively be a "always automatically try to connect"
-            behavior, instead of the "autoconnect only during boot" behavior which we currently have
-            with NetworkManager.
-          </p>
-        -->
         <div class="card section-card">
           <div class="card-content">
             <h3>External Wi-Fi network</h3>
             {{
               template "internet/external-network-form.partial.tmpl" dict
-              "ConnProfile" .Data.Wlan0InternetConnProfile
+              "ConnProfile" .Data.Wlan1InternetConnProfile
               "AvailableSSIDs" .Data.AvailableSSIDs
               "Meta" .Meta
             }}
           </div>
-        </div>
-
-        {{$wlan0Internet := .Data.Wlan0InternetConnProfile}}
-        {{$wlan0Hotspot := .Data.Wlan0HotspotConnProfile}}
-        {{if and $wlan0Hotspot.HasData}}
-          <p class="two-card-width">
-            This machine can try to temporarily switch between connecting to the external network
-            and making the hotspot, before the next boot:
-          </p>
-        {{else}}
-          <p class="two-card-width">
-            This machine can try to temporarily connect to the external network, before the next
-            boot:
-          </p>
-        {{end}}
-        <div class="field is-grouped">
-          <div class="control">
-            <form
-              action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Internet.Settings.Conn.UUID.String}}"
-              method="POST"
-              data-controller="form-submission"
-              data-action="submit->form-submission#submit"
-              data-form-submission-target="submitter"
-              class="mb-3"
-            >
-              <input type="hidden" name="state" value="activated-transiently">
-              <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-                "path" .Meta.Path
-                "query" .Meta.Form.Encode
-              )}}">
-              <input
-                class="button is-primary"
-                type="submit"
-                value="Use external network now"
-                data-form-submission-target="submit"
-              >
-            </form>
-          </div>
-          {{if $wlan0Hotspot.HasData}}
-            <div class="control">
-              <form
-                action="{{.Meta.BasePath}}internet/conn-profiles/{{$wlan0Hotspot.Settings.Conn.UUID.String}}"
-                method="POST"
-                data-controller="form-submission"
-                data-action="submit->form-submission#submit"
-                data-form-submission-target="submitter"
-                class="mb-3"
-              >
-                <input type="hidden" name="state" value="activated-transiently">
-                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-                  "path" .Meta.Path
-                  "query" .Meta.Form.Encode
-                )}}">
-                <input
-                  class="button is-primary"
-                  type="submit"
-                  value="Activate hotspot now"
-                  data-form-submission-target="submit"
-                >
-              </form>
-            </div>
-          {{end}}
         </div>
       {{end}}
 

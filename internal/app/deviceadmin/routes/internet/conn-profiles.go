@@ -170,6 +170,9 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
+			if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+				return err
+			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		case "updated":
