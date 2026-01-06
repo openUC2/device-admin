@@ -1,99 +1,129 @@
+{{$drive := (get . "Drive")}}
 {{$blockDevices := (get . "BlockDevices")}}
 {{$diskUsages := (get . "DiskUsages")}}
 {{$isSystem := (get . "IsSystem")}}
 {{$Meta := (get . "Meta")}}
 
-{{range $device := $blockDevices}}
-  {{if $device.HintIgnore}}
-    {{continue}}
-  {{end}}
+<turbo-frame
+  id="storage_drives_{{$drive.ID}}_block-devices.frame"
+  data-turbo-reload
+>
+  {{range $device := $blockDevices}}
+    {{if $device.HintIgnore}}
+      {{continue}}
+    {{end}}
 
-  {{if $device.HintName}}
-    <h4>{{$device.HintName}}</h4>
-    {{if $device.Device}}
+    {{if $device.HintName}}
+      <h4>{{$device.HintName}}</h4>
+      {{if $device.Device}}
+        <p>
+          <abbr title="special device file in the operating system">Device</abbr>:
+          {{$device.Device}}
+        </p>
+      {{end}}
+    {{else if $device.Device}}
+      <h4>{{$device.Device}}</h4>
+    {{else}}
+      <h4><span class="tag is-error"><abbr title="no device name or special device file found">
+        unknown device
+        {{- /* make template ignore the line break */ -}}
+      </abbr></span></h4>
+    {{end}}
+
+    <p>
+      <abbr title="Whether data can be written to the device">Writeability</abbr>:
+      {{if $device.ReadOnly}}
+        <span class="tag is-warning">
+          <abbr title="data can only be read from the device">read-only</abbr>
+          {{- /* make template ignore the line break */ -}}
+        </span>
+      {{else}}
+        <span class="tag is-success">writeable</span>
+      {{end}}
+    </p>
+
+    {{if $device.ID}}
       <p>
-        <abbr title="special device file in the operating system">Device</abbr>:
-        {{$device.Device}}
+        <abbr title="a unique and persistent identifier for the device">ID</abbr>:
+        {{$device.ID}}
       </p>
     {{end}}
-  {{else if $device.Device}}
-    <h4>{{$device.Device}}</h4>
-  {{else}}
-    <h4><span class="tag is-error"><abbr title="no device name or special device file found">
-      unknown device
-      {{- /* make template ignore the line break */ -}}
-    </abbr></span></h4>
-  {{end}}
 
-  <p>
-    <abbr title="Whether data can be written to the device">Writeability</abbr>:
-    {{if $device.ReadOnly}}
-      <span class="tag is-warning">
-        <abbr title="data can only be read from the device">read-only</abbr>
-        {{- /* make template ignore the line break */ -}}
-      </span>
-    {{else}}
-      <span class="tag is-success">writeable</span>
+    {{if $device.Filesystem.Size}}
+      <p>
+        <abbr title="Size of the filesystem">Size</abbr>:
+        {{round (divf $device.Filesystem.Size 1000000000) 1}} GB
+      </p>
+    {{else if $device.Size}}
+      <p>
+        <abbr title="Size of the block device (size of filesystem on device is unknown)">
+          Size
+          {{- /* make template ignore the line break */ -}}
+        </abbr>:
+        {{round (divf $device.Size 1000000000) 1}} GB
+      </p>
     {{end}}
-  </p>
 
-  {{if $device.ID}}
-    <p>
-      <abbr title="a unique and persistent identifier for the device">ID</abbr>:
-      {{$device.ID}}
-    </p>
-  {{end}}
+    {{if $device.FSVersion}}
+      <p>
+        <abbr title="the version of the filesystem or other structured data">Version</abbr>:
+        {{$device.FSVersion}}
+      </p>
+    {{end}}
 
-  {{if $device.Filesystem.Size}}
-    <p>
-      <abbr title="Size of the filesystem">Size</abbr>:
-      {{round (divf $device.Filesystem.Size 1000000000) 1}} GB
-    </p>
-  {{else if $device.Size}}
-    <p>
-      <abbr title="Size of the block device (size of filesystem on device is unknown)">
-        Size
-        {{- /* make template ignore the line break */ -}}
-      </abbr>:
-      {{round (divf $device.Size 1000000000) 1}} GB
-    </p>
-  {{end}}
+    {{if $device.FSLabel}}
+      <p>
+        <abbr title="the label of the filesystem or other structured data">Label</abbr>:
+        {{$device.FSLabel}}
+      </p>
+    {{end}}
 
-  {{if $device.FSVersion}}
-    <p>
-      <abbr title="the version of the filesystem or other structured data">Version</abbr>:
-      {{$device.FSVersion}}
-    </p>
-  {{end}}
+    {{if $device.FSUUID}}
+      <p>
+        <abbr title="the UUID of the filesystem or other structured data">UUID</abbr>:
+        {{$device.FSUUID}}
+      </p>
+    {{end}}
 
-  {{if $device.FSLabel}}
-    <p>
-      <abbr title="the label of the filesystem or other structured data">Label</abbr>:
-      {{$device.FSLabel}}
-    </p>
-  {{end}}
-
-  {{if $device.FSUUID}}
-    <p>
-      <abbr title="the UUID of the filesystem or other structured data">UUID</abbr>:
-      {{$device.FSUUID}}
-    </p>
-  {{end}}
-
-  {{if gt (len $device.Filesystem.MountPoints) 0}}
-    <p>Mount points:</p>
-    <ul class="mt-0">
-      {{range $mountPoint := $device.Filesystem.MountPoints}}
-        <li>
-          <p>{{$mountPoint}}</p>
-          {{$diskUsage := index $diskUsages $mountPoint}}
-          {{if $diskUsage.Size}}
-            {{template "storage/disk-usage.partial.tmpl" $diskUsage}}
-          {{end}}
-        </li>
+    {{if gt (len $device.Filesystem.MountPoints) 0}}
+      <p>Mount points:</p>
+      <ul class="mt-0">
+        {{range $mountPoint := $device.Filesystem.MountPoints}}
+          <li>
+            <p>{{$mountPoint}}</p>
+            {{$diskUsage := index $diskUsages $mountPoint}}
+            {{if $diskUsage.Size}}
+              {{template "storage/disk-usage.partial.tmpl" $diskUsage}}
+            {{end}}
+          </li>
+        {{end}}
+      </ul>
+      {{if not $isSystem}}
+        <form
+          action="{{$Meta.BasePath}}storage/block-devices/{{$device.ID}}"
+          method="POST"
+          data-controller="form-submission"
+          data-action="submit->form-submission#submit"
+          class="is-inline-block"
+        >
+          <input type="hidden" name="state" value="unmounted">
+          <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+            "path" $Meta.Path
+            "query" $Meta.Form.Encode
+          )}}">
+          <div class="field">
+            <div class="control" data-form-submission-target="submitter">
+              <input
+                class="button is-info"
+                type="submit"
+                value="Unmount block device"
+                data-form-submission-target="submit"
+              >
+            </div>
+          </div>
+        </form>
       {{end}}
-    </ul>
-    {{if not $isSystem}}
+    {{else if $device.ID}}
       <form
         action="{{$Meta.BasePath}}storage/block-devices/{{$device.ID}}"
         method="POST"
@@ -101,7 +131,7 @@
         data-action="submit->form-submission#submit"
         class="is-inline-block"
       >
-        <input type="hidden" name="state" value="unmounted">
+        <input type="hidden" name="state" value="mounted">
         <input type="hidden" name="redirect-target" value="{{urlJoin (dict
           "path" $Meta.Path
           "query" $Meta.Form.Encode
@@ -111,38 +141,14 @@
             <input
               class="button is-info"
               type="submit"
-              value="Unmount block device"
+              value="Mount block device"
               data-form-submission-target="submit"
             >
           </div>
         </div>
       </form>
     {{end}}
-  {{else if $device.ID}}
-    <form
-      action="{{$Meta.BasePath}}storage/block-devices/{{$device.ID}}"
-      method="POST"
-      data-controller="form-submission"
-      data-action="submit->form-submission#submit"
-      class="is-inline-block"
-    >
-      <input type="hidden" name="state" value="mounted">
-      <input type="hidden" name="redirect-target" value="{{urlJoin (dict
-        "path" $Meta.Path
-        "query" $Meta.Form.Encode
-      )}}">
-      <div class="field">
-        <div class="control" data-form-submission-target="submitter">
-          <input
-            class="button is-info"
-            type="submit"
-            value="Mount block device"
-            data-form-submission-target="submit"
-          >
-        </div>
-      </div>
-    </form>
+  {{else}}
+    <span class="tag is-warning">none detected</span>
   {{end}}
-{{else}}
-  <span class="tag is-warning">none detected</span>
-{{end}}
+</turbo-frame>

@@ -3,99 +3,104 @@
 {{$interface := (get . "Interface")}}
 {{$Meta := (get . "Meta")}}
 
-{{if $activeConn.HasData}}
-  <h4>
-    <abbr title="the NetworkManager connection profile being used for the device">Active</abbr>
-  </h4>
-  <p>
-    ID:
-    <a href="{{urlJoin (dict
-      "path" (print $Meta.BasePath "internet/conn-profiles/" $activeConn.UUID)
-      "query" $Meta.Form.Encode
-    )}}" target="_top">
-      {{$activeConn.ID}}
-    </a>
-  </p>
-  <p>
-    {{$stateInfo := $activeConn.State.Info}}
-    State:
-    <span class="tag is-{{$stateInfo.Level}}">
-      {{if $stateInfo.Details}}
-        <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
-      {{else}}
-        {{$stateInfo.Short}}
+<turbo-frame
+  id="internet_devices_{{$interface}}_conn-profiles.frame"
+  data-turbo-reload
+>
+  {{if $activeConn.HasData}}
+    <h4>
+      <abbr title="the NetworkManager connection profile being used for the device">Active</abbr>
+    </h4>
+    <p>
+      ID:
+      <a href="{{urlJoin (dict
+        "path" (print $Meta.BasePath "internet/conn-profiles/" $activeConn.UUID)
+        "query" $Meta.Form.Encode
+      )}}" target="_top">
+        {{$activeConn.ID}}
+      </a>
+    </p>
+    <p>
+      {{$stateInfo := $activeConn.State.Info}}
+      State:
+      <span class="tag is-{{$stateInfo.Level}}">
+        {{if $stateInfo.Details}}
+          <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
+        {{else}}
+          {{$stateInfo.Short}}
+        {{end}}
+      </span>
+      {{$stateFlags := $activeConn.StateFlags}}
+      {{if $stateFlags.IsController}}
+        <span class="tag is-info"><abbr title="device is a controller">controller</abbr></span>
       {{end}}
-    </span>
-    {{$stateFlags := $activeConn.StateFlags}}
-    {{if $stateFlags.IsController}}
-      <span class="tag is-info"><abbr title="device is a controller">controller</abbr></span>
+      {{if $stateFlags.ControllerHasPorts}}
+        <span class="tag is-info">
+          <abbr title="controller has one or more port devices attached">has ports</abbr>
+        </span>
+      {{end}}
+      {{if $stateFlags.External}}
+        <span class="tag is-info">
+          <abbr title="active connection was generated to represent external config of a device">
+            external
+          </abbr>
+        </span>
+      {{end}}
+      {{if $stateFlags.IsPort}}
+        <span class="tag is-info"><abbr title="device is a port">port</abbr></span>
+      {{end}}
+      {{if $stateFlags.Layer2Ready}}
+        <span class="tag is-success">
+          <abbr title="data link layer is activated and ready">layer 2 ready</abbr>
+        </span>
+      {{end}}
+      {{if $stateFlags.IPv4Ready}}
+        <span class="tag is-success">
+          <abbr title="IPv4 setting is completed">IPv4 ready</abbr>
+        </span>
+      {{end}}
+      {{if $stateFlags.IPv6Ready}}
+        <span class="tag is-success">
+          <abbr title="IPv6 setting is completed">IPv6 ready</abbr>
+        </span>
+      {{end}}
+      {{if $activeConn.IsIPv4Default}}
+        <span class="tag is-info">
+          <abbr title="this connection currently owns the default IPv4 route">IPv4 default</abbr>
+        </span>
+      {{end}}
+      {{if $activeConn.IsIPv6Default}}
+        <span class="tag is-info">
+          <abbr title="this connection currently owns the default IPv6 route">IPv6 default</abbr>
+        </span>
+      {{end}}
+    </p>
+    {{if gt (len $activeConn.DeviceInterfaces) 1}}
+      {{/* if only one device, then we assume it's the current device, so no need to show it */}}
+      <p>Devices:</p>
+      <ul class="mt-0">
+        {{range $devInterface := $activeConn.DeviceInterfaces}}
+          <li>{{$devInterface}}</li>
+        {{end}}
+      </ul>
     {{end}}
-    {{if $stateFlags.ControllerHasPorts}}
-      <span class="tag is-info">
-        <abbr title="controller has one or more port devices attached">has ports</abbr>
-      </span>
-    {{end}}
-    {{if $stateFlags.External}}
-      <span class="tag is-info">
-        <abbr title="active connection was generated to represent external config of a device">
-          external
-        </abbr>
-      </span>
-    {{end}}
-    {{if $stateFlags.IsPort}}
-      <span class="tag is-info"><abbr title="device is a port">port</abbr></span>
-    {{end}}
-    {{if $stateFlags.Layer2Ready}}
-      <span class="tag is-success">
-        <abbr title="data link layer is activated and ready">layer 2 ready</abbr>
-      </span>
-    {{end}}
-    {{if $stateFlags.IPv4Ready}}
-      <span class="tag is-success">
-        <abbr title="IPv4 setting is completed">IPv4 ready</abbr>
-      </span>
-    {{end}}
-    {{if $stateFlags.IPv6Ready}}
-      <span class="tag is-success">
-        <abbr title="IPv6 setting is completed">IPv6 ready</abbr>
-      </span>
-    {{end}}
-    {{if $activeConn.IsIPv4Default}}
-      <span class="tag is-info">
-        <abbr title="this connection currently owns the default IPv4 route">IPv4 default</abbr>
-      </span>
-    {{end}}
-    {{if $activeConn.IsIPv6Default}}
-      <span class="tag is-info">
-        <abbr title="this connection currently owns the default IPv6 route">IPv6 default</abbr>
-      </span>
-    {{end}}
-  </p>
-  {{if gt (len $activeConn.DeviceInterfaces) 1}}
-    {{/* if only one device, then we assume it's the current device, so no need to show it */}}
-    <p>Devices:</p>
+  {{end}}
+
+  <h4>
+    <abbr title="the NetworkManager connection profiles available to use for the device">
+      Available
+    </abbr>
+  </h4>
+  {{if gt (len $availableConns) 0}}
     <ul class="mt-0">
-      {{range $devInterface := $activeConn.DeviceInterfaces}}
-        <li>{{$devInterface}}</li>
+      {{range $conn := $availableConns}}
+        <li>
+          <a href="{{urlJoin (dict
+            "path" (print $Meta.BasePath "internet/conn-profiles/" $conn.UUID)
+            "query" $Meta.Form.Encode
+          )}}" target="_top">{{$conn.ID}}</a>
+        </li>
       {{end}}
     </ul>
   {{end}}
-{{end}}
-
-<h4>
-  <abbr title="the NetworkManager connection profiles available to use for the device">
-    Available
-  </abbr>
-</h4>
-{{if gt (len $availableConns) 0}}
-  <ul class="mt-0">
-    {{range $conn := $availableConns}}
-      <li>
-        <a href="{{urlJoin (dict
-          "path" (print $Meta.BasePath "internet/conn-profiles/" $conn.UUID)
-          "query" $Meta.Form.Encode
-        )}}" target="_top">{{$conn.ID}}</a>
-      </li>
-    {{end}}
-  </ul>
-{{end}}
+</turbo-frame>

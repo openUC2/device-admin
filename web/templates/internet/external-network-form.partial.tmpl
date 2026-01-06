@@ -7,13 +7,13 @@
 {{$wifiSec := $connProfile.Settings.WifiSec}}
 
 <turbo-frame
-  id="internet_external-wifi"
+  id="internet_external-wifi.frame"
   data-controller="dropdown-textbox"
   data-action="turbo:frame-load->dropdown-textbox#updateSelect"
 >
 
   <turbo-frame
-    id="internet_devices_wlan0_access-points"
+    id="internet_devices_wlan0_access-points.frame"
     data-turbo-reload
     refresh="morph"
     data-action="turbo:frame-load->dropdown-textbox#updateSelect turbo:morph-element->dropdown-textbox#updateSelect"
@@ -24,7 +24,6 @@
       class="is-inline-block mb-3"
       data-controller="form-submission hideable"
       data-action="submit->form-submission#submit"
-      data-turbo-frame="{{$Meta.BasePath}}internet/devices/wlan0/access-points"
       data-hideable-target="hider"
     >
       <input type="hidden" name="state" value="refreshed">
@@ -44,7 +43,7 @@
       </div>
     </form>
     <datalist
-      id="internet_devices_wlan0_access-points_list"
+      id="internet_devices_wlan0_access-points.datalist"
       data-dropdown-textbox-target="datalist"
     >
       {{range $ssid := $availableSSIDs}}

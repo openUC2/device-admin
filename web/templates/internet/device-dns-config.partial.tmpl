@@ -3,18 +3,23 @@
 {{$interface := (get . "Interface")}}
 {{$Meta := (get . "Meta")}}
 
-{{if $ipv4DNS.HasData}}
-  <h4>IPv4</h4>
-  {{
-    template "internet/dns-config.partial.tmpl" dict
-    "DNSConfig" $ipv4DNS
-  }}
-{{end}}
+<turbo-frame
+  id="internet_devices_{{$interface}}_dns-config.frame"
+  data-turbo-reload
+>
+  {{if $ipv4DNS.HasData}}
+    <h4>IPv4</h4>
+    {{
+      template "internet/dns-config.partial.tmpl" dict
+      "DNSConfig" $ipv4DNS
+    }}
+  {{end}}
 
-{{if $ipv6DNS.HasData}}
-  <h4>IPv6</h4>
-  {{
-    template "internet/dns-config.partial.tmpl" dict
-    "DNSConfig" $ipv6DNS
-  }}
-{{end}}
+  {{if $ipv6DNS.HasData}}
+    <h4>IPv6</h4>
+    {{
+      template "internet/dns-config.partial.tmpl" dict
+      "DNSConfig" $ipv6DNS
+    }}
+  {{end}}
+</turbo-frame>

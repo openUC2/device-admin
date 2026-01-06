@@ -2,67 +2,61 @@
 {{$interface := (get . "Interface")}}
 {{$Meta := (get . "Meta")}}
 
-<p>
-  {{$typeInfo := $device.Type.Info}}
-  Type:
-  <span class="tag is-{{$typeInfo.Level}}">
-    {{if $typeInfo.Details}}
-      <abbr title="{{$typeInfo.Details}}">{{$typeInfo.Short}}</abbr>
-    {{else}}
-      {{$typeInfo.Short}}
-    {{end}}
-  </span>
-</p>
-
-<p>
-  {{$stateInfo := $device.State.Info}}
-  State:
-  <span class="tag is-{{$stateInfo.Level}}">
-    {{if $stateInfo.Details}}
-      <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
-    {{else}}
-      {{$stateInfo.Short}}
-    {{end}}
-  </span>
-  {{if $device.FirmwareMissing}}
-    <span class="tag is-warning">
-      <abbr title="device likely missing firmware needed for operation">missing firmware?</abbr>
-    </span>
-  {{end}}
-  {{if $device.NMPluginMissing}}
-    <span class="tag is-warning">
-      <abbr title="NetworkManager plugin for device likely missing or misconfigured">missing nm plugin?</abbr>
-    </span>
-  {{end}}
-</p>
-
-{{if $device.StateReason}}
-  {{$stateReasonInfo := $device.StateReason.Info}}
+<turbo-frame
+  id="internet_devices_{{$interface}}_basics.frame"
+  data-turbo-reload
+>
   <p>
-    State reason:
-    {{if $stateReasonInfo.Details}}
-      <abbr title="{{$stateReasonInfo.Details}}">{{$stateReasonInfo.Short}}</abbr>
-    {{else}}
-      {{$stateReasonInfo.Short}}
-    {{end}}
-  </p>
-{{end}}
-
-<p>
-  {{$ipv4ConnectivityInfo := $device.IPv4Connectivity.Info}}
-  {{$ipv6ConnectivityInfo := $device.IPv4Connectivity.Info}}
-  Connectivity:
-  {{if eq $ipv4ConnectivityInfo $ipv6ConnectivityInfo}}
-    <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
-      {{if $ipv4ConnectivityInfo.Details}}
-        <abbr title="{{$ipv4ConnectivityInfo.Details}}">{{$ipv4ConnectivityInfo.Short}}</abbr>
+    {{$typeInfo := $device.Type.Info}}
+    Type:
+    <span class="tag is-{{$typeInfo.Level}}">
+      {{if $typeInfo.Details}}
+        <abbr title="{{$typeInfo.Details}}">{{$typeInfo.Short}}</abbr>
       {{else}}
-        {{$ipv4ConnectivityInfo.Short}}
+        {{$typeInfo.Short}}
       {{end}}
     </span>
-  {{else}}
-    <span class="tag is-white scoped-status">
-      <span>IPv4:</span>
+  </p>
+
+  <p>
+    {{$stateInfo := $device.State.Info}}
+    State:
+    <span class="tag is-{{$stateInfo.Level}}">
+      {{if $stateInfo.Details}}
+        <abbr title="{{$stateInfo.Details}}">{{$stateInfo.Short}}</abbr>
+      {{else}}
+        {{$stateInfo.Short}}
+      {{end}}
+    </span>
+    {{if $device.FirmwareMissing}}
+      <span class="tag is-warning">
+        <abbr title="device likely missing firmware needed for operation">missing firmware?</abbr>
+      </span>
+    {{end}}
+    {{if $device.NMPluginMissing}}
+      <span class="tag is-warning">
+        <abbr title="NetworkManager plugin for device likely missing or misconfigured">missing nm plugin?</abbr>
+      </span>
+    {{end}}
+  </p>
+
+  {{if $device.StateReason}}
+    {{$stateReasonInfo := $device.StateReason.Info}}
+    <p>
+      State reason:
+      {{if $stateReasonInfo.Details}}
+        <abbr title="{{$stateReasonInfo.Details}}">{{$stateReasonInfo.Short}}</abbr>
+      {{else}}
+        {{$stateReasonInfo.Short}}
+      {{end}}
+    </p>
+  {{end}}
+
+  <p>
+    {{$ipv4ConnectivityInfo := $device.IPv4Connectivity.Info}}
+    {{$ipv6ConnectivityInfo := $device.IPv4Connectivity.Info}}
+    Connectivity:
+    {{if eq $ipv4ConnectivityInfo $ipv6ConnectivityInfo}}
       <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
         {{if $ipv4ConnectivityInfo.Details}}
           <abbr title="{{$ipv4ConnectivityInfo.Details}}">{{$ipv4ConnectivityInfo.Short}}</abbr>
@@ -70,23 +64,34 @@
           {{$ipv4ConnectivityInfo.Short}}
         {{end}}
       </span>
-    </span>
-    <span class="tag is-white scoped-status">
-      <span>IPv6:</span>
-      <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
-        {{if $ipv6ConnectivityInfo.Details}}
-          <abbr title="{{$ipv6ConnectivityInfo.Details}}">{{$ipv6ConnectivityInfo.Short}}</abbr>
-        {{else}}
-          {{$ipv6ConnectivityInfo.Short}}
-        {{end}}
+    {{else}}
+      <span class="tag is-white scoped-status">
+        <span>IPv4:</span>
+        <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
+          {{if $ipv4ConnectivityInfo.Details}}
+            <abbr title="{{$ipv4ConnectivityInfo.Details}}">{{$ipv4ConnectivityInfo.Short}}</abbr>
+          {{else}}
+            {{$ipv4ConnectivityInfo.Short}}
+          {{end}}
+        </span>
       </span>
-    </span>
-  {{end}}
-</p>
+      <span class="tag is-white scoped-status">
+        <span>IPv6:</span>
+        <span class="tag is-{{$ipv4ConnectivityInfo.Level}}">
+          {{if $ipv6ConnectivityInfo.Details}}
+            <abbr title="{{$ipv6ConnectivityInfo.Details}}">{{$ipv6ConnectivityInfo.Short}}</abbr>
+          {{else}}
+            {{$ipv6ConnectivityInfo.Short}}
+          {{end}}
+        </span>
+      </span>
+    {{end}}
+  </p>
 
-{{$wifi := $device.Wifi}}
-{{if and (eq $wifi.Mode.Info.Short "infrastructure") $wifi.ActiveAP.HasData}}
-  External network: {{$wifi.ActiveAP.SSID}}
-{{else if and (eq $wifi.Mode.Info.Short "hotspot") $wifi.ActiveAP.HasData}}
-  Hotspot: {{$wifi.ActiveAP.SSID}}
-{{end}}
+  {{$wifi := $device.Wifi}}
+  {{if and (eq $wifi.Mode.Info.Short "infrastructure") $wifi.ActiveAP.HasData}}
+    External network: {{$wifi.ActiveAP.SSID}}
+  {{else if and (eq $wifi.Mode.Info.Short "hotspot") $wifi.ActiveAP.HasData}}
+    Hotspot: {{$wifi.ActiveAP.SSID}}
+  {{end}}
+</turbo-frame>

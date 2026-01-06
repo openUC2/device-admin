@@ -6,15 +6,16 @@
 {{$interface := or $device.IpInterface $device.ControlInterface}}
 
 <turbo-frame
-  id="internet_devices_{{$interface}}"
+  id="internet_devices_{{$interface}}.frame"
   data-turbo-reload
   refresh="morph"
 >
-  <article class="panel entity-panel" id="internet_devices_card_{{$interface}}">
+  <article class="panel entity-panel" id="internet_devices_{{$interface}}.card">
     <header class="panel-heading">{{$interface}}</header>
 
     {{if or (not $sections) (get $sections "basics")}}
       <details
+        id="internet_devices_{{$interface}}_basics.details"
         data-accordion-item
         class="panel-block accordion-item"
         {{if not $collapseAll}}
@@ -43,6 +44,7 @@
       (or $device.ActiveConn.HasData (gt (len $device.AvailableConns) 0))
     }}
       <details
+        id="internet_devices_{{$interface}}_conn-profiles.details"
         data-accordion-item
         class="panel-block accordion-item"
         {{if not $collapseAll}}
@@ -72,6 +74,7 @@
       $device.Wifi.HasData
     }}
       <details
+        id="internet_devices_{{$interface}}_wifi.details"
         data-accordion-item
         class="panel-block accordion-item"
         {{if not $collapseAll}}
@@ -100,6 +103,7 @@
       (or $device.IPv4Config $device.IPv6Config)
     }}
       <details
+        id="internet_devices_{{$interface}}_ip-config.details"
         data-accordion-item
         class="panel-block accordion-item"
         data-controller="event"
@@ -126,11 +130,9 @@
       (or $device.IPv4Config.DNS.HasData $device.IPv6Config.DNS.HasData)
     }}
       <details
-      data-accordion-item
-      class="
-        panel-block
-        accordion-item
-      "
+        id="internet_devices_{{$interface}}_dns-config.details"
+        data-accordion-item
+        class="panel-block accordion-item"
         data-controller="event"
         data-action="turbo:before-morph-attribute->event#cancel"
       >
@@ -155,11 +157,9 @@
       (or $device.DHCPv4Config.HasData $device.DHCPv6Config.HasData)
     }}
       <details
+        id="internet_devices_{{$interface}}_dhcp-config.details"
         data-accordion-item
-        class="
-          panel-block
-          accordion-item
-        "
+        class="panel-block accordion-item"
         data-controller="event"
         data-action="turbo:before-morph-attribute->event#cancel"
       >
@@ -181,7 +181,9 @@
 
     {{if or (not $sections) (get $sections "other")}}
       <details
-        data-accordion-item class="panel-block accordion-item"
+        id="internet_devices_{{$interface}}_other.details"
+        data-accordion-item
+        class="panel-block accordion-item"
         data-controller="event"
         data-action="turbo:before-morph-attribute->event#cancel"
       >
@@ -193,6 +195,7 @@
           {{
             template "internet/device-other.partial.tmpl" dict
             "Device" $device
+            "Interface" $interface
             "Meta" $Meta
           }}
         </div>

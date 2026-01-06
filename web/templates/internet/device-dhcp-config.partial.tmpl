@@ -3,18 +3,23 @@
 {{$interface := (get . "Interface")}}
 {{$Meta := (get . "Meta")}}
 
-{{if $ipv4DHCP.HasData}}
-  <h4>DHCPv4</h4>
-  {{
-    template "internet/dhcp-config.partial.tmpl" dict
-    "DHCPConfig" $ipv4DHCP
-  }}
-{{end}}
+<turbo-frame
+  id="internet_devices_{{$interface}}_dhcp-config.frame"
+  data-turbo-reload
+>
+  {{if $ipv4DHCP.HasData}}
+    <h4>DHCPv4</h4>
+    {{
+      template "internet/dhcp-config.partial.tmpl" dict
+      "DHCPConfig" $ipv4DHCP
+    }}
+  {{end}}
 
-{{if $ipv6DHCP.HasData}}
-  <h4>DHCPv6</h4>
-  {{
-    template "internet/dhcp-config.partial.tmpl" dict
-    "DHCPConfig" $ipv6DHCP
-  }}
-{{end}}
+  {{if $ipv6DHCP.HasData}}
+    <h4>DHCPv6</h4>
+    {{
+      template "internet/dhcp-config.partial.tmpl" dict
+      "DHCPConfig" $ipv6DHCP
+    }}
+  {{end}}
+</turbo-frame>

@@ -2,7 +2,6 @@
 {{$Meta := (get . "Meta")}}
 
 {{$conn := $settings.Conn}}
-{{$internetPagePath := print (dir (dir $Meta.Path)) "?mode=advanced"}}
 
 <form
   action="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}"
@@ -44,7 +43,7 @@
 
   <h3>Connection</h3>
   <turbo-frame
-    id="internet_conn-profiles_{{$conn.UUID}}_connection"
+    id="internet_conn-profiles_{{$conn.UUID}}_connection.frame"
     data-turbo-reload
     refresh="morph"
   >
@@ -136,7 +135,11 @@
         <div class="field">
           <div class="control">
             {{if $conn.InterfaceName}}
-              <a href="{{$internetPagePath}}#internet_devices_card_{{$conn.InterfaceName}}" target="_top">
+              <a href="{{(urlJoin (dict
+                "path" (print $Meta.BasePath "internet")
+                "query" $Meta.Form.Encode
+                "fragment" (print "internet_devices_" $conn.InterfaceName ".card")
+              ))}}" target="_top">
                 {{$conn.InterfaceName}}
               </a>
             {{else}}

@@ -7,11 +7,11 @@
 {{$Meta := (get . "Meta")}}
 
 <turbo-frame
-  id="storage_drives_{{$drive.ID}}"
+  id="storage_drives_{{$drive.ID}}.frame"
   data-turbo-reload
   refresh="morph"
 >
-  <article class="panel entity-panel" id="storage_drives_card_{{$drive.ID}}">
+  <article class="panel entity-panel" id="storage_drives_{{$drive.ID}}.card">
     <header class="panel-heading">{{$drive.ID}}</header>
 
     {{if or (not $sections) (get $sections "basics")}}
@@ -55,6 +55,7 @@
         <div class="accordion-content">
           {{
             template "storage/drive-block-devices.partial.tmpl" dict
+            "Drive" $drive
             "BlockDevices" $blockDevices
             "DiskUsages" $diskUsages
             "IsSystem" $isSystem

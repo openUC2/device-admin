@@ -41,7 +41,7 @@
         <div class="card-content">
           {{$disconnected := or (eq .Data.NetworkName "") (eq $stateInfo.Short "stopped")}}
           <turbo-frame
-            id="remote_assistance"
+            id="remote_assistance.frame"
             data-turbo-reload
             refresh="morph"
           >
@@ -137,7 +137,7 @@
       </p>
 
       <turbo-frame
-        id="remote_tailscale"
+        id="remote_tailscale.frame"
         data-turbo-reload
         refresh="morph"
       >

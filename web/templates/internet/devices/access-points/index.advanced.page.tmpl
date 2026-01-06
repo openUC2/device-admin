@@ -28,17 +28,17 @@
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-          )}}" aria-current="page">Internet</a></li>
+          )}}">Internet</a></li>
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
             "fragment" "internet_wifi_devices"
-          )}}" aria-current="page">Devices</a></li>
+          )}}">Devices</a></li>
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
             "fragment" (print "internet_devices_card_" .Data.Interface)
-          )}}" aria-current="page">{{.Data.Interface}}</a></li>
+          )}}">{{.Data.Interface}}</a></li>
           <li class="is-active"><a href="{{urlJoin (dict
             "path" .Meta.Path
             "query" .Meta.Form.Encode
@@ -50,7 +50,7 @@
     <section class="section content">
       <h1>Access points for {{.Data.Interface}}</h1>
       <turbo-frame
-        id="internet_devices_{{.Data.Interface}}_access-points"
+        id="internet_devices_{{.Data.Interface}}_access-points.frame"
         data-turbo-reload
         refresh="morph"
       >

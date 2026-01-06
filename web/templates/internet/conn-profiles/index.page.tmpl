@@ -28,18 +28,18 @@
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-          )}}" aria-current="page">Internet</a></li>
-          {{$connProfilesFragment := "other_conn-profiles"}}
+          )}}">Internet</a></li>
+          {{$connProfilesFragment := "internet_other_conn-profiles"}}
           {{if eq $conn.Type.Info.Short "wifi"}}
-            {{$connProfilesFragment = "wifi_conn-profiles"}}
+            {{$connProfilesFragment = "internet_wifi_conn-profiles"}}
           {{else if eq $conn.Type.Info.Short "ethernet"}}
-            {{$connProfilesFragment = "ethernet_conn-profiles"}}
+            {{$connProfilesFragment = "internet_ethernet_conn-profiles"}}
           {{end}}
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
             "fragment" $connProfilesFragment
-          )}}" aria-current="page">Connection profiles</a></li>
+          )}}">Connection profiles</a></li>
           <li class="is-active"><a href="{{.Meta.Path}}" aria-current="page">{{$conn.ID}}</a></li>
         </ul>
       </nav>
@@ -49,7 +49,7 @@
       <h1>Connection profile: {{$conn.ID}}</h1>
       <h3>Activation</h3>
       <turbo-frame
-        id="internet_conn-profiles_{{$conn.UUID}}_activation"
+        id="internet_conn-profiles_{{$conn.UUID}}_activation.frame"
         data-turbo-reload
         refresh="morph"
       >

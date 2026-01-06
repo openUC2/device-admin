@@ -1,25 +1,30 @@
 {{$drive := (get . "Drive")}}
 
-{{if $drive.MediaType}}
-  <p>Type: {{$drive.MediaType}}</p>
-{{end}}
+<turbo-frame
+  id="storage_drives_{{$drive.ID}}_other.frame"
+  data-turbo-reload
+>
+  {{if $drive.MediaType}}
+    <p>Type: {{$drive.MediaType}}</p>
+  {{end}}
 
-{{if $drive.Vendor}}
-  <p>Vendor: {{$drive.Vendor}}</p>
-{{end}}
+  {{if $drive.Vendor}}
+    <p>Vendor: {{$drive.Vendor}}</p>
+  {{end}}
 
-{{if $drive.Model}}
-  <p>Model: {{$drive.Model}}</p>
-{{end}}
+  {{if $drive.Model}}
+    <p>Model: {{$drive.Model}}</p>
+  {{end}}
 
-{{if $drive.FirmwareRev}}
-  <p>Firmware revision: {{$drive.FirmwareRev}}</p>
-{{end}}
+  {{if $drive.FirmwareRev}}
+    <p>Firmware revision: {{$drive.FirmwareRev}}</p>
+  {{end}}
 
-{{if $drive.SerialNum}}
-  <p>Serial number: {{$drive.SerialNum}}</p>
-{{end}}
+  {{if $drive.SerialNum}}
+    <p>Serial number: {{$drive.SerialNum}}</p>
+  {{end}}
 
-{{if $drive.Seat}}
-  <p>Seat: {{$drive.Seat}}</p>
-{{end}}
+  {{if $drive.Seat}}
+    <p>Seat: {{$drive.Seat}}</p>
+  {{end}}
+</turbo-frame>
