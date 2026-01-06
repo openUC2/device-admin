@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -48,7 +49,7 @@ func (h *Handlers) HandleStorageGet() echo.HandlerFunc {
 	h.r.MustHave(t)
 	return func(c echo.Context) error {
 		// Run queries
-		remoteViewData, err := getStorageViewData(c.Request().Context(), h.l)
+		remoteViewData, err := getStorageViewData(c.Request().Context(), h.udc, h.l)
 		if err != nil {
 			return err
 		}
@@ -66,12 +67,15 @@ type StorageViewData struct {
 	IsStreamPage bool
 }
 
-func getStorageViewData(ctx context.Context, l godest.Logger) (vd StorageViewData, err error) {
-	drives, err := ud.GetDrives(ctx)
+func getStorageViewData(
+	ctx context.Context,
+	udc *ud.Client, l godest.Logger,
+) (vd StorageViewData, err error) {
+	drives, err := udc.GetDrives(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list storage drives")
 	}
-	blockDevs, err := ud.GetBlockDevices(ctx)
+	blockDevs, err := udc.GetBlockDevices(ctx)
 	if err != nil {
 		return vd, errors.Wrap(err, "couldn't list block devices")
 	}
@@ -82,7 +86,13 @@ func getStorageViewData(ctx context.Context, l godest.Logger) (vd StorageViewDat
 		vd.DiskUsages[dev.Drive.ID] = make(map[string]du.Usage)
 		for _, mp := range dev.Filesystem.MountPoints {
 			if vd.DiskUsages[dev.Drive.ID][mp], err = du.GetUsage(mp); err != nil {
-				l.Warn(errors.Wrapf(err, "couldn't check disk usage of %s", mp))
+				switch {
+				default:
+					l.Warn(errors.Wrapf(err, "couldn't check disk usage of %s", mp))
+				case strings.HasPrefix(mp, "/sysroot/"):
+				case strings.HasPrefix(mp, "/run/forklift/"):
+				case strings.HasPrefix(mp, "/home/pi/.local/share/forklift/"):
+				}
 			}
 		}
 	}
@@ -116,7 +126,7 @@ func (h *Handlers) HandleStoragePub() turbostreams.HandlerFunc {
 		const pubInterval = 4 * time.Second
 		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
 			// Run queries
-			vd, err := getStorageViewData(c.Context(), h.l)
+			vd, err := getStorageViewData(c.Context(), h.udc, h.l)
 			if err != nil {
 				return false, err
 			}
@@ -141,7 +151,7 @@ func (h *Handlers) HandleDrivePostByID() echo.HandlerFunc {
 		default:
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid drive state %s", state))
 		case "unmounted":
-			if err := ud.UnmountDrive(c.Request().Context(), id); err != nil {
+			if err := h.udc.UnmountDrive(c.Request().Context(), id); err != nil {
 				return err
 			}
 			// Redirect user
@@ -164,13 +174,13 @@ func (h *Handlers) HandleBlockDevicePostByID() echo.HandlerFunc {
 		default:
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("invalid device state %s", state))
 		case "unmounted":
-			if err := ud.UnmountBlockDevice(c.Request().Context(), id); err != nil {
+			if err := h.udc.UnmountBlockDevice(c.Request().Context(), id); err != nil {
 				return err
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		case "mounted":
-			if _, err := ud.MountBlockDevice(c.Request().Context(), id, ""); err != nil {
+			if _, err := h.udc.MountBlockDevice(c.Request().Context(), id, ""); err != nil {
 				return err
 			}
 			// Redirect user

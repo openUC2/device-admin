@@ -16,6 +16,8 @@ import (
 type Client struct {
 	Config Config
 
+	bus *dbus.Conn
+
 	l godest.Logger
 }
 
@@ -26,24 +28,21 @@ func NewClient(c Config, l godest.Logger) *Client {
 	}
 }
 
-func getUDisks2(ctx context.Context) (ud dbus.BusObject, bus *dbus.Conn, err error) {
-	if bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
-		return nil, bus, errors.Wrap(err, "couldn't connect to SystemBus bus to query UDisks2")
+func (c *Client) Open(ctx context.Context) (err error) {
+	if c.bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
+		return errors.Wrap(err, "couldn't connect to SystemBus bus to interact with NetworkManager")
 	}
+	return nil
+}
 
-	return bus.Object(udName, "/org/freedesktop/UDisks2"), bus, nil
+func (c *Client) getUDisks2() dbus.BusObject {
+	return c.bus.Object(udName, "/org/freedesktop/UDisks2")
 }
 
 const udName = "org.freedesktop.UDisks2"
 
-func getUDisks2Manager(ctx context.Context) (udm dbus.BusObject, bus *dbus.Conn, err error) {
-	if bus, err = dbus.ConnectSystemBus(dbus.WithContext(ctx)); err != nil {
-		return nil, bus, errors.Wrap(
-			err, "couldn't connect to SystemBus bus to query UDisks2 Manager",
-		)
-	}
-
-	return bus.Object(udName, "/org/freedesktop/UDisks2/Manager"), bus, nil
+func (c *Client) getUDisks2Manager() dbus.BusObject {
+	return c.bus.Object(udName, "/org/freedesktop/UDisks2/Manager")
 }
 
 type Drive struct {
@@ -60,18 +59,14 @@ type Drive struct {
 	SortKey string
 }
 
-func GetDrives(ctx context.Context) (drives []Drive, err error) {
-	ud, bus, err := getUDisks2(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Client) GetDrives(ctx context.Context) (drives []Drive, err error) {
+	ud := c.getUDisks2()
 	drivePaths, err := listDrives(ctx, ud)
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't list drives")
 	}
 	for _, drivePath := range drivePaths {
-		drive, err := dumpDrive(bus.Object(udName, drivePath))
+		drive, err := dumpDrive(c.bus.Object(udName, drivePath))
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump drive %s", drivePath)
 		}
@@ -131,8 +126,8 @@ func dumpDrive(driveo dbus.BusObject) (drive Drive, err error) {
 	return drive, nil
 }
 
-func UnmountDrive(ctx context.Context, id string) error {
-	devs, err := GetBlockDevices(ctx)
+func (c *Client) UnmountDrive(ctx context.Context, id string) error {
+	devs, err := c.GetBlockDevices(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't get block devices")
 	}
@@ -152,7 +147,7 @@ func UnmountDrive(ctx context.Context, id string) error {
 	eg, _ := errgroup.WithContext(ctx)
 	for _, dev := range driveDevs {
 		eg.Go(func() error {
-			if err := UnmountBlockDevice(ctx, dev.ID); err != nil {
+			if err := c.UnmountBlockDevice(ctx, dev.ID); err != nil {
 				return errors.Wrapf(err, "couldn't unmount block device %s of drive %s", dev.ID, id)
 			}
 			return nil

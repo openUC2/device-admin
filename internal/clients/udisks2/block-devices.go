@@ -35,12 +35,8 @@ func (f Filesystem) HasData() bool {
 	return f.Size > 0 || len(f.MountPoints) > 0
 }
 
-func GetBlockDevices(ctx context.Context) (devs []BlockDevice, err error) {
-	udm, bus, err := getUDisks2Manager(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Client) GetBlockDevices(ctx context.Context) (devs []BlockDevice, err error) {
+	udm := c.getUDisks2Manager()
 	devPaths := make([]dbus.ObjectPath, 0)
 	options := make(map[string]dbus.Variant)
 	options["auth.no_user_interaction"] = dbus.MakeVariant(false)
@@ -50,7 +46,7 @@ func GetBlockDevices(ctx context.Context) (devs []BlockDevice, err error) {
 		return nil, errors.Wrap(err, "couldn't query for block devices")
 	}
 	for _, devPath := range devPaths {
-		device, err := dumpBlockDevice(bus.Object(udName, devPath), bus)
+		device, err := dumpBlockDevice(c.bus.Object(udName, devPath), c.bus)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump block device %s", devPath)
 		}
@@ -179,8 +175,8 @@ func dumpFilesystem(devo dbus.BusObject) (f Filesystem, err error) {
 	return f, nil
 }
 
-func UnmountBlockDevice(ctx context.Context, id string) error {
-	devo, err := findBlockDeviceByID(ctx, id)
+func (c *Client) UnmountBlockDevice(ctx context.Context, id string) error {
+	devo, err := c.findBlockDeviceByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -195,12 +191,10 @@ func UnmountBlockDevice(ctx context.Context, id string) error {
 	return nil
 }
 
-func findBlockDeviceByID(ctx context.Context, id string) (devo dbus.BusObject, err error) {
-	udm, bus, err := getUDisks2Manager(ctx)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *Client) findBlockDeviceByID(
+	ctx context.Context, id string,
+) (devo dbus.BusObject, err error) {
+	udm := c.getUDisks2Manager()
 	devPaths := make([]dbus.ObjectPath, 0)
 	options := make(map[string]dbus.Variant)
 	options["auth.no_user_interaction"] = dbus.MakeVariant(false)
@@ -210,8 +204,8 @@ func findBlockDeviceByID(ctx context.Context, id string) (devo dbus.BusObject, e
 		return nil, errors.Wrap(err, "couldn't query for block devices")
 	}
 	for _, devPath := range devPaths {
-		devo = bus.Object(udName, devPath)
-		device, err := dumpBlockDevice(devo, bus)
+		devo = c.bus.Object(udName, devPath)
+		device, err := dumpBlockDevice(devo, c.bus)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't dump block device %s", devPath)
 		}
@@ -222,10 +216,10 @@ func findBlockDeviceByID(ctx context.Context, id string) (devo dbus.BusObject, e
 	return nil, errors.Errorf("couldn't find block device with ID %s", id)
 }
 
-func MountBlockDevice(
+func (c *Client) MountBlockDevice(
 	ctx context.Context, id string, asUser string,
 ) (mountedPath string, err error) {
-	devo, err := findBlockDeviceByID(ctx, id)
+	devo, err := c.findBlockDeviceByID(ctx, id)
 	if err != nil {
 		return "", err
 	}

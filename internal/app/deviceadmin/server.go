@@ -235,7 +235,16 @@ func (s *Server) runWorkersInContext(ctx context.Context) error {
 	eg.Go(func() error {
 		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
-			// Even if NetworkManager is unavailable, other parts of device-admin are still useful
+			// Even if NetworkManager is unavailable, other parts of device-admin are still useful, so we
+			// don't propagate the error from here
+		}
+		return nil
+	})
+	eg.Go(func() error {
+		if err := s.Globals.UDisks2.Open(ctx); err != nil {
+			s.Globals.Base.Logger.Error("couldn't open UDisks2 client")
+			// Even if UDisks2 is unavailable, other parts of device-admin are still useful, so we don't
+			// propagate the error from here
 		}
 		return nil
 	})
