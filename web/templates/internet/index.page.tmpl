@@ -65,12 +65,26 @@
           </div>
         </article>
       {{else}}
+        <h3>External Wi-Fi network</h3>
+        <turbo-frame
+          id="internet_wifi_external-network_no-device-message.frame"
+          data-turbo-reload
+        >
+          {{if ne (or .Data.Wlan1Device.IpInterface .Data.Wlan1Device.ControlInterface) "wlan1"}}
+            <article class="message is-warning two-card-width">
+              <div class="message-body">
+                No recognized USB Wi-Fi module is plugged into the machine! Such a module will be
+                needed before this machine can connect to an external Wi-Fi network.
+              </div>
+            </article>
+          {{end}}
+        </turbo-frame>
         <div class="card section-card">
           <div class="card-content">
-            <h3>External Wi-Fi network</h3>
             {{
               template "internet/external-network-form.partial.tmpl" dict
               "ConnProfile" .Data.Wlan1InternetConnProfile
+              "Device" .Data.Wlan1Device
               "AvailableSSIDs" .Data.AvailableSSIDs
               "Meta" .Meta
             }}
