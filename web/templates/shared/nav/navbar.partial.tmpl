@@ -30,20 +30,20 @@
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
     "Href" (urlJoin (dict
-      "path" (print .Meta.BasePath "remote")
+      "path" (print .Meta.BasePath "internet")
       "query" .Meta.Form.Encode
     ))
-    "Name" "Remote"
+    "Name" "Internet"
     "Meta" .Meta
   }}
   {{
     template "shared/nav/navlink.partial.tmpl" dict
     "Display" true
     "Href" (urlJoin (dict
-      "path" (print .Meta.BasePath "internet")
+      "path" (print .Meta.BasePath "remote")
       "query" .Meta.Form.Encode
     ))
-    "Name" "Internet"
+    "Name" "Remote"
     "Meta" .Meta
   }}
   {{

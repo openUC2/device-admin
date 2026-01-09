@@ -2,6 +2,7 @@
 package internet
 
 import (
+	"cmp"
 	"context"
 	"slices"
 	"time"
@@ -84,6 +85,7 @@ type InternetViewData struct {
 	AvailableSSIDs           []string
 	Wlan0HotspotConnProfile  nm.ConnProfile
 	Wlan1InternetConnProfile nm.ConnProfile
+	Wlan1Device              nm.Device
 
 	WifiDevices     []nm.Device
 	EthernetDevices []nm.Device
@@ -123,6 +125,9 @@ func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewDa
 		default:
 			vd.OtherDevices = append(vd.OtherDevices, device)
 		case "wifi":
+			if cmp.Or(device.IpInterface, device.ControlInterface) == "wlan1" {
+				vd.Wlan1Device = device
+			}
 			vd.WifiDevices = append(vd.WifiDevices, device)
 		case "ethernet":
 			vd.EthernetDevices = append(vd.EthernetDevices, device)

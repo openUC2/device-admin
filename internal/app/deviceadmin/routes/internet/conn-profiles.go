@@ -160,7 +160,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
-		case "simplified-updated":
+		case "simplified-updated", "simplified-updated-activated":
 			formValues, err := c.FormParams()
 			if err != nil {
 				return errors.Wrap(err, "couldn't load form parameters")
@@ -170,8 +170,10 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
-			if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
-				return err
+			if state == "simplified-updated-activated" {
+				if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+					return err
+				}
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
