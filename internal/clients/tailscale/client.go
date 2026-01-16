@@ -50,6 +50,10 @@ func (c *Client) Shutdown() {
 }
 
 func (c *Client) Provision(ctx context.Context, deviceAuthKey string) error {
+	if deviceAuthKey == "" {
+		return c.Reprovision(ctx)
+	}
+
 	prefs, err := c.ts.GetPrefs(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't check current Tailscale preferences")
@@ -74,6 +78,16 @@ func (c *Client) Deprovision(ctx context.Context) error {
 	_, err := c.ts.EditPrefs(ctx, &ipn.MaskedPrefs{
 		Prefs: ipn.Prefs{
 			WantRunning: false,
+		},
+		WantRunningSet: true,
+	})
+	return err
+}
+
+func (c *Client) Reprovision(ctx context.Context) error {
+	_, err := c.ts.EditPrefs(ctx, &ipn.MaskedPrefs{
+		Prefs: ipn.Prefs{
+			WantRunning: true,
 		},
 		WantRunningSet: true,
 	})
