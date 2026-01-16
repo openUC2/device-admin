@@ -13,62 +13,64 @@
     </p>
   {{end}}
 
-  <p>
-    <abbr title="whether this device is managed by NetworkManager">
-      Managed
-      {{- /* make template ignore the line break */ -}}
-    </abbr>?
-    {{if $device.Managed}}
-      <span class="tag is-success">yes</span>
-    {{else}}
-      <span class="tag is-info">no</span>
-    {{end}}
-  </p>
-
-  <p>
-    <abbr title="whether the device is allowed to automatically connect to a known network">
-      Autoconnect
-      {{- /* make template ignore the line break */ -}}
-    </abbr>?
-    {{if $device.Autoconnect}}
-      <span class="tag is-success">yes</span>
-    {{else}}
-      <span class="tag is-info">no</span>
-    {{end}}
-  </p>
-
-  {{if and $device.Driver (not (eq $device.Driver "unknown"))}}
-    <p>Driver:</p>
-    <ul class="mt-0">
-      <li>Name: {{$device.Driver}}</li>
-      <li>Version: {{$device.DriverVersion}}</li>
-    </ul>
-  {{end}}
-
-  {{if and $device.FirmwareVersion (not (eq $device.FirmwareVersion "N/A"))}}
-    <p>Firmware:</p>
-    <ul class="mt-0">
-      <li>Version: {{$device.FirmwareVersion}}</li>
-    </ul>
-  {{end}}
-
-  {{if not $device.InterfaceFlags.HasNone}}
+  {{if eq (.Meta.Form.Get "mode") "advanced"}}
     <p>
-      Interface flags:
-      {{if $device.InterfaceFlags.IsUp}}
-        <span class="tag is-success">
-          {{- /* make template ignore the line break */ -}}
-          <abbr title="enabled from the administrative point of view">up</abbr>
-          {{- /* make template ignore the line break */ -}}
-        </span>
-      {{end}}
-      {{if $device.InterfaceFlags.IsLowerUp}}
-        <span class="tag is-success">
-          {{- /* make template ignore the line break */ -}}
-          <abbr title="physical link is up">physical up</abbr>
-          {{- /* make template ignore the line break */ -}}
-        </span>
+      <abbr title="whether this device is managed by NetworkManager">
+        Managed
+        {{- /* make template ignore the line break */ -}}
+      </abbr>?
+      {{if $device.Managed}}
+        <span class="tag is-success">yes</span>
+      {{else}}
+        <span class="tag is-info">no</span>
       {{end}}
     </p>
+
+    <p>
+      <abbr title="whether the device is allowed to automatically connect to a known network">
+        Autoconnect
+        {{- /* make template ignore the line break */ -}}
+      </abbr>?
+      {{if $device.Autoconnect}}
+        <span class="tag is-success">yes</span>
+      {{else}}
+        <span class="tag is-info">no</span>
+      {{end}}
+    </p>
+
+    {{if and $device.Driver (not (eq $device.Driver "unknown"))}}
+      <p>Driver:</p>
+      <ul class="mt-0">
+        <li>Name: {{$device.Driver}}</li>
+        <li>Version: {{$device.DriverVersion}}</li>
+      </ul>
+    {{end}}
+
+    {{if and $device.FirmwareVersion (not (eq $device.FirmwareVersion "N/A"))}}
+      <p>Firmware:</p>
+      <ul class="mt-0">
+        <li>Version: {{$device.FirmwareVersion}}</li>
+      </ul>
+    {{end}}
+
+    {{if not $device.InterfaceFlags.HasNone}}
+      <p>
+        Interface flags:
+        {{if $device.InterfaceFlags.IsUp}}
+          <span class="tag is-success">
+            {{- /* make template ignore the line break */ -}}
+            <abbr title="enabled from the administrative point of view">up</abbr>
+            {{- /* make template ignore the line break */ -}}
+          </span>
+        {{end}}
+        {{if $device.InterfaceFlags.IsLowerUp}}
+          <span class="tag is-success">
+            {{- /* make template ignore the line break */ -}}
+            <abbr title="physical link is up">physical up</abbr>
+            {{- /* make template ignore the line break */ -}}
+          </span>
+        {{end}}
+      </p>
+    {{end}}
   {{end}}
 </turbo-frame>
