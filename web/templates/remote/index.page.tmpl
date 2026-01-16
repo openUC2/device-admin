@@ -37,18 +37,24 @@
     <section class="section content">
       {{$stateInfo := .Data.State.Info}}
 
+      <h2>Remote assistance</h2>
       <div class="card section-card">
         <div class="card-content">
+          {{$loggedOut := eq $stateInfo.Short "needs login" }}
           {{$disconnected := or (eq .Data.NetworkName "") (eq $stateInfo.Short "stopped")}}
           <turbo-frame
             id="remote_assistance.frame"
             data-turbo-reload
             refresh="morph"
           >
-            <h2>Remote assistance</h2>
-            {{if $disconnected}}
+            {{if or $loggedOut $disconnected}}
               <p>
-                Enter the device authentication key given to you by the person helping you, so that
+                {{if $loggedOut}}
+                  Enter
+                {{else}}
+                  If you've been instructed to do so, you can enter
+                {{end}}
+                the device authentication key given to you by the person helping you, so that
                 they can remotely access your machine:
               </p>
               <form
@@ -69,7 +75,9 @@
                     class="input" type="text"
                     name="device-authentication-key"
                     minlength=1
-                    required
+                    {{if $loggedOut}}
+                      required
+                    {{end}}
                     autocomplete="off"
                     size=30
                     data-controller="event"
@@ -102,7 +110,7 @@
               <form
                 action="{{.Meta.BasePath}}remote/assistance"
                 method="POST"
-                class="is-inline-block mt-3"
+                class="mt-3"
                 data-turbo-frame="_top"
                 data-controller="form-submission"
                 data-action="submit->form-submission#submit"
