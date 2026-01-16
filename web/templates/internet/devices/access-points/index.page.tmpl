@@ -34,7 +34,7 @@
           <li><a href="{{urlJoin (dict
             "path" (print .Meta.BasePath "internet")
             "query" .Meta.Form.Encode
-            "fragment" (print "internet_devices_card_" .Data.Interface)
+            "fragment" (print "internet_devices_" .Data.Interface ".card")
           )}}">{{.Data.Interface}}</a></li>
           <li class="is-active"><a href="{{urlJoin (dict
             "path" .Meta.Path
