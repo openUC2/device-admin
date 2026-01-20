@@ -3,6 +3,7 @@ package internet
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -402,6 +403,15 @@ func parseConnProfileSettingsIPv4Field(
 	switch key.Key {
 	default:
 		return nil, errors.Errorf("unimplemented or unknown key %s", key)
+	case "dhcp-timeout":
+		value, err := strconv.Atoi(rawValue)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't parse %s as integer", rawValue)
+		}
+		if value < 0 || value > math.MaxInt32 {
+			return nil, errors.Errorf("DHCP timeout %d out of range [0, %d]", value, math.MaxInt32)
+		}
+		return value, nil
 	case "link-local":
 		mode := nm.NewConnProfileSettingsIPv4LinkLocal(rawValue)
 		if info := mode.Info(); info.Level == nm.EnumInfoLevelError {

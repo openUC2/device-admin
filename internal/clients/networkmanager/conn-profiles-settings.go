@@ -68,10 +68,11 @@ func (t ConnProfileSettingsConnType) Info() EnumInfo {
 }
 
 type ConnProfileSettingsIPv4 struct {
-	Addresses []IPAddress
-	LinkLocal ConnProfileSettingsIPv4LinkLocal
-	MayFail   bool
-	Method    ConnProfileSettingsIPv4Method
+	Addresses   []IPAddress
+	DHCPTimeout time.Duration
+	LinkLocal   ConnProfileSettingsIPv4LinkLocal
+	MayFail     bool
+	Method      ConnProfileSettingsIPv4Method
 }
 
 type ConnProfileSettingsIPv4LinkLocal int32
@@ -321,16 +322,21 @@ func dumpConnProfileSettingsIPv4(
 		s.Addresses = append(s.Addresses, address)
 	}
 
+	if s.MayFail, err = ensureVar(rawSettings, "may-fail", "", false, true); err != nil {
+		return s, err
+	}
+
+	rawDHCPTimeout, err := ensureVar(rawSettings, "dhcp-timeout", "", false, 0)
+	if err != nil {
+		return s, err
+	}
+	s.DHCPTimeout = time.Duration(rawDHCPTimeout) * time.Second
+
 	rawLinkLocal, err := ensureVar(rawSettings, "link-local", "", false, 0)
 	if err != nil {
 		return s, err
 	}
 	s.LinkLocal = ConnProfileSettingsIPv4LinkLocal(rawLinkLocal)
-
-	if s.MayFail, err = ensureVar(rawSettings, "may-fail", "", false, true); err != nil {
-		return s, err
-	}
-
 	rawMethod, err := ensureVar(rawSettings, "method", "", true, "")
 	if err != nil {
 		return s, err

@@ -780,6 +780,28 @@
   </div>
 
   <div class="field is-horizontal">
+    <div class="field-label is-normal">
+      <label class="label">
+        <abbr title="how long to wait before giving up on DHCP requests; 0 specifies to use the global default, while 2,147,483,647 specifies to never give up">
+          Timeout
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input
+            class="input" type="number"
+            name="ipv4.dhcp-timeout"
+            min="0" max="2147483647"
+            value="{{round $ipv4.DHCPTimeout.Seconds 0}}"
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
     <div class="field-label">
       <label class="label">
         <abbr title="whether IPv4 configuration must succeed for overall network configuration to be considered successful">
