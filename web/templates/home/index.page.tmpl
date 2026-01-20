@@ -1,7 +1,7 @@
 {{template "shared/base.layout.tmpl" .}}
 
 {{define "title" -}}
-  Machine administration
+  Home
 {{- end}}
 {{define "description"}}Machine system settings{{end}}
 
@@ -12,10 +12,36 @@
   <main>
     <section class="section content">
       <div class="container">
-        <h1>Machine administration</h1>
+        <h1>Machine Administration</h1>
         <p>
           Welcome! Here you can adjust system-level settings for your machine's operating system.
         </p>
+        <p>
+          Specific pages are available to configure settings for various functionalities:
+        </p>
+        <ul>
+          <li>
+            <a href="{{(urlJoin (dict
+              "path" (print .Meta.BasePath "internet")
+              "query" .Meta.Form.Encode
+            ))}}"><strong>Internet Access</strong></a>:
+            connect your machine to the internet.
+          </li>
+          <li>
+            <a href="{{(urlJoin (dict
+              "path" (print .Meta.BasePath "remote")
+              "query" .Meta.Form.Encode
+            ))}}"><strong>Remote Access</strong></a>:
+            make your machine available for remote assistance or remote access.
+          </li>
+          <li>
+            <a href="{{(urlJoin (dict
+              "path" (print .Meta.BasePath "storage")
+              "query" .Meta.Form.Encode
+            ))}}"><strong>Storage Drives</strong></a>:
+            manage any attached USB drives and hard drives.
+          </li>
+        </ul>
         <h2>About this machine</h2>
         <p>
         TODO: show versioning info, machine name, etc.
