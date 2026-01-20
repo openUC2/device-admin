@@ -680,6 +680,129 @@
   <h3>IPv4</h3>
   {{$ipv4 := $settings.IPv4}}
   <div class="field is-horizontal">
+    <div class="field-label is-normal">
+      <label class="label">
+        <abbr title="IPv4 configuration method">
+          Method
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <div class="select">
+            <select name="ipv4.method">
+              <option
+                value="disabled"
+                {{if eq $ipv4.Method.Info.Short "disabled"}}selected{{end}}
+              >
+                disabled (no IPv4)
+              </option>
+              <option
+                value="auto"
+                {{if eq $ipv4.Method.Info.Short "auto"}}selected{{end}}
+              >
+                auto (with from DHCP, PPP, or similar services)
+              </option>
+              <option
+                value="manual"
+                {{if eq $ipv4.Method.Info.Short "manual"}}selected{{end}}
+              >
+                manual (static) IP address
+              </option>
+              <option
+                value="link-local"
+                {{if eq $ipv4.Method.Info.Short "link-local"}}selected{{end}}
+              >
+                only link-local (random) IP address
+              </option>
+              <option
+                value="shared"
+                {{if eq $ipv4.Method.Info.Short "shared"}}selected{{end}}
+              >
+                shared (share internet access to connected devices)
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label is-normal">
+      <label class="label">
+        <abbr title="whether to obtain IPv4 link-local address, overriding the specified IPv4 method">
+          Link-local?
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <div class="select">
+            <select name="ipv4.link-local">
+              <option
+                value="default"
+                {{if eq $ipv4.LinkLocal.Info.Short "default"}}selected{{end}}
+              >
+                default (use global default or fall back to auto)
+              </option>
+              <option
+                value="auto"
+                {{if eq $ipv4.LinkLocal.Info.Short "auto"}}selected{{end}}
+              >
+                auto (don't override specified IPv4 method)
+              </option>
+              <option
+                value="disabled"
+                {{if eq $ipv4.LinkLocal.Info.Short "disabled"}}selected{{end}}
+              >
+                disabled (never obtain)
+              </option>
+              <option
+                value="enabled"
+                {{if eq $ipv4.LinkLocal.Info.Short "enabled"}}selected{{end}}
+              >
+                enabled (always obtain)
+              </option>
+              <option
+                value="fallback"
+                {{if eq $ipv4.LinkLocal.Info.Short "fallback"}}selected{{end}}
+              >
+                fallback (only obtain if no other IPv4 address is set)
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="whether IPv4 configuration must succeed for overall network configuration to be considered successful">
+          Required?
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input type="hidden" name="ipv4.may-fail" value="optional">
+          <input type="checkbox"
+            name="ipv4.may-fail"
+            value="required"
+            autocomplete="off"
+            {{if not $ipv4.MayFail}}checked{{end}}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
     <div class="field-label">
       <label class="label">Addresses</label>
     </div>

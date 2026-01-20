@@ -2,6 +2,7 @@ package networkmanager
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"strings"
 	"time"
@@ -57,15 +58,93 @@ var connProfileSettingsConnTypeInfo = map[ConnProfileSettingsConnType]EnumInfo{
 func (t ConnProfileSettingsConnType) Info() EnumInfo {
 	info, ok := connProfileSettingsConnTypeInfo[t]
 	if !ok {
-		return EnumInfo{Short: string(t)}
+		return EnumInfo{
+			Short:   "unknown",
+			Details: fmt.Sprintf("unknown type (%s)", t),
+			Level:   EnumInfoLevelError,
+		}
 	}
 	return info
 }
 
 type ConnProfileSettingsIPv4 struct {
-	Addresses    []IPAddress
-	Method       string // TODO: change this to a string enum // TODO
-	NeverDefault bool   // TODO
+	Addresses []IPAddress
+	LinkLocal ConnProfileSettingsIPv4LinkLocal
+	MayFail   bool
+	Method    ConnProfileSettingsIPv4Method
+}
+
+type ConnProfileSettingsIPv4LinkLocal int32
+
+var connProfileSettingsIPv4LinkLocalInfo = map[ConnProfileSettingsIPv4LinkLocal]EnumInfo{
+	0: {
+		Short: "default",
+	},
+	1: {
+		Short: "auto",
+	},
+	2: {
+		Short: "disabled",
+	},
+	3: {
+		Short: "enabled",
+	},
+	4: {
+		Short: "fallback",
+	},
+}
+
+func NewConnProfileSettingsIPv4LinkLocal(infoShort string) ConnProfileSettingsIPv4LinkLocal {
+	for key, value := range connProfileSettingsIPv4LinkLocalInfo {
+		if value.Short == infoShort {
+			return key
+		}
+	}
+	return -1
+}
+
+func (l ConnProfileSettingsIPv4LinkLocal) Info() EnumInfo {
+	info, ok := connProfileSettingsIPv4LinkLocalInfo[l]
+	if !ok {
+		return EnumInfo{
+			Short:   "unknown",
+			Details: fmt.Sprintf("unknown link-local behavior (%d)", l),
+			Level:   EnumInfoLevelError,
+		}
+	}
+	return info
+}
+
+type ConnProfileSettingsIPv4Method string
+
+var connProfileSettingsIPv4MethodInfo = map[ConnProfileSettingsIPv4Method]EnumInfo{
+	"disabled": {
+		Short: "disabled",
+	},
+	"auto": {
+		Short: "auto",
+	},
+	"manual": {
+		Short: "manual",
+	},
+	"link-local": {
+		Short: "link-local",
+	},
+	"shared": {
+		Short: "shared",
+	},
+}
+
+func (m ConnProfileSettingsIPv4Method) Info() EnumInfo {
+	info, ok := connProfileSettingsIPv4MethodInfo[m]
+	if !ok {
+		return EnumInfo{
+			Short:   "unknown",
+			Details: fmt.Sprintf("unknown setting (%s)", m),
+			Level:   EnumInfoLevelError,
+		}
+	}
+	return info
 }
 
 type ConnProfileSettingsIPv6 struct {
@@ -241,6 +320,22 @@ func dumpConnProfileSettingsIPv4(
 		}
 		s.Addresses = append(s.Addresses, address)
 	}
+
+	rawLinkLocal, err := ensureVar(rawSettings, "link-local", "", false, 0)
+	if err != nil {
+		return s, err
+	}
+	s.LinkLocal = ConnProfileSettingsIPv4LinkLocal(rawLinkLocal)
+
+	if s.MayFail, err = ensureVar(rawSettings, "may-fail", "", false, true); err != nil {
+		return s, err
+	}
+
+	rawMethod, err := ensureVar(rawSettings, "method", "", true, "")
+	if err != nil {
+		return s, err
+	}
+	s.Method = ConnProfileSettingsIPv4Method(rawMethod)
 
 	return s, nil
 }

@@ -235,6 +235,25 @@ func updateConnProfile(
 	return nmc.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
 }
 
+func parseConnProfileSettingsField(
+	key nm.ConnProfileSettingsKey, rawValues []string,
+) (update any, err error) {
+	switch key.Section {
+	default:
+		return nil, errors.Errorf("unimplemented settings section %s", key.Section)
+	case "connection":
+		return parseConnProfileSettingsConnField(key, rawValues)
+	case "802-11-wireless":
+		return parseConnProfileSettingsWifiField(key, rawValues)
+	case "802-11-wireless-security":
+		return parseConnProfileSettingsWifiSecField(
+			key, rawValues,
+		)
+	case "ipv4":
+		return parseConnProfileSettingsIPv4Field(key, rawValues)
+	}
+}
+
 func parseConnProfileSettingsConnField(
 	key nm.ConnProfileSettingsKey, rawValues []string,
 ) (parsedValue any, err error) {
@@ -270,23 +289,6 @@ func parseCheckbox(rawValue, checkedValue, uncheckedValue string) (parsedValue b
 		return true, nil
 	case uncheckedValue:
 		return false, nil
-	}
-}
-
-func parseConnProfileSettingsField(
-	key nm.ConnProfileSettingsKey, rawValues []string,
-) (update any, err error) {
-	switch key.Section {
-	default:
-		return nil, errors.Errorf("unimplemented settings section %s", key.Section)
-	case "connection":
-		return parseConnProfileSettingsConnField(key, rawValues)
-	case "802-11-wireless":
-		return parseConnProfileSettingsWifiField(key, rawValues)
-	case "802-11-wireless-security":
-		return parseConnProfileSettingsWifiSecField(
-			key, rawValues,
-		)
 	}
 }
 
@@ -390,6 +392,34 @@ func parseConnProfileSettingsWifiSecField(
 	case "psk":
 		rawValue := rawValues[len(rawValues)-1]
 		return rawValue, nil
+	}
+}
+
+func parseConnProfileSettingsIPv4Field(
+	key nm.ConnProfileSettingsKey, rawValues []string,
+) (parsedValue any, err error) {
+	rawValue := rawValues[len(rawValues)-1] // selects the last value to account for single checkboxes
+	switch key.Key {
+	default:
+		return nil, errors.Errorf("unimplemented or unknown key %s", key)
+	case "link-local":
+		mode := nm.NewConnProfileSettingsIPv4LinkLocal(rawValue)
+		if info := mode.Info(); info.Level == nm.EnumInfoLevelError {
+			return nil, errors.New(info.Details)
+		}
+		return mode, nil
+	case "may-fail":
+		mayFail, err := parseCheckbox(rawValue, "optional", "required")
+		if err != nil {
+			return false, errors.Wrapf(err, "couldn't parse value for %s", key)
+		}
+		return mayFail, nil
+	case "method":
+		method := nm.ConnProfileSettingsIPv4Method(rawValue)
+		if info := method.Info(); info.Level == nm.EnumInfoLevelError {
+			return nil, errors.New(info.Details)
+		}
+		return method, nil
 	}
 }
 
