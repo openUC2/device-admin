@@ -10,13 +10,13 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-	github.com/labstack/echo/v4 v4.15.0
+	github.com/labstack/echo/v4 v4.15.1
 	github.com/labstack/gommon v0.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/sargassum-world/godest v0.7.3
 	github.com/unrolled/secure v1.17.0
 	golang.org/x/sync v0.19.0
-	tailscale.com v1.94.1
+	tailscale.com v1.94.2
 )
 
 require (
