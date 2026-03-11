@@ -9,19 +9,19 @@
     "lint:fix": "prettier --write ./src/**/*.{js,html} --no-error-on-unmatched-pattern && eslint --fix src/**/*.{js} --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@sargassum-world/styles": "^0.3.0",
     "bulma": "~0.9.4",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.3",
     "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.8.1",
-    "rollup": "^4.57.1",
+    "rollup": "^4.59.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-css-only": "^4.5.5",
     "rollup-plugin-scss": "^4.0.1",
-    "sass": "^1.97.3"
+    "sass": "^1.98.0"
   },
   "dependencies": {
     "@anycable/msgpack-encoder": "^0.5.0",
