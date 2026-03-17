@@ -23,6 +23,11 @@ TODO: include some screenshots of what this roughly looks like 🙂
 
 ## Usage
 
+The device-admin app is deployed as two processes:
+
+1. A web server (`device-admin server`), which runs as an unprivileged process.
+2. A privileged sidecar (`device-admin sidecar`), which can perform particular superuser operations on behalf of the web server.
+
 ### Local Deployment
 
 First, you will need to download device-admin, which is available as a single self-contained
@@ -31,15 +36,20 @@ executable file. You should visit this repository's
 file for your platform and CPU architecture; for example, on a Raspberry Pi 5, you should download
 the archive named `device-admin_{version number}_linux_arm.tar.gz` (where the version number should
 be substituted). You can extract the device-admin binary from the archive using a command like:
-```
+```bash
 tar -xzf device-admin_{version number}_{os}_{cpu architecture}.tar.gz device-admin
 ```
 
 Then you may need to move the device-admin binary into a directory in your system path, or you can just run the device-admin binary in your current directory (in which case you should replace `device-admin` with `./device-admin` in the commands listed below).
 
-Once you have device-admin, you can run it as the `pi` user on a Raspberry Pi:
+Once you have device-admin, you can launch the sidecar with root permissions on a Raspberry Pi:
+```bash
+sudo ./device-admin sidecar
 ```
-./device-admin
+
+Then you can launch the server as the `pi` user on a Raspberry Pi:
+```bash
+./device-admin server
 ```
 
 Then you can view the landing page at <http://localhost:3001> . Note that if you are running it on a
@@ -58,7 +68,7 @@ Because the build pipeline builds Docker images, you will need to either have Do
 
 To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_window_amd64/device-admin.exe` or `./dist/device-admin_linux_amd64/device-admin`)
 
-### Environment Variables
+### Server Environment Variables
 
 #### Custom Templates
 
@@ -85,32 +95,32 @@ You can override the default webpage templates embedded in the device-admin bina
 ```
 
 and then running the following command:
-```
+```bash
 # If you downloaded a device-admin binary:
-TEMPLATES_PATH=custom-templates ./device-admin
+TEMPLATES_PATH=custom-templates ./device-admin server
 # If you are developing the project:
-TEMPLATES_PATH=custom-templates make run
+TEMPLATES_PATH=custom-templates make run-server
 ```
 
 #### HTTP Server
 
 You can override the default port (`3001`) or base path (`/`) of the HTTP server with the `HTTP_PORT` and `HTTP_BASEPATH` environment variables, respectively. For example, you could run the web server on port 3002 with base path `/admin/panel/` by running the following command:
-```
+```bash
 # If you downloaded a device-admin binary:
-HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" ./device-admin
+HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" ./device-admin server
 # If you are developing the project:
-HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" make run
+HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" make run-server
 ```
 Note that `HTTP_BASEPATH` should end with a trailing slash.
 
 #### Action Cable
 
 Action Cable is used to push live page updates to web browsers without the need for page refreshes. Action Cable subscriptions are signed with a hash key for security reasons; that hash key will need to be persisted in a keyfile in order for web browsers to maintain subscriptions across restarts of the device-admin server. You should override the default path of that keyfile (`/tmp/action-cable.key`) with the `ACTIONCABLE_HASH_KEYFILE` environment variable. For example, you could run the web server with a keyfile in the HOME directory by running the following command:
-```
+```bash
 # If you downloaded a device-admin binary:
-ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" ./device-admin
+ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" ./device-admin server
 # If you are developing the project:
-ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" make run
+ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" make run-server
 ```
 
 If the file doesn't exist, a new key will be randomly generated and saved to the file.

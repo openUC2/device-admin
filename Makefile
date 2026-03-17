@@ -85,13 +85,17 @@ release: install buildweb
 	$(call print-target)
 	go tool goreleaser --clean
 
-.PHONY: run
-run: ## go run
-	@go run -race ./cmd/deviceadmin
+.PHONY: run-sidecar
+run-sidecar: ## go run
+	@go run -race ./cmd/deviceadmin sidecar
 
-.PHONY: runlive
-runlive: ## go run
-	@TEMPLATES_PATH=./web/templates go run -race ./cmd/deviceadmin
+.PHONY: run-server
+run-server: ## go run
+	@go run -race ./cmd/deviceadmin server
+
+.PHONY: run-server-live
+run-server-live: ## go run
+	@TEMPLATES_PATH=./web/templates go run -race ./cmd/deviceadmin server
 
 .PHONY: go-clean
 go-clean: ## go clean build, test and modules caches
