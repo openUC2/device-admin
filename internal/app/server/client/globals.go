@@ -8,7 +8,7 @@ import (
 	"github.com/sargassum-world/godest/clientcache"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/conf"
+	"github.com/openUC2/device-admin/internal/app/server/conf"
 	"github.com/openUC2/device-admin/internal/clients/networkmanager"
 	"github.com/openUC2/device-admin/internal/clients/tailscale"
 	"github.com/openUC2/device-admin/internal/clients/templates"
@@ -84,27 +84,6 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 		return nil, errors.Wrap(err, "couldn't set up udisks2 config")
 	}
 	g.UDisks2 = udisks2.NewClient(uDisks2Config, g.Base.Logger)
-
-	return g, nil
-}
-
-// Sidecar
-
-type SidecarGlobals struct {
-	Logger godest.Logger
-
-	NetworkManager *networkmanager.Client
-}
-
-func NewSidecarGlobals(l godest.Logger) (g *SidecarGlobals, err error) {
-	g = &SidecarGlobals{}
-	g.Logger = l
-
-	networkManagerConfig, err := networkmanager.GetConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't set up networkmanager config")
-	}
-	g.NetworkManager = networkmanager.NewClient(networkManagerConfig, l)
 
 	return g, nil
 }

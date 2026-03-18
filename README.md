@@ -68,7 +68,21 @@ Because the build pipeline builds Docker images, you will need to either have Do
 
 To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_window_amd64/device-admin.exe` or `./dist/device-admin_linux_amd64/device-admin`)
 
-### Server Environment Variables
+## Environment variables
+
+### Shared
+
+#### Sidecar Address
+
+By default the sidecar binds to TCP port `2312` of `127.0.0.1`. You can bind to a different address (e.g. to a different port, or to a port on `0.0.0.0`, or to a socket file) using the `SIDECAR_ADDRESS` variable. For example, you could bind to TCP port `2313` of `0.0.0.0` by running the following command:
+```bash
+# For the sidecar:
+sudo SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./device-admin sidecar
+# For the server:
+SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./device-admin server
+```
+
+### Server-Specific
 
 #### Custom Templates
 

@@ -10,9 +10,11 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/urfave/cli/v3"
 
-	"github.com/openUC2/device-admin/internal/app/deviceadmin"
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/conf"
+	"github.com/openUC2/device-admin/internal/app/server"
+	"github.com/openUC2/device-admin/internal/app/server/conf"
 )
+
+const defaultShutdownTimeout = 5 * time.Second
 
 var serverCmd = &cli.Command{
 	Name:   "server",
@@ -20,9 +22,15 @@ var serverCmd = &cli.Command{
 	Flags: []cli.Flag{
 		&cli.DurationFlag{
 			Name:    "shutdown-timeout",
-			Value:   5 * time.Second,
+			Value:   defaultShutdownTimeout,
 			Usage:   "timeout for graceful shutdown before hard shutdown",
-			Sources: cli.EnvVars("SERVER_SHUTDOWNTIMEOUT"),
+			Sources: cli.EnvVars("SHUTDOWNTIMEOUT"),
+		},
+		&cli.StringFlag{
+			Name:    "sidecar",
+			Value:   "tcp:127.0.0.1:2312",
+			Usage:   "address of varlink service",
+			Sources: cli.EnvVars("SIDECAR_ADDRESS"),
 		},
 	},
 }
@@ -37,11 +45,11 @@ func serverMain(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// Prepare server
-	server, err := deviceadmin.NewServer(config, e.Logger)
+	s, err := server.New(config, e.Logger)
 	if err != nil {
 		return err
 	}
-	if err = server.Register(e); err != nil {
+	if err = s.Register(e); err != nil {
 		return err
 	}
 
@@ -50,7 +58,7 @@ func serverMain(ctx context.Context, cmd *cli.Command) error {
 		ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT,
 	)
 	go func() {
-		if err = server.Run(e); err != nil {
+		if err = s.Run(e); err != nil {
 			e.Logger.Error(err)
 		}
 		cancelRun()
@@ -63,9 +71,9 @@ func serverMain(ctx context.Context, cmd *cli.Command) error {
 	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancelShutdown()
 	e.Logger.Infof("attempting to shut down gracefully within %.1f sec", shutdownTimeout.Seconds())
-	if err := server.Shutdown(ctxShutdown, e); err != nil {
+	if err := s.Shutdown(ctxShutdown, e); err != nil {
 		e.Logger.Warn("forcibly closing http server due to failure of graceful shutdown")
-		if closeErr := server.Close(e); closeErr != nil {
+		if closeErr := s.Close(e); closeErr != nil {
 			return closeErr
 		}
 	}

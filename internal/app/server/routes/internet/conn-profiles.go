@@ -16,7 +16,7 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
@@ -133,7 +133,7 @@ func (h *Handlers) HandleConnProfilePubByUUID() turbostreams.HandlerFunc {
 			}
 			// Produce output
 			vd.IsStreamPage = true
-			return false, dah.PublishPageReload(c, h.r, t, vd)
+			return false, sh.PublishPageReload(c, h.r, t, vd)
 		})
 	}
 }

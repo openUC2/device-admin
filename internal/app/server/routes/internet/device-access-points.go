@@ -15,7 +15,7 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
@@ -38,7 +38,7 @@ func (h *Handlers) HandleDeviceAPsGetByIface() echo.HandlerFunc {
 		switch mode {
 		default:
 			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
-		case dah.ViewModeAdvanced:
+		case sh.ViewModeAdvanced:
 			return h.r.CacheablePage(c.Response(), c.Request(), ta, vd, struct{}{})
 		}
 	}
@@ -122,10 +122,10 @@ func (h *Handlers) HandleDeviceAPsPubByIface() turbostreams.HandlerFunc {
 			// Produce output
 			vd.IsStreamPage = true
 			template := t
-			if mode == dah.ViewModeAdvanced {
+			if mode == sh.ViewModeAdvanced {
 				template = ta
 			}
-			return false, dah.PublishPageReload(c, h.r, template, vd)
+			return false, sh.PublishPageReload(c, h.r, template, vd)
 		})
 	}
 }

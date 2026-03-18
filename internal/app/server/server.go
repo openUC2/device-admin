@@ -1,5 +1,5 @@
-// Package deviceadmin provides the ImSwitch OS device-admin server.
-package deviceadmin
+// Package server provides the openUC2 OS device-admin server for system/machine administration.
+package server
 
 import (
 	"context"
@@ -18,11 +18,11 @@ import (
 	"github.com/unrolled/secure/cspbuilder"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/client"
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/conf"
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/routes"
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/routes/assets"
-	"github.com/openUC2/device-admin/internal/app/deviceadmin/tmplfunc"
+	"github.com/openUC2/device-admin/internal/app/server/client"
+	"github.com/openUC2/device-admin/internal/app/server/conf"
+	"github.com/openUC2/device-admin/internal/app/server/routes"
+	"github.com/openUC2/device-admin/internal/app/server/routes/assets"
+	"github.com/openUC2/device-admin/internal/app/server/tmplfunc"
 	"github.com/openUC2/device-admin/web"
 )
 
@@ -34,7 +34,7 @@ type Server struct {
 	Handlers *routes.Handlers
 }
 
-func NewServer(config conf.Config, logger godest.Logger) (s *Server, err error) {
+func New(config conf.Config, logger godest.Logger) (s *Server, err error) {
 	s = &Server{}
 	if s.Globals, err = client.NewGlobals(config, logger); err != nil {
 		return nil, errors.Wrap(err, "couldn't make app globals")

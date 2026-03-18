@@ -15,7 +15,7 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	ts "github.com/openUC2/device-admin/internal/clients/tailscale"
 )
 
@@ -33,7 +33,7 @@ func New(r godest.TemplateRenderer, tsc *ts.Client) *Handlers {
 
 func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) error {
 	er.GET(h.r.BasePath+"remote", h.HandleRemoteGet())
-	tr.SUB(h.r.BasePath+"remote", dah.AllowTSSub())
+	tr.SUB(h.r.BasePath+"remote", sh.AllowTSSub())
 	tr.PUB(h.r.BasePath+"remote", h.HandleRemotePub())
 	// assistance
 	er.POST(h.r.BasePath+"remote/assistance", h.HandleAssistancePost())
@@ -131,7 +131,7 @@ func (h *Handlers) HandleRemotePub() turbostreams.HandlerFunc {
 			}
 			// Produce output
 			vd.IsStreamPage = true
-			return false, dah.PublishPageReload(c, h.r, t, vd)
+			return false, sh.PublishPageReload(c, h.r, t, vd)
 		})
 	}
 }

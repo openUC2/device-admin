@@ -459,6 +459,7 @@ require (
 	github.com/uudashr/iface v1.4.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/varlink/go v0.4.0 // indirect
 	github.com/vbatts/tar-split v0.12.1 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
@@ -538,5 +539,6 @@ tool (
 	github.com/client9/misspell/cmd/misspell
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/goreleaser/goreleaser/v2
+	github.com/varlink/go/cmd/varlink-go-interface-generator
 	mvdan.cc/gofumpt
 )

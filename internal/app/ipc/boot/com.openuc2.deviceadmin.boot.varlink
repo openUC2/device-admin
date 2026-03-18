@@ -1,0 +1,15 @@
+# com.openuc2.deviceadmin.boot manages the boot state of the system.
+interface com.openuc2.deviceadmin.boot
+
+# Poweroff shuts down and powers off the system.
+method Poweroff() -> ()
+
+# Reboot shuts down and reboots the system.
+method Reboot() -> ()
+
+# SoftReboot shuts down and reboots userspace.
+# This operation only reboots userspace, leaving the kernel running.
+method SoftReboot() -> ()
+
+# The service does not have permission to perform the requested operation.
+error PermissionDenied ()

@@ -14,7 +14,7 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	du "github.com/openUC2/device-admin/internal/clients/diskusage"
 	ud "github.com/openUC2/device-admin/internal/clients/udisks2"
 )
@@ -36,7 +36,7 @@ func New(r godest.TemplateRenderer, udc *ud.Client, l godest.Logger) *Handlers {
 
 func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 	er.GET(h.r.BasePath+"storage", h.HandleStorageGet())
-	tr.SUB(h.r.BasePath+"storage", dah.AllowTSSub())
+	tr.SUB(h.r.BasePath+"storage", sh.AllowTSSub())
 	tr.PUB(h.r.BasePath+"storage", h.HandleStoragePub())
 	// drives
 	er.POST(h.r.BasePath+"storage/drives/:id", h.HandleDrivePostByID())
@@ -142,7 +142,7 @@ func (h *Handlers) HandleStoragePub() turbostreams.HandlerFunc {
 			}
 			// Produce output
 			vd.IsStreamPage = true
-			return false, dah.PublishPageReload(c, h.r, t, vd)
+			return false, sh.PublishPageReload(c, h.r, t, vd)
 		})
 	}
 }

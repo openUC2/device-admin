@@ -5,26 +5,31 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/urfave/cli/v3"
 
-	"github.com/openUC2/device-admin/internal/app/deviceadmin"
+	"github.com/openUC2/device-admin/internal/app/sidecar"
 )
 
 var sidecarCmd = &cli.Command{
 	Name:   "sidecar",
 	Action: sidecarMain,
 	Flags: []cli.Flag{
-		&cli.DurationFlag{
-			Name:    "shutdown-timeout",
-			Value:   5 * time.Second,
-			Usage:   "timeout for graceful shutdown before hard shutdown",
-			Sources: cli.EnvVars("SERVER_SHUTDOWNTIMEOUT"),
+		&cli.StringFlag{
+			Name:    "address",
+			Value:   "tcp:127.0.0.1:2312",
+			Usage:   "address of varlink service",
+			Sources: cli.EnvVars("SIDECAR_ADDRESS"),
 		},
 	},
+}
+
+var config = sidecar.Config{
+	Vendor:  "OpenUC2",
+	Product: "device-admin sidecar",
+	URL:     "https://github.com/openUC2/device-admin",
 }
 
 func sidecarMain(ctx context.Context, cmd *cli.Command) error {
@@ -32,7 +37,9 @@ func sidecarMain(ctx context.Context, cmd *cli.Command) error {
 	e.Logger.SetLevel(log.INFO)
 
 	// Prepare sidecar
-	sidecar, err := deviceadmin.NewSidecar(e.Logger)
+	config.Version = toolVersion
+	config.Address = cmd.String("address")
+	s, err := sidecar.New(config, e.Logger)
 	if err != nil {
 		return err
 	}
@@ -42,7 +49,7 @@ func sidecarMain(ctx context.Context, cmd *cli.Command) error {
 		ctx, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT,
 	)
 	go func() {
-		if err = sidecar.Run(ctxRun); err != nil {
+		if err = s.Run(ctxRun); err != nil {
 			e.Logger.Error(err.Error())
 		}
 		cancelRun()
@@ -51,11 +58,7 @@ func sidecarMain(ctx context.Context, cmd *cli.Command) error {
 	cancelRun()
 
 	// Shut down sidecar
-	shutdownTimeout := cmd.Duration("shutdown-timeout")
-	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), shutdownTimeout)
-	defer cancelShutdown()
-	e.Logger.Infof("attempting to shut down gracefully within %.1f sec", shutdownTimeout.Seconds())
-	if err := sidecar.Shutdown(ctxShutdown); err != nil {
+	if err := s.Shutdown(); err != nil {
 		return err
 	}
 	e.Logger.Info("finished shutdown")
