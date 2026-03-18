@@ -52,10 +52,7 @@ func New(config Config, logger godest.Logger) (s *Sidecar, err error) {
 func (s *Sidecar) Run(ctx context.Context) error {
 	s.Globals.Base.Logger.Info("starting device-admin sidecar")
 
-	// The varlink listener can't be canceled by context cancelation, so the API shouldn't promise to
-	// stop blocking execution on context cancelation - so we use the background context here. The
-	// varlink listener should instead be stopped gracefully by calling the Shutdown method.
-	eg, egctx := errgroup.WithContext(context.Background())
+	eg, egctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		s.Globals.Base.Logger.Info("starting background workers")
 		if err := s.runWorkersInContext(egctx); err != nil {
@@ -86,8 +83,4 @@ func (s *Sidecar) runWorkersInContext(ctx context.Context) error {
 		return nil
 	})
 	return eg.Wait()
-}
-
-func (s *Sidecar) Shutdown() (err error) {
-	return s.service.Shutdown()
 }

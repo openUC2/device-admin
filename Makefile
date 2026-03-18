@@ -87,15 +87,15 @@ release: install buildweb
 
 .PHONY: run-sidecar
 run-sidecar: ## go run
-	@go run -race ./cmd/deviceadmin sidecar
+	@go run -race . sidecar
 
 .PHONY: run-server
 run-server: ## go run
-	@go run -race ./cmd/deviceadmin server
+	@go run -race . server
 
 .PHONY: run-server-live
 run-server-live: ## go run
-	@TEMPLATES_PATH=./web/templates go run -race ./cmd/deviceadmin server
+	@TEMPLATES_PATH=./web/templates go run -race . server
 
 .PHONY: go-clean
 go-clean: ## go clean build, test and modules caches

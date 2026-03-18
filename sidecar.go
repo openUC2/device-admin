@@ -57,10 +57,6 @@ func sidecarMain(ctx context.Context, cmd *cli.Command) error {
 	<-ctxRun.Done()
 	cancelRun()
 
-	// Shut down sidecar
-	if err := s.Shutdown(); err != nil {
-		return err
-	}
 	e.Logger.Info("finished shutdown")
 	return nil
 }
