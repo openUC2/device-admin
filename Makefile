@@ -19,6 +19,7 @@ clean: ## remove files created during build pipeline
 install: ## go install tools
 	$(call print-target)
 	go install tool
+	cd web/app && corepack enable && pnpm install
 
 .PHONY: generate
 generate: ## go generate
@@ -28,7 +29,7 @@ generate: ## go generate
 .PHONY: buildweb
 buildweb: ## generate webapp build artifacts
 	$(call print-target)
-	cd web/app && yarn && yarn build
+	cd web/app && pnpm run build
 
 .PHONY: vet
 vet: ## go vet
@@ -39,12 +40,13 @@ vet: ## go vet
 fix: ## go fix
 	$(call print-target)
 	go fix ./...
+	cd web/app && pnpm run lint:fix
 
 .PHONY: fmt
 fmt: ## go fmt
 	$(call print-target)
 	go tool golangci-lint fmt
-	cd web/app && yarn format
+	cd web/app && pnpm run format
 
 .PHONY: spell
 spell: ##misspell
@@ -55,7 +57,7 @@ spell: ##misspell
 lint: ## golangci-lint
 	$(call print-target)
 	go tool golangci-lint run
-	cd web/app && yarn lint
+	cd web/app && pnpm run lint
 
 .PHONY: test
 test: ## go test with race detector and code covarage
