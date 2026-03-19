@@ -58,7 +58,7 @@ environment variables (see below) to non-default values.
 
 To install various backend development tools, run `make install`. You will need to have installed Go first.
 
-Before you start the server for the first time, you'll need to generate the webapp build artifacts by running `make buildweb` (which requires you to have first installed [Node.js](https://nodejs.org/en/) and [Yarn Classic](https://classic.yarnpkg.com/lang/en/)). Then you can start the server by running `make run` with the appropriate environment variables (see below); or you can run `make runlive` so that your edits to template files will be reflected after you refresh the corresponding pages in your web browser. You will need to have installed golang first. Any time you modify the webapp files (in the web/app directory), you'll need to run `make buildweb` again to rebuild the bundled CSS and JS.
+Before you start the server for the first time, you'll need to generate the webapp build artifacts by running `make buildweb` (which requires you to have first installed [Node.js](https://nodejs.org/en/) with [Corepack](https://github.com/nodejs/corepack)). Then you can start the server by running `make run` with the appropriate environment variables (see below); or you can run `make runlive` so that your edits to template files will be reflected after you refresh the corresponding pages in your web browser. You will need to have installed golang first. Any time you modify the webapp files (in the web/app directory), you'll need to run `make buildweb` again to rebuild the bundled CSS and JS.
 
 ### Building
 
