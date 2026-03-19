@@ -2,7 +2,7 @@
 
 .PHONY: dev
 dev: ## dev build
-dev: clean install generate buildweb vet fmt spell lint test mod-tidy
+dev: clean install generate buildweb fmt fix spell vet lint test mod-tidy
 
 .PHONY: ci
 ci: ## CI build
@@ -34,6 +34,11 @@ buildweb: ## generate webapp build artifacts
 vet: ## go vet
 	$(call print-target)
 	go vet ./...
+
+.PHONY: fix
+fix: ## go fix
+	$(call print-target)
+	go fix ./...
 
 .PHONY: fmt
 fmt: ## go fmt
