@@ -9,6 +9,8 @@
     "lint:fix": "prettier --write ./src/**/*.{js,html} --no-error-on-unmatched-pattern && eslint --fix src/**/*.{js} --no-error-on-unmatched-pattern"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
@@ -16,6 +18,7 @@
     "bulma": "~0.9.4",
     "eslint": "^10.0.3",
     "eslint-plugin-import": "^2.32.0",
+    "globals": "^17.4.0",
     "prettier": "^3.8.1",
     "rollup": "^4.59.0",
     "rollup-plugin-copy": "^3.5.0",
