@@ -41,7 +41,7 @@ func New(config Config, logger godest.Logger) (s *Sidecar, err error) {
 	}
 
 	s.Handlers = routes.New(s.Globals)
-	if err := s.Handlers.Register(s.service, s.Globals.Base.Logger); err != nil {
+	if err := s.Handlers.Register(s.service); err != nil {
 		return s, errors.Wrap(err, "couldn't register varlink interfaces with service")
 	}
 	return s, nil
@@ -56,9 +56,7 @@ func (s *Sidecar) Run(ctx context.Context) error {
 	eg.Go(func() error {
 		s.Globals.Base.Logger.Info("starting background workers")
 		if err := s.runWorkersInContext(egctx); err != nil {
-			s.Globals.Base.Logger.Error(errors.Wrap(
-				err, "background worker encountered error",
-			))
+			s.Globals.Base.Logger.Error(errors.Wrap(err, "background worker encountered error"))
 		}
 		return nil
 	})

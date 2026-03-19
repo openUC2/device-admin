@@ -15,6 +15,7 @@ import (
 
 	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
+	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
 )
 
 type Handlers struct {
@@ -23,17 +24,19 @@ type Handlers struct {
 	tsh *turbostreams.Hub
 
 	nmc *nm.Client
+	scc *sc.Client
 
 	l godest.Logger
 }
 
 func New(
-	r godest.TemplateRenderer, tsh *turbostreams.Hub, nmc *nm.Client, l godest.Logger,
+	r godest.TemplateRenderer, tsh *turbostreams.Hub, nmc *nm.Client, scc *sc.Client, l godest.Logger,
 ) *Handlers {
 	return &Handlers{
 		r:   r,
 		tsh: tsh,
 		nmc: nmc,
+		scc: scc,
 		l:   l,
 	}
 }

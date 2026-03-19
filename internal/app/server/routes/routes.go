@@ -47,7 +47,7 @@ func (h *Handlers) Register(er godest.EchoRouter, tsr turbostreams.Router, em go
 	).Register(er)
 	home.New(h.r).Register(er)
 	identity.New(h.r).Register(er)
-	internet.New(h.r, tsh, h.globals.NetworkManager, l).Register(er, tsr)
+	internet.New(h.r, tsh, h.globals.NetworkManager, h.globals.Sidecar, l).Register(er, tsr)
 	h.remote = remote.New(h.r, h.globals.Tailscale)
 	if err := h.remote.Register(er, tsr); err != nil {
 		return errors.Wrap(err, "couldn't register handlers for remote routes")

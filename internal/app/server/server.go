@@ -205,9 +205,7 @@ func (s *Server) Run(e *echo.Echo) error {
 	eg.Go(func() error {
 		s.Globals.Base.Logger.Info("starting background workers")
 		if err := s.runWorkersInContext(egctx); err != nil {
-			s.Globals.Base.Logger.Error(errors.Wrap(
-				err, "background worker encountered error",
-			))
+			s.Globals.Base.Logger.Error(errors.Wrap(err, "background worker encountered error"))
 		}
 		return nil
 	})
@@ -252,10 +250,10 @@ func (s *Server) runWorkersInContext(ctx context.Context) error {
 }
 
 func (s *Server) Shutdown(ctx context.Context, e *echo.Echo) (err error) {
+	s.Globals.Tailscale.Shutdown()
 	// FIXME: e.Shutdown calls e.Server.Shutdown, which doesn't wait for WebSocket connections. When
 	// starting Echo, we need to call e.Server.RegisterOnShutdown with a function to gracefully close
 	// WebSocket connections!
-	s.Globals.Tailscale.Shutdown()
 	if errEcho := e.Shutdown(ctx); errEcho != nil {
 		s.Globals.Base.Logger.Error(errors.Wrap(errEcho, "couldn't shut down http server"))
 		err = errEcho

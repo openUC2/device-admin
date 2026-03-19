@@ -13,11 +13,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
+	"github.com/sargassum-world/godest"
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
+	ipc "github.com/openUC2/device-admin/internal/app/ipc/networkmanager"
 	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
+	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
 )
 
 func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
@@ -27,19 +30,44 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 		redirectTarget := c.FormValue("redirect-target")
 
 		// Run queries
+		ctx := c.Request().Context()
 		switch state {
 		default:
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
 				"invalid connection profiles state %s", state,
 			))
 		case "reloaded":
-			if err := h.nmc.ReloadConnProfiles(c.Request().Context()); err != nil {
-				return err
+			if err := reloadConnProfilesViaSidecar(ctx, h.scc, h.l); err != nil {
+				if nmErr := h.nmc.ReloadConnProfiles(ctx); err != nil {
+					return errors.Wrapf(
+						nmErr, "couldn't reload through sidecar (%s) or directly", err.Error(),
+					)
+				}
+				h.l.Warnf("reloaded directly after failure to reload through sidecar", err)
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		}
 	}
+}
+
+func reloadConnProfilesViaSidecar(ctx context.Context, scc *sc.Client, l godest.Logger) error {
+	conn, err := scc.Open(ctx)
+	if err != nil {
+		return errors.Wrap(err, "couldn't open connection to sidecar")
+	}
+	defer func() {
+		if conn == nil {
+			return
+		}
+		if err := conn.Close(); err != nil {
+			l.Error(errors.New("couldn't close connection to sidecar"))
+		}
+	}()
+	if err := ipc.ReloadConnections().Call(ctx, conn); err != nil {
+		return errors.Wrap(err, "couldn't call sidecar's ReloadConnections method")
+	}
+	return nil
 }
 
 // by UUID
@@ -56,7 +84,8 @@ func (h *Handlers) HandleConnProfileGetByUUID() echo.HandlerFunc {
 		}
 
 		// Run queries
-		vd, err := getConnProfileViewData(c.Request().Context(), uid, h.nmc)
+		ctx := c.Request().Context()
+		vd, err := getConnProfileViewData(ctx, uid, h.nmc)
 		if err != nil {
 			return err
 		}

@@ -14,20 +14,44 @@ import (
 	"github.com/openUC2/device-admin/internal/app/server/conf"
 )
 
-const defaultShutdownTimeout = 5 * time.Second
+const (
+	defaultPort            = 3001
+	defaultShutdownTimeout = 5 * time.Second
+)
 
 var serverCmd = &cli.Command{
 	Name:   "server",
 	Action: serverMain,
 	Flags: []cli.Flag{
+		// HTTP server
+		&cli.IntFlag{
+			Name:    "http-port",
+			Value:   defaultPort,
+			Usage:   "port for HTTP server",
+			Sources: cli.EnvVars("HTTP_PORT"),
+		},
+		&cli.StringFlag{
+			Name:    "http-base-path",
+			Value:   "/",
+			Usage:   "base path for HTTP routes",
+			Sources: cli.EnvVars("HTTP_BASEPATH"),
+		},
+		&cli.IntFlag{
+			Name:    "http-gzip-level",
+			Value:   1,
+			Usage:   "port for HTTP server",
+			Sources: cli.EnvVars("HTTP_GZIPLEVEL"),
+		},
 		&cli.DurationFlag{
-			Name:    "shutdown-timeout",
+			Name:    "http-shutdown-timeout",
 			Value:   defaultShutdownTimeout,
 			Usage:   "timeout for graceful shutdown before hard shutdown",
 			Sources: cli.EnvVars("SHUTDOWNTIMEOUT"),
 		},
+
+		// Sidecar
 		&cli.StringFlag{
-			Name:    "sidecar",
+			Name:    "sidecar-address",
 			Value:   "tcp:127.0.0.1:2312",
 			Usage:   "address of varlink service",
 			Sources: cli.EnvVars("SIDECAR_ADDRESS"),
@@ -43,6 +67,10 @@ func serverMain(ctx context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return err
 	}
+	config.HTTP.Port = cmd.Int("http-port")
+	config.HTTP.BasePath = cmd.String("http-base-path")
+	config.HTTP.GzipLevel = cmd.Int("http-gzip-level")
+	config.Sidecar.Address = cmd.String("sidecar-address")
 
 	// Prepare server
 	s, err := server.New(config, e.Logger)
@@ -67,7 +95,7 @@ func serverMain(ctx context.Context, cmd *cli.Command) error {
 	cancelRun()
 
 	// Shut down server
-	shutdownTimeout := cmd.Duration("shutdown-timeout")
+	shutdownTimeout := cmd.Duration("http-shutdown-timeout")
 	ctxShutdown, cancelShutdown := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancelShutdown()
 	e.Logger.Infof("attempting to shut down gracefully within %.1f sec", shutdownTimeout.Seconds())

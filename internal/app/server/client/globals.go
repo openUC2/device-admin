@@ -10,6 +10,7 @@ import (
 
 	"github.com/openUC2/device-admin/internal/app/server/conf"
 	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	"github.com/openUC2/device-admin/internal/clients/sidecar"
 	"github.com/openUC2/device-admin/internal/clients/tailscale"
 	"github.com/openUC2/device-admin/internal/clients/templates"
 	"github.com/openUC2/device-admin/internal/clients/udisks2"
@@ -31,6 +32,7 @@ type Globals struct {
 	Config conf.Config
 	Base   *BaseGlobals
 
+	Sidecar        *sidecar.Client
 	NetworkManager *networkmanager.Client
 	Tailscale      *tailscale.Client
 	UDisks2        *udisks2.Client
@@ -66,6 +68,8 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 	if g.Base, err = NewBaseGlobals(config, l); err != nil {
 		return nil, errors.Wrap(err, "couldn't set up base globals")
 	}
+
+	g.Sidecar = sidecar.NewClient(config.Sidecar)
 
 	networkManagerConfig, err := networkmanager.GetConfig()
 	if err != nil {
