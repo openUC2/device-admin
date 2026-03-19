@@ -15,17 +15,13 @@ functionalities needed by customers who operate openUC2 instruments, such as:
 - (TODO) Software updates (which uses Forklift)
 
 It is meant to be served from a reverse-proxy on port 80 along with all other network
-services, configured as in [openUC2/pallet](https://github.com/openUC2/pallet).
-
-In the future, this tool will probably be extended to give the user (or otherwise direct the user to) a
-setup wizard for configuring localization settings (e.g. for languages and wifi networks) upon the
-first boot of the OS.
+services, configured as in [openUC2/os-rpi](https://github.com/openUC2/os-rpi).
 
 TODO: include some screenshots of what this roughly looks like 🙂
 
 ## Usage
 
-The device-admin app is deployed as two processes:
+The device-admin app is deployed as two separate processes:
 
 1. A web server (`device-admin server`), which runs as an unprivileged process.
 2. A privileged sidecar (`device-admin sidecar`), which can perform particular superuser operations on behalf of the web server.
@@ -49,14 +45,14 @@ Once you have device-admin, you can launch the sidecar with root permissions on 
 sudo ./device-admin sidecar
 ```
 
-Then you can launch the server as the `pi` user on a Raspberry Pi:
+In a separate terminal, you can launch the server as the `pi` user on a Raspberry Pi:
 ```bash
 ./device-admin server
 ```
 
-Then you can view the landing page at <http://localhost:3001> . Note that if you are running it on a
-computer other than the Raspberry Pi with openUC2 OS, then you will need to set some environment
-variables (see below) to non-default values.
+Then you can view the server's landing page at <http://localhost:3001> . Note that if you are
+running it on a computer other than the Raspberry Pi with openUC2 OS, then you will need to set some
+environment variables (see below) to non-default values.
 
 ### Development
 
@@ -68,9 +64,9 @@ Before you start the server for the first time, you'll need to generate the weba
 
 Because the build pipeline builds Docker images, you will need to either have Docker Desktop or (on Ubuntu) to have installed QEMU (either with qemu-user-static from apt or by running [tonistiigi/binfmt](https://hub.docker.com/r/tonistiigi/binfmt)). You will need a version of Docker with buildx support.
 
-To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_window_amd64/device-admin.exe` or `./dist/device-admin_linux_amd64/device-admin`)
+To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_linux_arm64/device-admin`)
 
-## Environment variables
+## Environment Variables
 
 ### Shared
 
