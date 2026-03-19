@@ -2,7 +2,7 @@
 
 .PHONY: dev
 dev: ## dev build
-dev: clean install generate buildweb vet fmt spell lint test mod-tidy
+dev: clean install generate buildweb fmt fix spell vet lint test mod-tidy
 
 .PHONY: ci
 ci: ## CI build
@@ -34,6 +34,11 @@ buildweb: ## generate webapp build artifacts
 vet: ## go vet
 	$(call print-target)
 	go vet ./...
+
+.PHONY: fix
+fix: ## go fix
+	$(call print-target)
+	go fix ./...
 
 .PHONY: fmt
 fmt: ## go fmt
@@ -85,13 +90,17 @@ release: install buildweb
 	$(call print-target)
 	go tool goreleaser --clean
 
-.PHONY: run
-run: ## go run
-	@go run -race ./cmd/deviceadmin
+.PHONY: run-sidecar
+run-sidecar: ## go run
+	@go run -race . sidecar
 
-.PHONY: runlive
-runlive: ## go run
-	@TEMPLATES_PATH=./web/templates go run -race ./cmd/deviceadmin
+.PHONY: run-server
+run-server: ## go run
+	@go run -race . server
+
+.PHONY: run-server-live
+run-server-live: ## go run
+	@TEMPLATES_PATH=./web/templates go run -race . server
 
 .PHONY: go-clean
 go-clean: ## go clean build, test and modules caches

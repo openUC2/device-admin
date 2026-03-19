@@ -8,7 +8,7 @@ before:
 
 builds:
 - id: device-admin
-  main: ./cmd/deviceadmin
+  main: .
   binary: device-admin
   mod_timestamp: "{{ .CommitTimestamp }}"
   flags:

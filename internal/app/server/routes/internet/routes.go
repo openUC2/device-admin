@@ -13,8 +13,9 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	dah "github.com/openUC2/device-admin/internal/app/deviceadmin/handling"
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
+	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
 )
 
 type Handlers struct {
@@ -23,24 +24,26 @@ type Handlers struct {
 	tsh *turbostreams.Hub
 
 	nmc *nm.Client
+	scc *sc.Client
 
 	l godest.Logger
 }
 
 func New(
-	r godest.TemplateRenderer, tsh *turbostreams.Hub, nmc *nm.Client, l godest.Logger,
+	r godest.TemplateRenderer, tsh *turbostreams.Hub, nmc *nm.Client, scc *sc.Client, l godest.Logger,
 ) *Handlers {
 	return &Handlers{
 		r:   r,
 		tsh: tsh,
 		nmc: nmc,
+		scc: scc,
 		l:   l,
 	}
 }
 
 func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 	er.GET(h.r.BasePath+"internet", h.HandleInternetGet())
-	tr.SUB(h.r.BasePath+"internet", dah.AllowTSSub())
+	tr.SUB(h.r.BasePath+"internet", sh.AllowTSSub())
 	tr.PUB(h.r.BasePath+"internet", h.HandleInternetPub())
 	// device-access-points
 	er.GET(h.r.BasePath+"internet/devices/:iface/access-points", h.HandleDeviceAPsGetByIface())
@@ -73,7 +76,7 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 		switch mode {
 		default:
 			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
-		case dah.ViewModeAdvanced:
+		case sh.ViewModeAdvanced:
 			return h.r.CacheablePage(c.Response(), c.Request(), ta, vd, struct{}{})
 		}
 	}
@@ -174,7 +177,7 @@ func (h *Handlers) HandleInternetPub() turbostreams.HandlerFunc {
 		const pubInterval = 4 * time.Second
 		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
 			// Run queries
-			if mode != dah.ViewModeAdvanced {
+			if mode != sh.ViewModeAdvanced {
 				_ = h.nmc.RescanNetworks(c.Context(), "wlan0")
 			}
 			vd, err := getInternetViewData(c.Context(), h.nmc)
@@ -184,10 +187,10 @@ func (h *Handlers) HandleInternetPub() turbostreams.HandlerFunc {
 			// Produce output
 			vd.IsStreamPage = true
 			template := t
-			if mode == dah.ViewModeAdvanced {
+			if mode == sh.ViewModeAdvanced {
 				template = ta
 			}
-			return false, dah.PublishPageReload(c, h.r, template, vd)
+			return false, sh.PublishPageReload(c, h.r, template, vd)
 		})
 	}
 }

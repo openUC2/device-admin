@@ -1,0 +1,9 @@
+# com.openuc2.deviceadmin.networkmanager manages NetworkManager.
+interface com.openuc2.deviceadmin.networkmanager
+
+# ReloadConnections reloads all network connection files from disk, including noticing any added or
+# deleted connection files.
+method ReloadConnections() -> ()
+
+# The service was unable to perform the requested operation for an unspecified reason.
+error Unknown (description: string)

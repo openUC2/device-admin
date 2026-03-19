@@ -1,4 +1,4 @@
-package deviceadmin
+package server
 
 import (
 	"cmp"
