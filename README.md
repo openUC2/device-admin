@@ -3,14 +3,16 @@ A system settings panel for machine administration
 
 ## Introduction
 
-[ImSwitch OS](https://github.com/openuc2/imswitch-os) (which runs on a Raspberry Pi computer)
+[openUC2 OS](https://github.com/openuc2/os-rpi) (which runs on a Raspberry Pi computer)
 provides the Cockpit system administration panel, but that panel is behind a login screen and is
 missing various functionalities. This tool provides a web browser interface for other
 functionalities needed by customers who operate openUC2 instruments, such as:
 
 - Wi-Fi network connection management (which relies on NetworkManager)
 - Toggling remote assistance (which relies on Tailscale)
-- Software updates (which uses Forklift)
+- Managing removable storage drives (which relies on UDisks2)
+- (TODO) Shutdown and reboot (which relies on systemd)
+- (TODO) Software updates (which uses Forklift)
 
 It is meant to be served from a reverse-proxy on port 80 along with all other network
 services, configured as in [openUC2/pallet](https://github.com/openUC2/pallet).
@@ -53,7 +55,7 @@ Then you can launch the server as the `pi` user on a Raspberry Pi:
 ```
 
 Then you can view the landing page at <http://localhost:3001> . Note that if you are running it on a
-computer other than the Raspberry Pi with ImSwitch OS, then you will need to set some environment
+computer other than the Raspberry Pi with openUC2 OS, then you will need to set some environment
 variables (see below) to non-default values.
 
 ### Development
