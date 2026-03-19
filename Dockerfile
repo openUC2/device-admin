@@ -7,3 +7,4 @@ COPY device-admin /
 COPY web/templates/ /web/templates
 ENV TEMPLATES_PATH=/web/templates
 ENTRYPOINT ["/device-admin"]
+CMD ["service"]
