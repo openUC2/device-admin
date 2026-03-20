@@ -179,13 +179,18 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 		redirectTarget := c.FormValue("redirect-target")
 
 		// Run queries
+		// We use the background context so that if the user's connection to the server is interrupted
+		// as part of the process of modifying the connection (e.g. because NetworkManager brings a
+		// network interface down before bringing it back up), the operation is not interrupted by
+		// context cancellation from the loss ofthe client-server connection:
+		ctx := context.Background()
 		switch state {
 		default:
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
 				"invalid connection profiles state %s", state,
 			))
 		case "activated-transiently":
-			if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+			if err := h.nmc.ActivateConnProfile(ctx, uid); err != nil {
 				return err
 			}
 			// Redirect user
@@ -196,12 +201,12 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				return errors.Wrap(err, "couldn't load form parameters")
 			}
 			if err := updateConnProfile(
-				c.Request().Context(), uid, "save and apply", formValues, h.nmc,
+				ctx, uid, "save and apply", formValues, h.nmc,
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
 			if state == "simplified-updated-activated" {
-				if err := h.nmc.ActivateConnProfile(c.Request().Context(), uid); err != nil {
+				if err := h.nmc.ActivateConnProfile(ctx, uid); err != nil {
 					return err
 				}
 			}
@@ -213,7 +218,7 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 				return errors.Wrap(err, "couldn't load form parameters")
 			}
 			if err := updateConnProfile(
-				c.Request().Context(), uid, c.FormValue("update-type"), formValues, h.nmc,
+				ctx, uid, c.FormValue("update-type"), formValues, h.nmc,
 			); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}

@@ -85,7 +85,7 @@ SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./device-admin server
 #### Custom Templates
 
 You can override the default webpage templates embedded in the device-admin binary by providing a path to the templates directory with the `TEMPLATES_PATH` variable, relative to the current working directory in which you start the device-admin program. For example, you could provide a custom home page by creating a new file named `home.page.tmpl` with following contents in a new `custom-templates/home` subdirectory in the directory from which you will launch device-admin:
-```
+```html
 {{template "shared/base.layout.tmpl" .}}
 
 {{define "title" -}}
