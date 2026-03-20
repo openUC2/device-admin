@@ -11,6 +11,7 @@ import (
 	"github.com/sargassum-world/godest"
 
 	ipc "github.com/openUC2/device-admin/internal/app/ipc/boot"
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
 	sd "github.com/openUC2/device-admin/internal/clients/systemd"
 )
@@ -34,7 +35,27 @@ func New(r godest.TemplateRenderer, sdc *sd.Client, scc *sc.Client, l godest.Log
 }
 
 func (h *Handlers) Register(er godest.EchoRouter) {
+	er.GET(h.r.BasePath+"boot", h.HandleBootGet())
 	er.POST(h.r.BasePath+"boot", h.HandleBootPost())
+}
+
+func (h *Handlers) HandleBootGet() echo.HandlerFunc {
+	t := "boot/index.page.tmpl"
+	h.r.MustHave(t)
+	tm := "boot/index.minimal.page.tmpl"
+	h.r.MustHave(tm)
+	return func(c echo.Context) error {
+		// Parse params
+		mode := c.QueryParam("mode")
+
+		// Produce output
+		switch mode {
+		default:
+			return h.r.CacheablePage(c.Response(), c.Request(), t, struct{}{}, struct{}{})
+		case sh.ViewModeMinimal:
+			return h.r.CacheablePage(c.Response(), c.Request(), tm, struct{}{}, struct{}{})
+		}
+	}
 }
 
 func (h *Handlers) HandleBootPost() echo.HandlerFunc {

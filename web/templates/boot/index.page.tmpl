@@ -1,0 +1,30 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title" -}}
+  Boot
+{{- end}}
+{{define "description"}}System boot and shutdown actions{{end}}
+
+{{define "content"}}
+  <main>
+    <section class="section content">
+      <div class="container">
+        <h1>Boot</h1>
+        <p>
+          A soft reboot speeds up the reboot process by leaving the OS kernel running, while
+          a full reboot includes a full restart of the kernel and hardware:
+        </p>
+        <div class="field is-grouped">
+          {{
+            template "shared/boot/buttons.partial.tmpl" dict
+            "basePath" .Meta.BasePath
+            "redirectTarget" (urlJoin (dict
+              "path" .Meta.Path
+              "query" .Meta.Form.Encode
+            ))
+          }}
+        </div>
+      </div>
+    </section>
+  </main>
+{{end}}
