@@ -11,11 +11,14 @@ import (
 
 type Handlers struct {
 	r godest.TemplateRenderer
+
+	l godest.Logger
 }
 
-func New(r godest.TemplateRenderer) *Handlers {
+func New(r godest.TemplateRenderer, l godest.Logger) *Handlers {
 	return &Handlers{
 		r: r,
+		l: l,
 	}
 }
 

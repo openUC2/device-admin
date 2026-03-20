@@ -14,7 +14,7 @@
       <a href="{{urlJoin (dict
         "path" (print $Meta.BasePath "internet/conn-profiles/" $connProfile.UUID)
         "query" $Meta.Form.Encode
-      )}}">{{$connProfile.ID}}</a>
+      )}}" target="_top">{{$connProfile.ID}}</a>
     </li>
   {{end}}
 </ul>

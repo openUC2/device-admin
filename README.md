@@ -142,6 +142,7 @@ If the file doesn't exist, a new key will be randomly generated and saved to the
 Webpages can be embedded in other websites as iframes. For this, you may want to add the following GET query params to the webpage URL for the iframe:
 - `nav`: `hidden` to prevent the navbar from being displayed
 - `theme`: `dark` or `light` to override the theme settings saved in the localStorage of the user's web browser
+- `mode`: `minimal` to hide page content which may be unhelpful for embedding
 
 For example, your iframe could embed a URL like: `/admin/panel/internet?nav=hidden&theme=dark`.
 

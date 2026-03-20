@@ -13,6 +13,7 @@ import (
 	"github.com/openUC2/device-admin/internal/app/server/client"
 	dah "github.com/openUC2/device-admin/internal/app/server/handling"
 	"github.com/openUC2/device-admin/internal/app/server/routes/assets"
+	"github.com/openUC2/device-admin/internal/app/server/routes/boot"
 	"github.com/openUC2/device-admin/internal/app/server/routes/cable"
 	"github.com/openUC2/device-admin/internal/app/server/routes/home"
 	"github.com/openUC2/device-admin/internal/app/server/routes/identity"
@@ -42,10 +43,11 @@ func (h *Handlers) Register(er godest.EchoRouter, tsr turbostreams.Router, em go
 
 	assets.RegisterStatic(h.r.BasePath, er, em)
 	assets.NewTemplated(h.r).Register(er)
+	boot.New(h.r, h.globals.Systemd, h.globals.Sidecar, l).Register(er)
 	cable.New(
 		h.r, h.globals.Base.ACSigner, h.globals.Base.TSBroker, l,
 	).Register(er)
-	home.New(h.r).Register(er)
+	home.New(h.r, l).Register(er)
 	identity.New(h.r).Register(er)
 	internet.New(h.r, tsh, h.globals.NetworkManager, h.globals.Sidecar, l).Register(er, tsr)
 	h.remote = remote.New(h.r, h.globals.Tailscale)

@@ -1,0 +1,43 @@
+{{template "shared/base.layout.tmpl" .}}
+
+{{define "title" -}}
+  Boot
+{{- end}}
+{{define "description"}}System boot and shutdown actions{{end}}
+
+{{define "content"}}
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    {{if ne (.Meta.Form.Get "nav") "hidden"}}
+      <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{urlJoin (dict
+            "path" .Meta.BasePath
+            "query" .Meta.Form.Encode
+          )}}">Admin</a></li>
+          <li class="is-active"><a href="{{urlJoin (dict
+            "path" .Meta.Path
+            "query" .Meta.Form.Encode
+          )}}" aria-current="page">Boot</a></li>
+        </ul>
+      </nav>
+    {{end}}
+
+    <section class="section content">
+      <h1>Boot</h1>
+      <p>
+        A soft reboot speeds up the reboot process by leaving the OS kernel running, while
+        a full reboot includes a full restart of the kernel and hardware:
+      </p>
+      <div class="field is-grouped">
+        {{
+          template "shared/boot/buttons.partial.tmpl" dict
+          "basePath" .Meta.BasePath
+          "redirectTarget" (urlJoin (dict
+            "path" .Meta.Path
+            "query" .Meta.Form.Encode
+          ))
+        }}
+      </div>
+    </section>
+  </main>
+{{end}}

@@ -6,6 +6,7 @@ import (
 	"github.com/sargassum-world/godest"
 
 	"github.com/openUC2/device-admin/internal/clients/networkmanager"
+	"github.com/openUC2/device-admin/internal/clients/systemd"
 )
 
 // Server
@@ -17,6 +18,7 @@ type BaseGlobals struct {
 type Globals struct {
 	Base *BaseGlobals
 
+	Systemd        *systemd.Client
 	NetworkManager *networkmanager.Client
 }
 
@@ -33,11 +35,8 @@ func NewGlobals(l godest.Logger) (g *Globals, err error) {
 		return nil, errors.Wrap(err, "couldn't set up base globals")
 	}
 
-	networkManagerConfig, err := networkmanager.GetConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't set up networkmanager config")
-	}
-	g.NetworkManager = networkmanager.NewClient(networkManagerConfig, g.Base.Logger)
+	g.Systemd = systemd.NewClient(systemd.Config{}, g.Base.Logger)
+	g.NetworkManager = networkmanager.NewClient(networkmanager.Config{}, g.Base.Logger)
 
 	return g, nil
 }

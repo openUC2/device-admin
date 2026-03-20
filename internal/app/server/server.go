@@ -231,6 +231,14 @@ func (s *Server) runWorkersInContext(ctx context.Context) error {
 		return nil
 	})
 	eg.Go(func() error {
+		if err := s.Globals.Systemd.Open(ctx); err != nil {
+			s.Globals.Base.Logger.Error("couldn't open systemd client")
+			// Even if Systemd is unavailable, other parts of device-admin are still useful, so we
+			// don't propagate the error from here
+		}
+		return nil
+	})
+	eg.Go(func() error {
 		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
 			// Even if NetworkManager is unavailable, other parts of device-admin are still useful, so we

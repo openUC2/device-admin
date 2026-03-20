@@ -21,8 +21,8 @@ func New(globals *client.Globals) *Handlers {
 
 func (s *Handlers) Register(service *varlink.Service) error {
 	l := s.globals.Base.Logger
-	if err := boot.New(l).Register(service); err != nil {
-		return errors.Wrap(err, "couldn't register boot handlers")
+	if err := boot.New(s.globals.Systemd, l).Register(service); err != nil {
+		return errors.Wrap(err, "couldn't register systemd handlers")
 	}
 	if err := networkmanager.New(s.globals.NetworkManager, l).Register(service); err != nil {
 		return errors.Wrap(err, "couldn't register networkmanager handlers")
