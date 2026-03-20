@@ -6,18 +6,33 @@
 {{define "description"}}System boot and shutdown actions{{end}}
 
 {{define "content"}}
-  <main>
+  <main class="main-container" tabindex="-1" data-controller="default-scrollable">
+    {{if ne (.Meta.Form.Get "nav") "hidden"}}
+      <nav class="breadcrumb main-breadcrumb" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{urlJoin (dict
+            "path" .Meta.BasePath
+            "query" .Meta.Form.Encode
+          )}}">Admin</a></li>
+          <li class="is-active"><a href="{{urlJoin (dict
+            "path" .Meta.Path
+            "query" .Meta.Form.Encode
+          )}}" aria-current="page">Boot</a></li>
+        </ul>
+      </nav>
+    {{end}}
+
     <section class="section content">
-        <div class="field is-grouped">
-          {{
-            template "shared/boot/buttons.partial.tmpl" dict
-            "basePath" .Meta.BasePath
-            "redirectTarget" (urlJoin (dict
-              "path" .Meta.Path
-              "query" .Meta.Form.Encode
-            ))
-          }}
-        </div>
+      <div class="field is-grouped">
+        {{
+          template "shared/boot/buttons.partial.tmpl" dict
+          "basePath" .Meta.BasePath
+          "redirectTarget" (urlJoin (dict
+            "path" .Meta.Path
+            "query" .Meta.Form.Encode
+          ))
+        }}
+      </div>
     </section>
   </main>
 {{end}}

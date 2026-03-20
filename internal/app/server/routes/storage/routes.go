@@ -47,14 +47,24 @@ func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 func (h *Handlers) HandleStorageGet() echo.HandlerFunc {
 	t := "storage/index.page.tmpl"
 	h.r.MustHave(t)
+	tm := "storage/index.minimal.page.tmpl"
+	h.r.MustHave(tm)
 	return func(c echo.Context) error {
+		// Parse params
+		mode := c.QueryParam("mode")
+
 		// Run queries
-		remoteViewData, err := getStorageViewData(c.Request().Context(), h.udc, h.l)
+		vd, err := getStorageViewData(c.Request().Context(), h.udc, h.l)
 		if err != nil {
 			return err
 		}
 		// Produce output
-		return h.r.CacheablePage(c.Response(), c.Request(), t, remoteViewData, struct{}{})
+		switch mode {
+		default:
+			return h.r.CacheablePage(c.Response(), c.Request(), t, vd, struct{}{})
+		case sh.ViewModeMinimal:
+			return h.r.CacheablePage(c.Response(), c.Request(), tm, vd, struct{}{})
+		}
 	}
 }
 
