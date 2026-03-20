@@ -33,10 +33,6 @@ func (c *Client) Open(ctx context.Context) (err error) {
 	return nil
 }
 
-func (c *Client) getSystemd() dbus.BusObject {
-	return c.bus.Object(sdName, "/org/freedesktop/systemd1")
-}
-
 const sdName = "org.freedesktop.systemd1"
 
 func (c *Client) getSystemdManager() dbus.BusObject {
