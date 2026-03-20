@@ -45,7 +45,7 @@ func (h *Handlers) Register(er godest.EchoRouter, tsr turbostreams.Router, em go
 	cable.New(
 		h.r, h.globals.Base.ACSigner, h.globals.Base.TSBroker, l,
 	).Register(er)
-	home.New(h.r).Register(er)
+	home.New(h.r, h.globals.Systemd, h.globals.Sidecar, l).Register(er)
 	identity.New(h.r).Register(er)
 	internet.New(h.r, tsh, h.globals.NetworkManager, h.globals.Sidecar, l).Register(er, tsr)
 	h.remote = remote.New(h.r, h.globals.Tailscale)

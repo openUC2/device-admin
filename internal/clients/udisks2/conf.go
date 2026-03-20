@@ -1,7 +1,0 @@
-package udisks2
-
-type Config struct{}
-
-func GetConfig() (c Config, err error) {
-	return c, nil
-}

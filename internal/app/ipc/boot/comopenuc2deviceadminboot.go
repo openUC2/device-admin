@@ -6,28 +6,32 @@ package comopenuc2deviceadminboot
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/varlink/go/varlink"
 )
 
 // Generated type declarations
 
-// The service does not have permission to perform the requested operation.
-type PermissionDenied struct{}
+// The service was unable to perform the requested operation for an unspecified reason.
+type Unknown struct {
+	Description string `json:"description"`
+}
 
-func (e PermissionDenied) Error() string {
-	s := "com.openuc2.deviceadmin.boot.PermissionDenied"
+func (e Unknown) Error() string {
+	s := "com.openuc2.deviceadmin.boot.Unknown"
+	s += fmt.Sprintf("(Description: %v)", e.Description)
 	return s
 }
 
 func Dispatch_Error(err error) error {
 	if e, ok := err.(*varlink.Error); ok {
 		switch e.Name {
-		case "com.openuc2.deviceadmin.boot.PermissionDenied":
+		case "com.openuc2.deviceadmin.boot.Unknown":
 			errorRawParameters := e.Parameters.(*json.RawMessage)
 			if errorRawParameters == nil {
 				return e
 			}
-			var param PermissionDenied
+			var param Unknown
 			err := json.Unmarshal(*errorRawParameters, &param)
 			if err != nil {
 				return e
@@ -187,10 +191,11 @@ type VarlinkCall struct{ varlink.Call }
 
 // Generated reply methods for all varlink errors
 
-// The service does not have permission to perform the requested operation.
-func (c *VarlinkCall) ReplyPermissionDenied(ctx context.Context) error {
-	var out PermissionDenied
-	return c.ReplyError(ctx, "com.openuc2.deviceadmin.boot.PermissionDenied", &out)
+// The service was unable to perform the requested operation for an unspecified reason.
+func (c *VarlinkCall) ReplyUnknown(ctx context.Context, description_ string) error {
+	var out Unknown
+	out.Description = description_
+	return c.ReplyError(ctx, "com.openuc2.deviceadmin.boot.Unknown", &out)
 }
 
 // Generated reply methods for all varlink methods
@@ -265,8 +270,8 @@ method Reboot() -> ()
 # This operation only reboots userspace, leaving the kernel running.
 method SoftReboot() -> ()
 
-# The service does not have permission to perform the requested operation.
-error PermissionDenied ()
+# The service was unable to perform the requested operation for an unspecified reason.
+error Unknown (description: string)
 `
 }
 

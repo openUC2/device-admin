@@ -11,6 +11,7 @@ import (
 	"github.com/openUC2/device-admin/internal/app/server/conf"
 	"github.com/openUC2/device-admin/internal/clients/networkmanager"
 	"github.com/openUC2/device-admin/internal/clients/sidecar"
+	"github.com/openUC2/device-admin/internal/clients/systemd"
 	"github.com/openUC2/device-admin/internal/clients/tailscale"
 	"github.com/openUC2/device-admin/internal/clients/templates"
 	"github.com/openUC2/device-admin/internal/clients/udisks2"
@@ -33,6 +34,7 @@ type Globals struct {
 	Base   *BaseGlobals
 
 	Sidecar        *sidecar.Client
+	Systemd        *systemd.Client
 	NetworkManager *networkmanager.Client
 	Tailscale      *tailscale.Client
 	UDisks2        *udisks2.Client
@@ -70,24 +72,10 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 	}
 
 	g.Sidecar = sidecar.NewClient(config.Sidecar)
-
-	networkManagerConfig, err := networkmanager.GetConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't set up networkmanager config")
-	}
-	g.NetworkManager = networkmanager.NewClient(networkManagerConfig, g.Base.Logger)
-
-	tailscaleConfig, err := tailscale.GetConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't set up tailscale config")
-	}
-	g.Tailscale = tailscale.NewClient(tailscaleConfig, g.Base.Logger)
-
-	uDisks2Config, err := udisks2.GetConfig()
-	if err != nil {
-		return nil, errors.Wrap(err, "couldn't set up udisks2 config")
-	}
-	g.UDisks2 = udisks2.NewClient(uDisks2Config, g.Base.Logger)
+	g.Systemd = systemd.NewClient(systemd.Config{}, g.Base.Logger)
+	g.NetworkManager = networkmanager.NewClient(networkmanager.Config{}, g.Base.Logger)
+	g.Tailscale = tailscale.NewClient(tailscale.Config{}, g.Base.Logger)
+	g.UDisks2 = udisks2.NewClient(udisks2.Config{}, g.Base.Logger)
 
 	return g, nil
 }

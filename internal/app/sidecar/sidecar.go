@@ -73,6 +73,14 @@ func (s *Sidecar) Run(ctx context.Context) error {
 func (s *Sidecar) runWorkersInContext(ctx context.Context) error {
 	eg, _ := errgroup.WithContext(ctx) // Workers run independently, so we don't need egctx
 	eg.Go(func() error {
+		if err := s.Globals.Systemd.Open(ctx); err != nil {
+			s.Globals.Base.Logger.Error("couldn't open systemd client")
+			// Even if Systemd is unavailable, other parts of device-admin are still useful, so we
+			// don't propagate the error from here
+		}
+		return nil
+	})
+	eg.Go(func() error {
 		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
 			// Even if NetworkManager is unavailable, other parts of device-admin are still useful, so we

@@ -21,6 +21,8 @@ type Client struct {
 	l    godest.Logger
 }
 
+type Config struct{}
+
 func NewClient(c Config, l godest.Logger) *Client {
 	ts := tcl.Client{}
 	return &Client{
