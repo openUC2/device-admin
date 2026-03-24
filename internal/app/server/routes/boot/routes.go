@@ -80,7 +80,7 @@ func (h *Handlers) HandleBootPost() echo.HandlerFunc {
 					Action:   turbostreams.ActionAppend,
 					Target:   "boot_buttons",
 					Template: st,
-					Data: map[string]interface{}{
+					Data: map[string]any{
 						"state": state,
 					},
 				},
