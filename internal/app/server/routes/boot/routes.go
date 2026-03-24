@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
+	"github.com/sargassum-world/godest/turbostreams"
 
 	ipc "github.com/openUC2/device-admin/internal/app/ipc/boot"
 	sh "github.com/openUC2/device-admin/internal/app/server/handling"
@@ -59,6 +60,8 @@ func (h *Handlers) HandleBootGet() echo.HandlerFunc {
 }
 
 func (h *Handlers) HandleBootPost() echo.HandlerFunc {
+	st := "boot/shutdown-progress.partial.tmpl"
+	h.r.MustHave(st)
 	return func(c echo.Context) error {
 		// Parse params
 		state := c.FormValue("state")
@@ -66,46 +69,64 @@ func (h *Handlers) HandleBootPost() echo.HandlerFunc {
 
 		// Run queries
 		ctx := c.Request().Context()
-		switch state {
-		default:
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
-				"invalid boot state %s", state,
-			))
-		case "soft-rebooted":
-			if err := shutdownViaSidecar(ctx, "SoftReboot", h.scc, h.l); err != nil {
-				if sdErr := h.sdc.SoftReboot(ctx); err != nil {
-					return errors.Wrapf(
-						sdErr, "couldn't soft-reboot through sidecar (%s) or directly", err.Error(),
-					)
-				}
-				h.l.Warnf("soft-rebooted directly after failure to soft-reboot through sidecar", err)
+		if err := shutdown(ctx, state, h.scc, h.sdc, h.l); err != nil {
+			return err
+		}
+		// Redirect user
+		if turbostreams.Accepted(c.Request().Header) {
+			return h.r.TurboStream(
+				c.Response(),
+				turbostreams.Message{
+					Action:   turbostreams.ActionAppend,
+					Target:   "boot_buttons",
+					Template: st,
+					Data: map[string]interface{}{
+						"state": state,
+					},
+				},
+			)
+		}
+		return c.Redirect(http.StatusSeeOther, redirectTarget)
+	}
+}
+
+func shutdown(
+	ctx context.Context, state string, scc *sc.Client, sdc *sd.Client, l godest.Logger,
+) error {
+	switch state {
+	default:
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
+			"invalid boot state %s", state,
+		))
+	case "soft-rebooted":
+		if err := shutdownViaSidecar(ctx, "SoftReboot", scc, l); err != nil {
+			if sdErr := sdc.SoftReboot(ctx); err != nil {
+				return errors.Wrapf(
+					sdErr, "couldn't soft-reboot through sidecar (%s) or directly", err.Error(),
+				)
 			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, redirectTarget)
-		case "rebooted":
-			if err := shutdownViaSidecar(ctx, "Reboot", h.scc, h.l); err != nil {
-				if sdErr := h.sdc.Reboot(ctx); err != nil {
-					return errors.Wrapf(
-						sdErr, "couldn't reboot through sidecar (%s) or directly", err.Error(),
-					)
-				}
-				h.l.Warnf("rebooted directly after failure to reboot through sidecar", err)
+			l.Warnf("soft-rebooted directly after failure to soft-reboot through sidecar", err)
+		}
+	case "rebooted":
+		if err := shutdownViaSidecar(ctx, "Reboot", scc, l); err != nil {
+			if sdErr := sdc.Reboot(ctx); err != nil {
+				return errors.Wrapf(
+					sdErr, "couldn't reboot through sidecar (%s) or directly", err.Error(),
+				)
 			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, redirectTarget)
-		case "powered-off":
-			if err := shutdownViaSidecar(ctx, "Poweroff", h.scc, h.l); err != nil {
-				if sdErr := h.sdc.Poweroff(ctx); err != nil {
-					return errors.Wrapf(
-						sdErr, "couldn't power-off through sidecar (%s) or directly", err.Error(),
-					)
-				}
-				h.l.Warnf("powered-off directly after failure to power-off through sidecar", err)
+			l.Warnf("rebooted directly after failure to reboot through sidecar", err)
+		}
+	case "powered-off":
+		if err := shutdownViaSidecar(ctx, "Poweroff", scc, l); err != nil {
+			if sdErr := sdc.Poweroff(ctx); err != nil {
+				return errors.Wrapf(
+					sdErr, "couldn't power-off through sidecar (%s) or directly", err.Error(),
+				)
 			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, redirectTarget)
+			l.Warnf("powered-off directly after failure to power-off through sidecar", err)
 		}
 	}
+	return nil
 }
 
 func shutdownViaSidecar(ctx context.Context, method string, scc *sc.Client, l godest.Logger) error {

@@ -1,0 +1,12 @@
+{{$state := get . "state"}}
+
+<article class="message is-info mb-3">
+  <div class="message-body">
+    {{if eq $state "powered-off"}}
+      Shutting down...
+    {{else}}
+      Rebooting...
+    {{end}}
+  </div>
+</article>
+

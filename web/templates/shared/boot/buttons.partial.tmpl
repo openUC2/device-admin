@@ -1,60 +1,64 @@
 {{$basePath := (get . "basePath")}}
 {{$redirectTarget := (get . "redirectTarget")}}
 
-<div class="control">
-  <form
-    action="{{$basePath}}boot"
-    method="POST"
-    data-controller="form-submission"
-    data-action="submit->form-submission#submit"
-    data-form-submission-target="submitter"
-    class="mb-3"
-  >
-    <input type="hidden" name="state" value="soft-rebooted">
-    <input type="hidden" name="redirect-target" value="{{$redirectTarget}}">
-    <input
-      class="button is-primary"
-      type="submit"
-      value="Soft reboot"
-      data-form-submission-target="submit"
-    >
-  </form>
-</div>
-<div class="control">
-  <form
-    action="{{$basePath}}boot"
-    method="POST"
-    data-controller="form-submission"
-    data-action="submit->form-submission#submit"
-    data-form-submission-target="submitter"
-    class="mb-3"
-  >
-    <input type="hidden" name="state" value="rebooted">
-    <input type="hidden" name="redirect-target" value="{{$redirectTarget}}">
-    <input
-      class="button is-primary"
-      type="submit"
-      value="Full reboot"
-      data-form-submission-target="submit"
-    >
-  </form>
-</div>
-<div class="control">
-  <form
-    action="{{$basePath}}boot"
-    method="POST"
-    data-controller="form-submission"
-    data-action="submit->form-submission#submit"
-    data-form-submission-target="submitter"
-    class="mb-3"
-  >
-    <input type="hidden" name="state" value="powered-off">
-    <input type="hidden" name="redirect-target" value="{{$redirectTarget}}">
-    <input
-      class="button is-primary"
-      type="submit"
-      value="Shut down"
-      data-form-submission-target="submit"
-    >
-  </form>
+<div id="boot_buttons">
+  <div class="field is-grouped">
+    <div class="control">
+      <form
+        action="{{$basePath}}boot"
+        method="POST"
+        data-controller="form-submission"
+        data-action="submit->form-submission#submit"
+        data-form-submission-target="submitter"
+        class="mb-3"
+      >
+        <input type="hidden" name="state" value="soft-rebooted">
+        <input type="hidden" name="redirect-target" value="{{$redirectTarget}}">
+        <input
+          class="button is-primary"
+          type="submit"
+          value="Soft reboot"
+          data-form-submission-target="submit"
+        >
+      </form>
+    </div>
+    <div class="control">
+      <form
+        action="{{$basePath}}boot"
+        method="POST"
+        data-controller="form-submission"
+        data-action="submit->form-submission#submit"
+        data-form-submission-target="submitter"
+        class="mb-3"
+      >
+        <input type="hidden" name="state" value="rebooted">
+        <input type="hidden" name="redirect-target" value="{{$redirectTarget}}">
+        <input
+          class="button is-primary"
+          type="submit"
+          value="Full reboot"
+          data-form-submission-target="submit"
+        >
+      </form>
+    </div>
+    <div class="control">
+      <form
+        action="{{$basePath}}boot"
+        method="POST"
+        data-controller="form-submission"
+        data-action="submit->form-submission#submit"
+        data-form-submission-target="submitter"
+        class="mb-3"
+      >
+        <input type="hidden" name="state" value="powered-off">
+        <input type="hidden" name="redirect-target" value="{{$redirectTarget}}">
+        <input
+          class="button is-primary"
+          type="submit"
+          value="Shut down"
+          data-form-submission-target="submit"
+        >
+      </form>
+    </div>
+  </div>
 </div>
