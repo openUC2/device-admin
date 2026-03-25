@@ -12,6 +12,17 @@ import (
 
 // Generated type declarations
 
+// The uuid input provided was invalid.
+type InvalidUUID struct {
+	Description string `json:"description"`
+}
+
+func (e InvalidUUID) Error() string {
+	s := "com.openuc2.deviceadmin.networkmanager.InvalidUUID"
+	s += fmt.Sprintf("(Description: %v)", e.Description)
+	return s
+}
+
 // The service was unable to perform the requested operation for an unspecified reason.
 type Unknown struct {
 	Description string `json:"description"`
@@ -26,6 +37,17 @@ func (e Unknown) Error() string {
 func Dispatch_Error(err error) error {
 	if e, ok := err.(*varlink.Error); ok {
 		switch e.Name {
+		case "com.openuc2.deviceadmin.networkmanager.InvalidUUID":
+			errorRawParameters := e.Parameters.(*json.RawMessage)
+			if errorRawParameters == nil {
+				return e
+			}
+			var param InvalidUUID
+			err := json.Unmarshal(*errorRawParameters, &param)
+			if err != nil {
+				return e
+			}
+			return &param
 		case "com.openuc2.deviceadmin.networkmanager.Unknown":
 			errorRawParameters := e.Parameters.(*json.RawMessage)
 			if errorRawParameters == nil {
@@ -44,13 +66,13 @@ func Dispatch_Error(err error) error {
 
 // Generated client method calls
 
-// ReloadConnections reloads all network connection files from disk, including noticing any added or
+// ReloadConnProfiles reloads all connection profiles from disk, including noticing any added or
 // deleted connection files.
-type ReloadConnections_methods struct{}
+type ReloadConnProfiles_methods struct{}
 
-func ReloadConnections() ReloadConnections_methods { return ReloadConnections_methods{} }
+func ReloadConnProfiles() ReloadConnProfiles_methods { return ReloadConnProfiles_methods{} }
 
-func (m ReloadConnections_methods) Call(ctx context.Context, c *varlink.Connection) (err_ error) {
+func (m ReloadConnProfiles_methods) Call(ctx context.Context, c *varlink.Connection) (err_ error) {
 	receive, err_ := m.Send(ctx, c, 0)
 	if err_ != nil {
 		return
@@ -59,8 +81,8 @@ func (m ReloadConnections_methods) Call(ctx context.Context, c *varlink.Connecti
 	return
 }
 
-func (m ReloadConnections_methods) Send(ctx context.Context, c *varlink.Connection, flags uint64) (func(ctx context.Context) (uint64, error), error) {
-	receive, err := c.Send(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnections", nil, flags)
+func (m ReloadConnProfiles_methods) Send(ctx context.Context, c *varlink.Connection, flags uint64) (func(ctx context.Context) (uint64, error), error) {
+	receive, err := c.Send(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnProfiles", nil, flags)
 	if err != nil {
 		return nil, err
 	}
@@ -74,8 +96,60 @@ func (m ReloadConnections_methods) Send(ctx context.Context, c *varlink.Connecti
 	}, nil
 }
 
-func (m ReloadConnections_methods) Upgrade(ctx context.Context, c *varlink.Connection) (func(ctx context.Context) (flags uint64, conn varlink.ReadWriterContext, err_ error), error) {
-	receive, err := c.Upgrade(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnections", nil)
+func (m ReloadConnProfiles_methods) Upgrade(ctx context.Context, c *varlink.Connection) (func(ctx context.Context) (flags uint64, conn varlink.ReadWriterContext, err_ error), error) {
+	receive, err := c.Upgrade(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnProfiles", nil)
+	if err != nil {
+		return nil, err
+	}
+	return func(context.Context) (flags uint64, conn varlink.ReadWriterContext, err error) {
+		flags, conn, err = receive(ctx, nil)
+		if err != nil {
+			err = Dispatch_Error(err)
+			return
+		}
+		return
+	}, nil
+}
+
+// ReloadConnProfile reloads the UUID-specified connection profile from disk.
+type ReloadConnProfile_methods struct{}
+
+func ReloadConnProfile() ReloadConnProfile_methods { return ReloadConnProfile_methods{} }
+
+func (m ReloadConnProfile_methods) Call(ctx context.Context, c *varlink.Connection, uuid_in_ string) (err_ error) {
+	receive, err_ := m.Send(ctx, c, 0, uuid_in_)
+	if err_ != nil {
+		return
+	}
+	_, err_ = receive(ctx)
+	return
+}
+
+func (m ReloadConnProfile_methods) Send(ctx context.Context, c *varlink.Connection, flags uint64, uuid_in_ string) (func(ctx context.Context) (uint64, error), error) {
+	var in struct {
+		Uuid string `json:"uuid"`
+	}
+	in.Uuid = uuid_in_
+	receive, err := c.Send(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnProfile", in, flags)
+	if err != nil {
+		return nil, err
+	}
+	return func(context.Context) (flags uint64, err error) {
+		flags, err = receive(ctx, nil)
+		if err != nil {
+			err = Dispatch_Error(err)
+			return
+		}
+		return
+	}, nil
+}
+
+func (m ReloadConnProfile_methods) Upgrade(ctx context.Context, c *varlink.Connection, uuid_in_ string) (func(ctx context.Context) (flags uint64, conn varlink.ReadWriterContext, err_ error), error) {
+	var in struct {
+		Uuid string `json:"uuid"`
+	}
+	in.Uuid = uuid_in_
+	receive, err := c.Upgrade(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnProfile", in)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +166,8 @@ func (m ReloadConnections_methods) Upgrade(ctx context.Context, c *varlink.Conne
 // Generated service interface with all methods
 
 type comopenuc2deviceadminnetworkmanagerInterface interface {
-	ReloadConnections(ctx context.Context, c VarlinkCall) error
+	ReloadConnProfiles(ctx context.Context, c VarlinkCall) error
+	ReloadConnProfile(ctx context.Context, c VarlinkCall, uuid_ string) error
 }
 
 // Generated service object with all methods
@@ -100,6 +175,13 @@ type comopenuc2deviceadminnetworkmanagerInterface interface {
 type VarlinkCall struct{ varlink.Call }
 
 // Generated reply methods for all varlink errors
+
+// The uuid input provided was invalid.
+func (c *VarlinkCall) ReplyInvalidUUID(ctx context.Context, description_ string) error {
+	var out InvalidUUID
+	out.Description = description_
+	return c.ReplyError(ctx, "com.openuc2.deviceadmin.networkmanager.InvalidUUID", &out)
+}
 
 // The service was unable to perform the requested operation for an unspecified reason.
 func (c *VarlinkCall) ReplyUnknown(ctx context.Context, description_ string) error {
@@ -110,24 +192,43 @@ func (c *VarlinkCall) ReplyUnknown(ctx context.Context, description_ string) err
 
 // Generated reply methods for all varlink methods
 
-func (c *VarlinkCall) ReplyReloadConnections(ctx context.Context) error {
+func (c *VarlinkCall) ReplyReloadConnProfiles(ctx context.Context) error {
+	return c.Reply(ctx, nil)
+}
+
+func (c *VarlinkCall) ReplyReloadConnProfile(ctx context.Context) error {
 	return c.Reply(ctx, nil)
 }
 
 // Generated dummy implementations for all varlink methods
 
-// ReloadConnections reloads all network connection files from disk, including noticing any added or
+// ReloadConnProfiles reloads all connection profiles from disk, including noticing any added or
 // deleted connection files.
-func (s *VarlinkInterface) ReloadConnections(ctx context.Context, c VarlinkCall) error {
-	return c.ReplyMethodNotImplemented(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnections")
+func (s *VarlinkInterface) ReloadConnProfiles(ctx context.Context, c VarlinkCall) error {
+	return c.ReplyMethodNotImplemented(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnProfiles")
+}
+
+// ReloadConnProfile reloads the UUID-specified connection profile from disk.
+func (s *VarlinkInterface) ReloadConnProfile(ctx context.Context, c VarlinkCall, uuid_ string) error {
+	return c.ReplyMethodNotImplemented(ctx, "com.openuc2.deviceadmin.networkmanager.ReloadConnProfile")
 }
 
 // Generated method call dispatcher
 
 func (s *VarlinkInterface) VarlinkDispatch(ctx context.Context, call varlink.Call, methodname string) error {
 	switch methodname {
-	case "ReloadConnections":
-		return s.comopenuc2deviceadminnetworkmanagerInterface.ReloadConnections(ctx, VarlinkCall{call})
+	case "ReloadConnProfiles":
+		return s.comopenuc2deviceadminnetworkmanagerInterface.ReloadConnProfiles(ctx, VarlinkCall{call})
+
+	case "ReloadConnProfile":
+		var in struct {
+			Uuid string `json:"uuid"`
+		}
+		err := call.GetParameters(&in)
+		if err != nil {
+			return call.ReplyInvalidParameter(ctx, "parameters")
+		}
+		return s.comopenuc2deviceadminnetworkmanagerInterface.ReloadConnProfile(ctx, VarlinkCall{call}, in.Uuid)
 
 	default:
 		return call.ReplyMethodNotFound(ctx, methodname)
@@ -146,9 +247,15 @@ func (s *VarlinkInterface) VarlinkGetDescription() string {
 	return `# com.openuc2.deviceadmin.networkmanager manages NetworkManager.
 interface com.openuc2.deviceadmin.networkmanager
 
-# ReloadConnections reloads all network connection files from disk, including noticing any added or
+# ReloadConnProfiles reloads all connection profiles from disk, including noticing any added or
 # deleted connection files.
-method ReloadConnections() -> ()
+method ReloadConnProfiles() -> ()
+
+# ReloadConnProfile reloads the UUID-specified connection profile from disk.
+method ReloadConnProfile(uuid: string) -> ()
+
+# The uuid input provided was invalid.
+error InvalidUUID (description: string)
 
 # The service was unable to perform the requested operation for an unspecified reason.
 error Unknown (description: string)

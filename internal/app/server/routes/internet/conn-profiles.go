@@ -38,12 +38,7 @@ func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {
 			))
 		case "reloaded":
 			if err := reloadConnProfilesViaSidecar(ctx, h.scc, h.l); err != nil {
-				if nmErr := h.nmc.ReloadConnProfiles(ctx); err != nil {
-					return errors.Wrapf(
-						nmErr, "couldn't reload through sidecar (%s) or directly", err.Error(),
-					)
-				}
-				h.l.Warnf("reloaded directly after failure to reload through sidecar", err)
+				return errors.Wrapf(err, "couldn't reload through sidecar")
 			}
 			// Redirect user
 			return c.Redirect(http.StatusSeeOther, redirectTarget)
@@ -64,8 +59,8 @@ func reloadConnProfilesViaSidecar(ctx context.Context, scc *sc.Client, l godest.
 			l.Error(errors.New("couldn't close connection to sidecar"))
 		}
 	}()
-	if err := ipc.ReloadConnections().Call(ctx, conn); err != nil {
-		return errors.Wrap(err, "couldn't call sidecar's ReloadConnections method")
+	if err := ipc.ReloadConnProfiles().Call(ctx, conn); err != nil {
+		return errors.Wrap(err, "couldn't call sidecar's ReloadConnProfiles method")
 	}
 	return nil
 }
@@ -175,6 +170,12 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("unparsable UUID %s", rawUUID))
 		}
+
+		// Parse form
+		formValues, err := c.FormParams()
+		if err != nil {
+			return errors.Wrap(err, "couldn't load form parameters")
+		}
 		state := c.FormValue("state")
 		redirectTarget := c.FormValue("redirect-target")
 
@@ -189,43 +190,53 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf(
 				"invalid connection profiles state %s", state,
 			))
+		case "reloaded":
+			if err := reloadConnProfileViaSidecar(ctx, uid, h.scc, h.l); err != nil {
+				return errors.Wrapf(err, "couldn't reload connection profile %s", rawUUID)
+			}
 		case "activated-transiently":
 			if err := h.nmc.ActivateConnProfile(ctx, uid); err != nil {
-				return err
+				return errors.Wrapf(err, "couldn't activate connection profile %s", rawUUID)
 			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		case "simplified-updated", "simplified-updated-activated":
-			formValues, err := c.FormParams()
-			if err != nil {
-				return errors.Wrap(err, "couldn't load form parameters")
-			}
-			if err := updateConnProfile(
-				ctx, uid, "save and apply", formValues, h.nmc,
-			); err != nil {
+			if err := updateConnProfile(ctx, uid, "save and apply", formValues, h.nmc); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
 			if state == "simplified-updated-activated" {
 				if err := h.nmc.ActivateConnProfile(ctx, uid); err != nil {
-					return err
+					return errors.Wrapf(err, "couldn't activate connection profile %s", rawUUID)
 				}
 			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		case "updated":
-			formValues, err := c.FormParams()
-			if err != nil {
-				return errors.Wrap(err, "couldn't load form parameters")
-			}
-			if err := updateConnProfile(
-				ctx, uid, c.FormValue("update-type"), formValues, h.nmc,
-			); err != nil {
+			updateType := c.FormValue("update-type")
+			if err := updateConnProfile(ctx, uid, updateType, formValues, h.nmc); err != nil {
 				return errors.Wrapf(err, "couldn't update connection profile %s", rawUUID)
 			}
-			// Redirect user
-			return c.Redirect(http.StatusSeeOther, redirectTarget)
 		}
+		// Redirect user
+		return c.Redirect(http.StatusSeeOther, redirectTarget)
 	}
+}
+
+func reloadConnProfileViaSidecar(
+	ctx context.Context, uid uuid.UUID, scc *sc.Client, l godest.Logger,
+) error {
+	conn, err := scc.Open(ctx)
+	if err != nil {
+		return errors.Wrap(err, "couldn't open connection to sidecar")
+	}
+	defer func() {
+		if conn == nil {
+			return
+		}
+		if err := conn.Close(); err != nil {
+			l.Error(errors.New("couldn't close connection to sidecar"))
+		}
+	}()
+	if err := ipc.ReloadConnProfile().Call(ctx, conn, uid.String()); err != nil {
+		return errors.Wrap(err, "couldn't call sidecar's ReloadConnProfiles method")
+	}
+	return nil
 }
 
 func updateConnProfile(

@@ -14,22 +14,19 @@ import (
 	ipc "github.com/openUC2/device-admin/internal/app/ipc/boot"
 	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
-	sd "github.com/openUC2/device-admin/internal/clients/systemd"
 )
 
 type Handlers struct {
 	r godest.TemplateRenderer
 
-	sdc *sd.Client
 	scc *sc.Client
 
 	l godest.Logger
 }
 
-func New(r godest.TemplateRenderer, sdc *sd.Client, scc *sc.Client, l godest.Logger) *Handlers {
+func New(r godest.TemplateRenderer, scc *sc.Client, l godest.Logger) *Handlers {
 	return &Handlers{
 		r:   r,
-		sdc: sdc,
 		scc: scc,
 		l:   l,
 	}
@@ -69,7 +66,7 @@ func (h *Handlers) HandleBootPost() echo.HandlerFunc {
 
 		// Run queries
 		ctx := c.Request().Context()
-		if err := shutdown(ctx, state, h.scc, h.sdc, h.l); err != nil {
+		if err := shutdown(ctx, state, h.scc, h.l); err != nil {
 			return err
 		}
 		// Redirect user
@@ -91,7 +88,7 @@ func (h *Handlers) HandleBootPost() echo.HandlerFunc {
 }
 
 func shutdown(
-	ctx context.Context, state string, scc *sc.Client, sdc *sd.Client, l godest.Logger,
+	ctx context.Context, state string, scc *sc.Client, l godest.Logger,
 ) error {
 	switch state {
 	default:
@@ -100,30 +97,15 @@ func shutdown(
 		))
 	case "soft-rebooted":
 		if err := shutdownViaSidecar(ctx, "SoftReboot", scc, l); err != nil {
-			if sdErr := sdc.SoftReboot(ctx); err != nil {
-				return errors.Wrapf(
-					sdErr, "couldn't soft-reboot through sidecar (%s) or directly", err.Error(),
-				)
-			}
-			l.Warnf("soft-rebooted directly after failure to soft-reboot through sidecar", err)
+			return errors.Wrapf(err, "couldn't soft-reboot through sidecar")
 		}
 	case "rebooted":
 		if err := shutdownViaSidecar(ctx, "Reboot", scc, l); err != nil {
-			if sdErr := sdc.Reboot(ctx); err != nil {
-				return errors.Wrapf(
-					sdErr, "couldn't reboot through sidecar (%s) or directly", err.Error(),
-				)
-			}
-			l.Warnf("rebooted directly after failure to reboot through sidecar", err)
+			return errors.Wrapf(err, "couldn't reboot through sidecar")
 		}
 	case "powered-off":
 		if err := shutdownViaSidecar(ctx, "Poweroff", scc, l); err != nil {
-			if sdErr := sdc.Poweroff(ctx); err != nil {
-				return errors.Wrapf(
-					sdErr, "couldn't power-off through sidecar (%s) or directly", err.Error(),
-				)
-			}
-			l.Warnf("powered-off directly after failure to power-off through sidecar", err)
+			return errors.Wrapf(err, "couldn't power-off through sidecar")
 		}
 	}
 	return nil

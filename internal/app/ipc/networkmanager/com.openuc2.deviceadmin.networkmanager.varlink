@@ -1,9 +1,15 @@
 # com.openuc2.deviceadmin.networkmanager manages NetworkManager.
 interface com.openuc2.deviceadmin.networkmanager
 
-# ReloadConnections reloads all network connection files from disk, including noticing any added or
+# ReloadConnProfiles reloads all connection profiles from disk, including noticing any added or
 # deleted connection files.
-method ReloadConnections() -> ()
+method ReloadConnProfiles() -> ()
+
+# ReloadConnProfile reloads the UUID-specified connection profile from disk.
+method ReloadConnProfile(uuid: string) -> ()
+
+# The uuid input provided was invalid.
+error InvalidUUID (description: string)
 
 # The service was unable to perform the requested operation for an unspecified reason.
 error Unknown (description: string)

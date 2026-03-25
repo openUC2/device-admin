@@ -43,7 +43,7 @@ func (h *Handlers) Register(er godest.EchoRouter, tsr turbostreams.Router, em go
 
 	assets.RegisterStatic(h.r.BasePath, er, em)
 	assets.NewTemplated(h.r).Register(er)
-	boot.New(h.r, h.globals.Systemd, h.globals.Sidecar, l).Register(er)
+	boot.New(h.r, h.globals.Sidecar, l).Register(er)
 	cable.New(
 		h.r, h.globals.Base.ACSigner, h.globals.Base.TSBroker, l,
 	).Register(er)
