@@ -96,6 +96,31 @@
               >
             </form>
           </div>
+        {{if ne .Data.ConnProfile.Filename ""}}
+          <div class="field is-grouped">
+            <div class="control">
+              <form
+                action="{{.Meta.Path}}"
+                method="POST"
+                data-controller="form-submission"
+                data-action="submit->form-submission#submit"
+                data-form-submission-target="submitter"
+                class="mt-4 mb-3"
+              >
+                <input type="hidden" name="state" value="reloaded">
+                <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+                  "path" .Meta.Path
+                  "query" .Meta.Form.Encode
+                )}}">
+                <input
+                  class="button is-primary"
+                  type="submit"
+                  value="Reload this profile"
+                  data-form-submission-target="submit"
+                >
+              </form>
+            </div>
+          {{end}}
           <div class="control">
             <form
               action="{{.Meta.Path}}"

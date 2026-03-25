@@ -139,6 +139,36 @@ func (c *Client) ReloadConnProfiles(ctx context.Context) error {
 	return nil
 }
 
+func (c *Client) ReloadConnProfile(ctx context.Context, uid uuid.UUID) error {
+	conno, err := c.findConnProfileByUUID(ctx, uid)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid)
+	}
+
+	var filename string
+	const connName = nmName + ".Settings.Connection"
+	if err = conno.StoreProperty(connName+".Filename", &filename); err != nil {
+		return errors.Wrap(err, "couldn't query for filename")
+	}
+	if filename == "" {
+		return errors.Wrapf(err, "connection with uuid %s is not backed by a file!", uid)
+	}
+
+	nm := c.getNetworkManagerSettings()
+	var status bool
+	var failures []string
+	if err = nm.CallWithContext(
+		ctx, nmName+".Settings.LoadConnections", 0, []string{filename},
+	).Store(&status, &failures); err != nil {
+		return errors.Wrap(err, "couldn't reload connection profiles")
+	}
+	if !status && len(failures) > 0 && len(failures[0]) > 0 {
+		return errors.Errorf("couldn't reload connection profile %s for uuid %s", filename, uid)
+	}
+
+	return nil
+}
+
 func (c *Client) ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {
 	nm := c.getNetworkManager()
 	conno, err := c.findConnProfileByUUID(ctx, uid)
