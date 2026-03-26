@@ -300,7 +300,7 @@ type UpdateFlags uint32
 
 const (
 	UpdateFlagToDisk   = 0x1
-	UpdateFlagInMemory = 0x1
+	UpdateFlagInMemory = 0x2
 )
 
 func makeVariant(value any) (variant dbus.Variant, err error) {
