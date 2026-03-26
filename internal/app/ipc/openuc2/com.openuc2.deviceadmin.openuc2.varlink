@@ -1,0 +1,12 @@
+# com.openuc2.deviceadmin.openuc2 manages openUC2 OS-specific settings.
+interface com.openuc2.deviceadmin.openuc2
+
+# SetWifiHotspotPassword changes the password (declared in the password snippet file located at the
+# specified path) for the Wi-Fi hotspot defined by the specified connection profile and then updates
+# the NetworkManager connection profile for the hotspot. This operation does not start/restart the
+# hotspot unless 1) the Wi-Fi module is idle and able to make the hotspot, and 2) the hotspot is
+# allowed to be started automatically.
+method SetWifiHotspotPassword(connProfile: string, pwFile: string, newPw: string) -> ()
+
+# The service was unable to perform the requested operation for an unspecified reason.
+error Unknown (description: string)

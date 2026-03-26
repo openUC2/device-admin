@@ -9,7 +9,7 @@
   data-controller="form-submission"
   data-action="submit->form-submission#submit"
 >
-  <input type="hidden" name="state" value="updated">
+  <input type="hidden" name="state:updated" value="true">
   <input type="hidden" name="redirect-target" value="{{urlJoin (dict
     "path" $Meta.Path
     "query" $Meta.Form.Encode

@@ -1,0 +1,93 @@
+{{$connProfile := (get . "ConnProfile")}}
+{{$device := (get . "Device")}}
+{{$Meta := (get . "Meta")}}
+
+{{$conn := $connProfile.Settings.Conn}}
+{{$wifi := $connProfile.Settings.Wifi}}
+{{$wifiSec := $connProfile.Settings.WifiSec}}
+
+<turbo-frame id="internet_wifi-hotspot.frame">
+
+  <form
+    action="{{$Meta.BasePath}}internet/conn-profiles/{{$conn.UUID}}"
+    method="POST"
+    data-controller="form-submission"
+    data-action="submit->form-submission#submit"
+  >
+    <input type="hidden" name="state:drop-in-updated" value="true">
+    <input type="hidden" name="state:regenerated" value="true">
+    <input type="hidden" name="state:reloaded" value="true">
+    {{if eq (or $device.IpInterface $device.ControlInterface) "wlan0"}}
+      <input type="hidden" name="activated" value="true">
+    {{end}}
+    <input type="hidden" name="redirect-target" value="{{urlJoin (dict
+      "path" $Meta.Path
+      "query" $Meta.Form.Encode
+    )}}">
+
+    <div class="field">
+      <label class="label">Network</label>
+      <div class="field">
+        <div class="control">
+          <p>{{toString $wifi.SSID}}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="label">Password</label>
+      <div
+        class="field"
+        data-controller="password-input"
+        data-password-input-target="addons"
+      >
+        <div class="control">
+          <input
+            class="input" type="password"
+            name="802-11-wireless-security.psk"
+            minlength=8
+            maxlength=63
+            placeholder="not shown here, for security reasons"
+            required
+            size=30
+            data-password-input-target="input"
+            data-action="input->password-input#edit"
+          >
+        </div>
+        <div class="control">
+          <button
+            class="button is-hidden"
+            data-password-input-target="toggler"
+            data-action="click->password-input#toggle:prevent"
+          >
+            <span class="icon">
+              <img class="mdi mdi-inactive"
+                src="{{$Meta.BasePath}}{{staticHashed "icons/eye-outline.svg"}}"
+                width="20" height="20"
+                alt="Toggle password visibility"
+              >
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" data-form-submission-target="submitter">
+      <div class="field is-grouped">
+        <div class="control">
+          <input
+            class="button is-primary"
+            type="submit"
+            {{if ne (or $device.IpInterface $device.ControlInterface) "wlan0"}}
+              value="Update"
+            {{else}}
+              value="Update and restart"
+            {{end}}
+            data-form-submission-target="submit"
+          >
+        </div>
+      </div>
+    </div>
+  </form>
+
+</turbo-frame>
