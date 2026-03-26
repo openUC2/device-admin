@@ -7,8 +7,6 @@ export default class extends Controller {
     // The toggler only works with Javascript, so we only show it if Javascript is enabled
     this.togglerTarget.classList.remove('is-hidden');
 
-    this.togglerTarget.disabled = this.inputTarget.value === '';
-
     if (this.addonsTarget) {
       this.addonsTarget.classList.add('has-addons');
     }
