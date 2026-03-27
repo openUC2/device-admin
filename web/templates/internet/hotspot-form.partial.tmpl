@@ -18,7 +18,7 @@
     <input type="hidden" name="state:regenerated" value="true">
     <input type="hidden" name="state:reloaded" value="true">
     {{if eq (or $device.IpInterface $device.ControlInterface) "wlan0"}}
-      <input type="hidden" name="activated" value="true">
+      <input type="hidden" name="state:activated" value="true">
     {{end}}
     <input type="hidden" name="redirect-target" value="{{urlJoin (dict
       "path" $Meta.Path
