@@ -33,7 +33,10 @@ func (c *Client) Open(ctx context.Context) (err error) {
 	return nil
 }
 
-const sdName = "org.freedesktop.systemd1"
+const (
+	sdName        = "org.freedesktop.systemd1"
+	sdManagerName = "org.freedesktop.systemd1.Manager"
+)
 
 func (c *Client) getSystemdManager() dbus.BusObject {
 	return c.bus.Object(sdName, "/org/freedesktop/systemd1")
@@ -43,7 +46,7 @@ func (c *Client) getSystemdManager() dbus.BusObject {
 
 func (c *Client) Poweroff(ctx context.Context) error {
 	sdm := c.getSystemdManager()
-	if err := sdm.CallWithContext(ctx, sdName+".Manager.PowerOff", 0).Store(); err != nil {
+	if err := sdm.CallWithContext(ctx, sdManagerName+".PowerOff", 0).Store(); err != nil {
 		return errors.Wrap(err, "couldn't power-off")
 	}
 	return nil
@@ -51,7 +54,7 @@ func (c *Client) Poweroff(ctx context.Context) error {
 
 func (c *Client) Reboot(ctx context.Context) error {
 	sdm := c.getSystemdManager()
-	if err := sdm.CallWithContext(ctx, sdName+".Manager.Reboot", 0).Store(); err != nil {
+	if err := sdm.CallWithContext(ctx, sdManagerName+".Reboot", 0).Store(); err != nil {
 		return errors.Wrap(err, "couldn't reboot")
 	}
 	return nil
@@ -59,8 +62,33 @@ func (c *Client) Reboot(ctx context.Context) error {
 
 func (c *Client) SoftReboot(ctx context.Context) error {
 	sd := c.getSystemdManager()
-	if err := sd.CallWithContext(ctx, sdName+".Manager.SoftReboot", 0, "").Store(); err != nil {
+	if err := sd.CallWithContext(ctx, sdManagerName+".SoftReboot", 0, "").Store(); err != nil {
 		return errors.Wrap(err, "couldn't soft-reboot")
+	}
+	return nil
+}
+
+// Units
+
+func (c *Client) UnitExists(ctx context.Context, name string) (bool, error) {
+	sd := c.getSystemdManager()
+	var unitPath dbus.ObjectPath
+	err := sd.CallWithContext(
+		ctx, sdManagerName+".GetUnit", 0, name,
+	).Store(&unitPath)
+	if err != nil {
+		return false, errors.Wrapf(err, "couldn't find %s", name)
+	}
+	return true, nil
+}
+
+func (c *Client) RestartUnit(ctx context.Context, name string) error {
+	sd := c.getSystemdManager()
+	var jobPath dbus.ObjectPath
+	if err := sd.CallWithContext(
+		ctx, sdManagerName+".RestartUnit", 0, name, "replace",
+	).Store(&jobPath); err != nil {
+		return errors.Wrapf(err, "couldn't restart %s", name)
 	}
 	return nil
 }

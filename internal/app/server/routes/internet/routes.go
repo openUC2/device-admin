@@ -85,10 +85,13 @@ func (h *Handlers) HandleInternetGet() echo.HandlerFunc {
 type InternetViewData struct {
 	NM nm.NetworkManager
 
-	AvailableSSIDs           []string
-	Wlan0HotspotConnProfile  nm.ConnProfile
+	Wlan0HotspotConnProfile      nm.ConnProfile
+	Wlan0Device                  nm.Device
+	Wlan0HotspotPasswordInsecure bool
+
 	Wlan1InternetConnProfile nm.ConnProfile
 	Wlan1Device              nm.Device
+	AvailableSSIDs           []string
 
 	WifiDevices     []nm.Device
 	EthernetDevices []nm.Device
@@ -119,16 +122,30 @@ func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewDa
 	}
 	slices.Sort(vd.AvailableSSIDs)
 
+	if err := collectDevices(ctx, nmc, &vd); err != nil {
+		return vd, err
+	}
+	if err := collectConnProfiles(ctx, nmc, &vd); err != nil {
+		return vd, err
+	}
+
+	return vd, nil
+}
+
+func collectDevices(ctx context.Context, nmc *nm.Client, vd *InternetViewData) error {
 	allDevices, err := nmc.GetDevices(ctx)
 	if err != nil {
-		return vd, errors.Wrap(err, "couldn't list network devices")
+		return errors.Wrap(err, "couldn't list network devices")
 	}
 	for _, device := range allDevices {
 		switch device.Type.Info().Short {
 		default:
 			vd.OtherDevices = append(vd.OtherDevices, device)
 		case "wifi":
-			if cmp.Or(device.IpInterface, device.ControlInterface) == "wlan1" {
+			switch cmp.Or(device.IpInterface, device.ControlInterface) {
+			case "wlan0":
+				vd.Wlan0Device = device
+			case "wlan1":
 				vd.Wlan1Device = device
 			}
 			vd.WifiDevices = append(vd.WifiDevices, device)
@@ -136,10 +153,13 @@ func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewDa
 			vd.EthernetDevices = append(vd.EthernetDevices, device)
 		}
 	}
+	return nil
+}
 
+func collectConnProfiles(ctx context.Context, nmc *nm.Client, vd *InternetViewData) error {
 	connProfiles, err := nmc.ListConnProfiles(ctx)
 	if err != nil {
-		return vd, errors.Wrap(err, "couldn't list connection profiles")
+		return errors.Wrap(err, "couldn't list connection profiles")
 	}
 	for _, connProfile := range connProfiles {
 		switch connProfile.Settings.Conn.Type.Info().Short {
@@ -157,8 +177,7 @@ func getInternetViewData(ctx context.Context, nmc *nm.Client) (vd InternetViewDa
 			vd.OtherConnProfiles = append(vd.OtherConnProfiles, connProfile.Settings.Conn)
 		}
 	}
-
-	return vd, nil
+	return nil
 }
 
 func (h *Handlers) HandleInternetPub() turbostreams.HandlerFunc {

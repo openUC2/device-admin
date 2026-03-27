@@ -2,7 +2,6 @@ package networkmanager
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -10,6 +9,7 @@ import (
 	"github.com/varlink/go/varlink"
 
 	ipc "github.com/openUC2/device-admin/internal/app/ipc/networkmanager"
+	"github.com/openUC2/device-admin/internal/app/sidecar/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 )
 
@@ -33,23 +33,10 @@ func (h *Handlers) Register(service *varlink.Service) error {
 }
 
 func (h *Handlers) ReloadConnProfiles(ctx context.Context, call ipc.VarlinkCall) error {
-	if call.Request != nil {
-		var req struct {
-			Method string `json:"method"`
-		}
-		if err := json.Unmarshal(*call.Request, &req); err == nil {
-			h.l.Info(req.Method)
-		}
-	}
+	handling.LogMethod(call.Request, h.l)
 
 	if err := h.nmc.ReloadConnProfiles(ctx); err != nil {
-		if replyErr := call.ReplyError(
-			ctx, "com.openuc2.deviceadmin.networkmanager.Unknown", ipc.Unknown{Description: err.Error()},
-		); replyErr != nil {
-			h.l.Error(err)
-			return errors.Wrapf(replyErr, "couldn't report error (%s) in method call reply", err.Error())
-		}
-		return err
+		return handling.ReportUnknownError(ctx, &call, err, h.l)
 	}
 	return call.ReplyReloadConnProfiles(ctx)
 }
@@ -57,35 +44,16 @@ func (h *Handlers) ReloadConnProfiles(ctx context.Context, call ipc.VarlinkCall)
 func (h *Handlers) ReloadConnProfile(
 	ctx context.Context, call ipc.VarlinkCall, rawUUID string,
 ) error {
-	if call.Request != nil {
-		var req struct {
-			Method string `json:"method"`
-		}
-		if err := json.Unmarshal(*call.Request, &req); err == nil {
-			h.l.Info(req.Method)
-		}
-	}
+	handling.LogMethod(call.Request, h.l)
 
 	uid, err := uuid.Parse(rawUUID)
 	if err != nil {
-		err = errors.Wrapf(err, "couldn't parse uuid %s", rawUUID)
-		if replyErr := call.ReplyError(
-			ctx, "com.openuc2.deviceadmin.networkmanager.InvalidUUID",
-			ipc.InvalidUUID{Description: err.Error()},
-		); replyErr != nil {
-			h.l.Error(err)
-			return errors.Wrapf(replyErr, "couldn't report error (%s) in method call reply", err.Error())
-		}
-		return err
+		return handling.ReportUnknownError(ctx, &call, errors.Wrapf(
+			err, "couldn't parse uuid %s", rawUUID,
+		), h.l)
 	}
 	if err := h.nmc.ReloadConnProfile(ctx, uid); err != nil {
-		if replyErr := call.ReplyError(
-			ctx, "com.openuc2.deviceadmin.networkmanager.Unknown", ipc.Unknown{Description: err.Error()},
-		); replyErr != nil {
-			h.l.Error(err)
-			return errors.Wrapf(replyErr, "couldn't report error (%s) in method call reply", err.Error())
-		}
-		return err
+		return handling.ReportUnknownError(ctx, &call, err, h.l)
 	}
 	return call.ReplyReloadConnProfiles(ctx)
 }

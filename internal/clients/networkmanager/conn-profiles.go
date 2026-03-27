@@ -140,18 +140,9 @@ func (c *Client) ReloadConnProfiles(ctx context.Context) error {
 }
 
 func (c *Client) ReloadConnProfile(ctx context.Context, uid uuid.UUID) error {
-	conno, err := c.findConnProfileByUUID(ctx, uid)
+	filename, err := c.GetConnProfileFilename(ctx, uid)
 	if err != nil {
-		return errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid)
-	}
-
-	var filename string
-	const connName = nmName + ".Settings.Connection"
-	if err = conno.StoreProperty(connName+".Filename", &filename); err != nil {
-		return errors.Wrap(err, "couldn't query for filename")
-	}
-	if filename == "" {
-		return errors.Wrapf(err, "connection with uuid %s is not backed by a file!", uid)
+		return errors.Wrapf(err, "couldn't determine filename of connection with uuid %s", uid)
 	}
 
 	nm := c.getNetworkManagerSettings()
@@ -167,6 +158,24 @@ func (c *Client) ReloadConnProfile(ctx context.Context, uid uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (c *Client) GetConnProfileFilename(
+	ctx context.Context, uid uuid.UUID,
+) (filename string, err error) {
+	conno, err := c.findConnProfileByUUID(ctx, uid)
+	if err != nil {
+		return "", errors.Wrapf(err, "couldn't find connection profile with uuid %s", uid)
+	}
+
+	const connName = nmName + ".Settings.Connection"
+	if err = conno.StoreProperty(connName+".Filename", &filename); err != nil {
+		return "", errors.Wrap(err, "couldn't query for filename")
+	}
+	if filename == "" {
+		return "", errors.Wrapf(err, "connection with uuid %s is not backed by a file!", uid)
+	}
+	return filename, nil
 }
 
 func (c *Client) ActivateConnProfile(ctx context.Context, uid uuid.UUID) error {

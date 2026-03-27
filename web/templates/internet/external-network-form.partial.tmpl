@@ -65,14 +65,14 @@
     data-controller="form-submission"
     data-action="submit->form-submission#submit"
   >
+    <input type="hidden" name="state:updated" value="true">
+    <input type="hidden" name="update-type" value="save and apply">
     <turbo-frame
       id="internet_devices_wlan1_conn-profile-internet_update-type.frame"
       data-turbo-reload
     >
-      {{if ne (or $device.IpInterface $device.ControlInterface) "wlan1"}}
-        <input type="hidden" name="state" value="simplified-updated">
-      {{else}}
-        <input type="hidden" name="state" value="simplified-updated-activated">
+      {{if eq (or $device.IpInterface $device.ControlInterface) "wlan1"}}
+        <input type="hidden" name="activated" value="true">
       {{end}}
     </turbo-frame>
     <input type="hidden" name="redirect-target" value="{{urlJoin (dict
@@ -245,7 +245,6 @@
             <input
               class="button is-primary"
               type="submit"
-              name="update-type"
               {{if ne (or $device.IpInterface $device.ControlInterface) "wlan1"}}
                 value="Save"
               {{else}}

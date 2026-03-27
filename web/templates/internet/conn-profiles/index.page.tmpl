@@ -107,7 +107,7 @@
                 data-form-submission-target="submitter"
                 class="mt-4 mb-3"
               >
-                <input type="hidden" name="state" value="reloaded">
+                <input type="hidden" name="state:reloaded" value="true">
                 <input type="hidden" name="redirect-target" value="{{urlJoin (dict
                   "path" .Meta.Path
                   "query" .Meta.Form.Encode
@@ -130,7 +130,7 @@
               data-form-submission-target="submitter"
               class="mt-4 mb-3"
             >
-              <input type="hidden" name="state" value="activated-transiently">
+              <input type="hidden" name="state:activated" value="true">
               <input type="hidden" name="redirect-target" value="{{urlJoin (dict
                 "path" .Meta.Path
                 "query" .Meta.Form.Encode
