@@ -116,14 +116,8 @@ func shutdownViaSidecar(ctx context.Context, method string, scc *sc.Client, l go
 	if err != nil {
 		return errors.Wrap(err, "couldn't open connection to sidecar")
 	}
-	defer func() {
-		if conn == nil {
-			return
-		}
-		if err := conn.Close(); err != nil {
-			l.Error(errors.New("couldn't close connection to sidecar"))
-		}
-	}()
+	defer sc.CloseConn(conn, l)
+
 	switch method {
 	default:
 		return errors.Errorf("unknown sidecar method %s", method)

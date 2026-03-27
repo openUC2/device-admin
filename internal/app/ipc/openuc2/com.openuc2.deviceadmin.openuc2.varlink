@@ -1,12 +1,18 @@
 # com.openuc2.deviceadmin.openuc2 manages openUC2 OS-specific settings.
 interface com.openuc2.deviceadmin.openuc2
 
-# SetWifiHotspotPassword changes the password (declared in the password snippet file located at the
-# specified path) for the Wi-Fi hotspot defined by the specified connection profile and then updates
-# the NetworkManager connection profile for the hotspot. This operation does not start/restart the
-# hotspot unless 1) the Wi-Fi module is idle and able to make the hotspot, and 2) the hotspot is
-# allowed to be started automatically.
-method SetWifiHotspotPassword(connProfile: string, pwFile: string, newPw: string) -> ()
-
 # The service was unable to perform the requested operation for an unspecified reason.
 error Unknown (description: string)
+
+# NetworkManager
+
+# UpdatePSKDropInFile updates the specified connection profile (as specified via file-based name,
+# e.g. "wlan0-hotspot")'s Wi-Fi PSK drop-in snippet file (which is automatically determined)
+# with the specified cleartext password.
+# This operation does not try to regenerate the connection profile itself from the drop-in files.
+method UpdatePSKDropInFile(connProfile: string, newPw: string) -> ()
+
+# RegenerateConnProfile reassembles the file for the NetworkManager connection profile (specified by
+# its file-based name, e.g. "wlan0-hotspot") from its constituent drop-in snippet files.
+# This operation does not try to make NetworkManager reload the updated connection profile.
+method RegenerateDropInConnProfile(connProfile: string) -> ()

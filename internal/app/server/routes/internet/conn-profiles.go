@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -17,7 +18,8 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	ipc "github.com/openUC2/device-admin/internal/app/ipc/networkmanager"
+	nmipc "github.com/openUC2/device-admin/internal/app/ipc/networkmanager"
+	uc2ipc "github.com/openUC2/device-admin/internal/app/ipc/openuc2"
 	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
 	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
@@ -51,15 +53,9 @@ func reloadConnProfilesViaSidecar(ctx context.Context, scc *sc.Client, l godest.
 	if err != nil {
 		return errors.Wrap(err, "couldn't open connection to sidecar")
 	}
-	defer func() {
-		if conn == nil {
-			return
-		}
-		if err := conn.Close(); err != nil {
-			l.Error(errors.New("couldn't close connection to sidecar"))
-		}
-	}()
-	if err := ipc.ReloadConnProfiles().Call(ctx, conn); err != nil {
+	defer sc.CloseConn(conn, l)
+
+	if err := nmipc.ReloadConnProfiles().Call(ctx, conn); err != nil {
 		return errors.Wrap(err, "couldn't call sidecar's ReloadConnProfiles method")
 	}
 	return nil
@@ -192,12 +188,14 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 		// context cancellation from the loss ofthe client-server connection:
 		ctx := context.Background()
 		if dropInUpdate {
-			if err := dropInUpdateConnProfileViaSidecar(ctx, uid, h.scc, h.l); err != nil {
+			if err := dropInUpdateConnProfileViaSidecar(
+				ctx, uid, c.FormValue("802-11-wireless-security.psk"), h.nmc, h.scc, h.l,
+			); err != nil {
 				return errors.Wrapf(err, "couldn't regenerate connection profile %s", uid.String())
 			}
 		}
 		if regenerate {
-			if err := regenerateConnProfileViaSidecar(ctx, uid, h.scc, h.l); err != nil {
+			if err := regenerateConnProfileViaSidecar(ctx, uid, h.nmc, h.scc, h.l); err != nil {
 				return errors.Wrapf(err, "couldn't regenerate connection profile %s", uid.String())
 			}
 		}
@@ -223,42 +221,40 @@ func (h *Handlers) HandleConnProfilePostByUUID() echo.HandlerFunc {
 }
 
 func dropInUpdateConnProfileViaSidecar(
-	ctx context.Context, uid uuid.UUID, scc *sc.Client, l godest.Logger,
+	ctx context.Context, uid uuid.UUID, newPw string, nmc *nm.Client, scc *sc.Client, l godest.Logger,
 ) error {
 	conn, err := scc.Open(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't open connection to sidecar")
 	}
-	defer func() {
-		if conn == nil {
-			return
-		}
-		if err := conn.Close(); err != nil {
-			l.Error(errors.New("couldn't close connection to sidecar"))
-		}
-	}()
-	if err := ipc.ReloadConnProfile().Call(ctx, conn, uid.String()); err != nil {
-		return errors.Wrap(err, "couldn't call sidecar's RegenerateConnProfile method")
+	defer sc.CloseConn(conn, l)
+
+	filename, err := nmc.GetConnProfileFilename(ctx, uid)
+	if err != nil {
+		return err
+	}
+	filename = strings.TrimSuffix(path.Base(filename), ".nmconnection")
+	if err := uc2ipc.UpdatePSKDropInFile().Call(ctx, conn, filename, newPw); err != nil {
+		return errors.Wrap(err, "couldn't call sidecar's UpdatePSKDropInFile method")
 	}
 	return nil
 }
 
 func regenerateConnProfileViaSidecar(
-	ctx context.Context, uid uuid.UUID, scc *sc.Client, l godest.Logger,
+	ctx context.Context, uid uuid.UUID, nmc *nm.Client, scc *sc.Client, l godest.Logger,
 ) error {
 	conn, err := scc.Open(ctx)
 	if err != nil {
 		return errors.Wrap(err, "couldn't open connection to sidecar")
 	}
-	defer func() {
-		if conn == nil {
-			return
-		}
-		if err := conn.Close(); err != nil {
-			l.Error(errors.New("couldn't close connection to sidecar"))
-		}
-	}()
-	if err := ipc.ReloadConnProfile().Call(ctx, conn, uid.String()); err != nil {
+	defer sc.CloseConn(conn, l)
+
+	filename, err := nmc.GetConnProfileFilename(ctx, uid)
+	if err != nil {
+		return err
+	}
+	filename = strings.TrimSuffix(path.Base(filename), ".nmconnection")
+	if err := uc2ipc.RegenerateDropInConnProfile().Call(ctx, conn, filename); err != nil {
 		return errors.Wrap(err, "couldn't call sidecar's RegenerateConnProfile method")
 	}
 	return nil
@@ -271,15 +267,10 @@ func reloadConnProfileViaSidecar(
 	if err != nil {
 		return errors.Wrap(err, "couldn't open connection to sidecar")
 	}
-	defer func() {
-		if conn == nil {
-			return
-		}
-		if err := conn.Close(); err != nil {
-			l.Error(errors.New("couldn't close connection to sidecar"))
-		}
-	}()
-	if err := ipc.ReloadConnProfile().Call(ctx, conn, uid.String()); err != nil {
+	defer sc.CloseConn(conn, l)
+
+	connProfileName := uid.String()
+	if err := nmipc.ReloadConnProfile().Call(ctx, conn, connProfileName); err != nil {
 		return errors.Wrap(err, "couldn't call sidecar's ReloadConnProfile method")
 	}
 	return nil

@@ -2,13 +2,12 @@ package boot
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
 	"github.com/varlink/go/varlink"
 
 	ipc "github.com/openUC2/device-admin/internal/app/ipc/boot"
+	"github.com/openUC2/device-admin/internal/app/sidecar/handling"
 	sd "github.com/openUC2/device-admin/internal/clients/systemd"
 )
 
@@ -32,64 +31,28 @@ func (h *Handlers) Register(service *varlink.Service) error {
 }
 
 func (h *Handlers) Poweroff(ctx context.Context, call ipc.VarlinkCall) error {
-	if call.Request != nil {
-		var req struct {
-			Method string `json:"method"`
-		}
-		if err := json.Unmarshal(*call.Request, &req); err == nil {
-			h.l.Info(req.Method)
-		}
-	}
+	handling.LogMethod(call.Request, h.l)
 
 	if err := h.sdc.Poweroff(ctx); err != nil {
-		if replyErr := call.ReplyError(
-			ctx, "com.openuc2.deviceadmin.boot.Unknown", ipc.Unknown{Description: err.Error()},
-		); replyErr != nil {
-			h.l.Error(err)
-			return errors.Wrapf(replyErr, "couldn't report error (%s) in method call reply", err.Error())
-		}
+		return handling.ReportUnknownError(ctx, &call, err, h.l)
 	}
 	return call.ReplyPoweroff(ctx)
 }
 
 func (h *Handlers) Reboot(ctx context.Context, call ipc.VarlinkCall) error {
-	if call.Request != nil {
-		var req struct {
-			Method string `json:"method"`
-		}
-		if err := json.Unmarshal(*call.Request, &req); err == nil {
-			h.l.Info(req.Method)
-		}
-	}
+	handling.LogMethod(call.Request, h.l)
 
 	if err := h.sdc.Reboot(ctx); err != nil {
-		if replyErr := call.ReplyError(
-			ctx, "com.openuc2.deviceadmin.boot.Unknown", ipc.Unknown{Description: err.Error()},
-		); replyErr != nil {
-			h.l.Error(err)
-			return errors.Wrapf(replyErr, "couldn't report error (%s) in method call reply", err.Error())
-		}
+		return handling.ReportUnknownError(ctx, &call, err, h.l)
 	}
 	return call.ReplyReboot(ctx)
 }
 
 func (h *Handlers) SoftReboot(ctx context.Context, call ipc.VarlinkCall) error {
-	if call.Request != nil {
-		var req struct {
-			Method string `json:"method"`
-		}
-		if err := json.Unmarshal(*call.Request, &req); err == nil {
-			h.l.Info(req.Method)
-		}
-	}
+	handling.LogMethod(call.Request, h.l)
 
 	if err := h.sdc.SoftReboot(ctx); err != nil {
-		if replyErr := call.ReplyError(
-			ctx, "com.openuc2.deviceadmin.boot.Unknown", ipc.Unknown{Description: err.Error()},
-		); replyErr != nil {
-			h.l.Error(err)
-			return errors.Wrapf(replyErr, "couldn't report error (%s) in method call reply", err.Error())
-		}
+		return handling.ReportUnknownError(ctx, &call, err, h.l)
 	}
 	return call.ReplySoftReboot(ctx)
 }

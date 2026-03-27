@@ -44,17 +44,16 @@ func Dispatch_Error(err error) error {
 
 // Generated client method calls
 
-// SetWifiHotspotPassword changes the password (declared in the password snippet file located at the
-// specified path) for the Wi-Fi hotspot defined by the specified connection profile and then updates
-// the NetworkManager connection profile for the hotspot. This operation does not start/restart the
-// hotspot unless 1) the Wi-Fi module is idle and able to make the hotspot, and 2) the hotspot is
-// allowed to be started automatically.
-type SetWifiHotspotPassword_methods struct{}
+// UpdatePSKDropInFile updates the specified connection profile (as specified via file-based name,
+// e.g. "wlan0-hotspot")'s Wi-Fi PSK drop-in snippet file (which is automatically determined)
+// with the specified cleartext password.
+// This operation does not try to regenerate the connection profile itself from the drop-in files.
+type UpdatePSKDropInFile_methods struct{}
 
-func SetWifiHotspotPassword() SetWifiHotspotPassword_methods { return SetWifiHotspotPassword_methods{} }
+func UpdatePSKDropInFile() UpdatePSKDropInFile_methods { return UpdatePSKDropInFile_methods{} }
 
-func (m SetWifiHotspotPassword_methods) Call(ctx context.Context, c *varlink.Connection, connProfile_in_ string, pwFile_in_ string, newPw_in_ string) (err_ error) {
-	receive, err_ := m.Send(ctx, c, 0, connProfile_in_, pwFile_in_, newPw_in_)
+func (m UpdatePSKDropInFile_methods) Call(ctx context.Context, c *varlink.Connection, connProfile_in_ string, newPw_in_ string) (err_ error) {
+	receive, err_ := m.Send(ctx, c, 0, connProfile_in_, newPw_in_)
 	if err_ != nil {
 		return
 	}
@@ -62,16 +61,14 @@ func (m SetWifiHotspotPassword_methods) Call(ctx context.Context, c *varlink.Con
 	return
 }
 
-func (m SetWifiHotspotPassword_methods) Send(ctx context.Context, c *varlink.Connection, flags uint64, connProfile_in_ string, pwFile_in_ string, newPw_in_ string) (func(ctx context.Context) (uint64, error), error) {
+func (m UpdatePSKDropInFile_methods) Send(ctx context.Context, c *varlink.Connection, flags uint64, connProfile_in_ string, newPw_in_ string) (func(ctx context.Context) (uint64, error), error) {
 	var in struct {
 		ConnProfile string `json:"connProfile"`
-		PwFile      string `json:"pwFile"`
 		NewPw       string `json:"newPw"`
 	}
 	in.ConnProfile = connProfile_in_
-	in.PwFile = pwFile_in_
 	in.NewPw = newPw_in_
-	receive, err := c.Send(ctx, "com.openuc2.deviceadmin.openuc2.SetWifiHotspotPassword", in, flags)
+	receive, err := c.Send(ctx, "com.openuc2.deviceadmin.openuc2.UpdatePSKDropInFile", in, flags)
 	if err != nil {
 		return nil, err
 	}
@@ -85,16 +82,70 @@ func (m SetWifiHotspotPassword_methods) Send(ctx context.Context, c *varlink.Con
 	}, nil
 }
 
-func (m SetWifiHotspotPassword_methods) Upgrade(ctx context.Context, c *varlink.Connection, connProfile_in_ string, pwFile_in_ string, newPw_in_ string) (func(ctx context.Context) (flags uint64, conn varlink.ReadWriterContext, err_ error), error) {
+func (m UpdatePSKDropInFile_methods) Upgrade(ctx context.Context, c *varlink.Connection, connProfile_in_ string, newPw_in_ string) (func(ctx context.Context) (flags uint64, conn varlink.ReadWriterContext, err_ error), error) {
 	var in struct {
 		ConnProfile string `json:"connProfile"`
-		PwFile      string `json:"pwFile"`
 		NewPw       string `json:"newPw"`
 	}
 	in.ConnProfile = connProfile_in_
-	in.PwFile = pwFile_in_
 	in.NewPw = newPw_in_
-	receive, err := c.Upgrade(ctx, "com.openuc2.deviceadmin.openuc2.SetWifiHotspotPassword", in)
+	receive, err := c.Upgrade(ctx, "com.openuc2.deviceadmin.openuc2.UpdatePSKDropInFile", in)
+	if err != nil {
+		return nil, err
+	}
+	return func(context.Context) (flags uint64, conn varlink.ReadWriterContext, err error) {
+		flags, conn, err = receive(ctx, nil)
+		if err != nil {
+			err = Dispatch_Error(err)
+			return
+		}
+		return
+	}, nil
+}
+
+// RegenerateConnProfile reassembles the file for the NetworkManager connection profile (specified by
+// its file-based name, e.g. "wlan0-hotspot") from its constituent drop-in snippet files.
+// This operation does not try to make NetworkManager reload the updated connection profile.
+type RegenerateDropInConnProfile_methods struct{}
+
+func RegenerateDropInConnProfile() RegenerateDropInConnProfile_methods {
+	return RegenerateDropInConnProfile_methods{}
+}
+
+func (m RegenerateDropInConnProfile_methods) Call(ctx context.Context, c *varlink.Connection, connProfile_in_ string) (err_ error) {
+	receive, err_ := m.Send(ctx, c, 0, connProfile_in_)
+	if err_ != nil {
+		return
+	}
+	_, err_ = receive(ctx)
+	return
+}
+
+func (m RegenerateDropInConnProfile_methods) Send(ctx context.Context, c *varlink.Connection, flags uint64, connProfile_in_ string) (func(ctx context.Context) (uint64, error), error) {
+	var in struct {
+		ConnProfile string `json:"connProfile"`
+	}
+	in.ConnProfile = connProfile_in_
+	receive, err := c.Send(ctx, "com.openuc2.deviceadmin.openuc2.RegenerateDropInConnProfile", in, flags)
+	if err != nil {
+		return nil, err
+	}
+	return func(context.Context) (flags uint64, err error) {
+		flags, err = receive(ctx, nil)
+		if err != nil {
+			err = Dispatch_Error(err)
+			return
+		}
+		return
+	}, nil
+}
+
+func (m RegenerateDropInConnProfile_methods) Upgrade(ctx context.Context, c *varlink.Connection, connProfile_in_ string) (func(ctx context.Context) (flags uint64, conn varlink.ReadWriterContext, err_ error), error) {
+	var in struct {
+		ConnProfile string `json:"connProfile"`
+	}
+	in.ConnProfile = connProfile_in_
+	receive, err := c.Upgrade(ctx, "com.openuc2.deviceadmin.openuc2.RegenerateDropInConnProfile", in)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +162,8 @@ func (m SetWifiHotspotPassword_methods) Upgrade(ctx context.Context, c *varlink.
 // Generated service interface with all methods
 
 type comopenuc2deviceadminopenuc2Interface interface {
-	SetWifiHotspotPassword(ctx context.Context, c VarlinkCall, connProfile_ string, pwFile_ string, newPw_ string) error
+	UpdatePSKDropInFile(ctx context.Context, c VarlinkCall, connProfile_ string, newPw_ string) error
+	RegenerateDropInConnProfile(ctx context.Context, c VarlinkCall, connProfile_ string) error
 }
 
 // Generated service object with all methods
@@ -129,36 +181,55 @@ func (c *VarlinkCall) ReplyUnknown(ctx context.Context, description_ string) err
 
 // Generated reply methods for all varlink methods
 
-func (c *VarlinkCall) ReplySetWifiHotspotPassword(ctx context.Context) error {
+func (c *VarlinkCall) ReplyUpdatePSKDropInFile(ctx context.Context) error {
+	return c.Reply(ctx, nil)
+}
+
+func (c *VarlinkCall) ReplyRegenerateDropInConnProfile(ctx context.Context) error {
 	return c.Reply(ctx, nil)
 }
 
 // Generated dummy implementations for all varlink methods
 
-// SetWifiHotspotPassword changes the password (declared in the password snippet file located at the
-// specified path) for the Wi-Fi hotspot defined by the specified connection profile and then updates
-// the NetworkManager connection profile for the hotspot. This operation does not start/restart the
-// hotspot unless 1) the Wi-Fi module is idle and able to make the hotspot, and 2) the hotspot is
-// allowed to be started automatically.
-func (s *VarlinkInterface) SetWifiHotspotPassword(ctx context.Context, c VarlinkCall, connProfile_ string, pwFile_ string, newPw_ string) error {
-	return c.ReplyMethodNotImplemented(ctx, "com.openuc2.deviceadmin.openuc2.SetWifiHotspotPassword")
+// UpdatePSKDropInFile updates the specified connection profile (as specified via file-based name,
+// e.g. "wlan0-hotspot")'s Wi-Fi PSK drop-in snippet file (which is automatically determined)
+// with the specified cleartext password.
+// This operation does not try to regenerate the connection profile itself from the drop-in files.
+func (s *VarlinkInterface) UpdatePSKDropInFile(ctx context.Context, c VarlinkCall, connProfile_ string, newPw_ string) error {
+	return c.ReplyMethodNotImplemented(ctx, "com.openuc2.deviceadmin.openuc2.UpdatePSKDropInFile")
+}
+
+// RegenerateConnProfile reassembles the file for the NetworkManager connection profile (specified by
+// its file-based name, e.g. "wlan0-hotspot") from its constituent drop-in snippet files.
+// This operation does not try to make NetworkManager reload the updated connection profile.
+func (s *VarlinkInterface) RegenerateDropInConnProfile(ctx context.Context, c VarlinkCall, connProfile_ string) error {
+	return c.ReplyMethodNotImplemented(ctx, "com.openuc2.deviceadmin.openuc2.RegenerateDropInConnProfile")
 }
 
 // Generated method call dispatcher
 
 func (s *VarlinkInterface) VarlinkDispatch(ctx context.Context, call varlink.Call, methodname string) error {
 	switch methodname {
-	case "SetWifiHotspotPassword":
+	case "UpdatePSKDropInFile":
 		var in struct {
 			ConnProfile string `json:"connProfile"`
-			PwFile      string `json:"pwFile"`
 			NewPw       string `json:"newPw"`
 		}
 		err := call.GetParameters(&in)
 		if err != nil {
 			return call.ReplyInvalidParameter(ctx, "parameters")
 		}
-		return s.comopenuc2deviceadminopenuc2Interface.SetWifiHotspotPassword(ctx, VarlinkCall{call}, in.ConnProfile, in.PwFile, in.NewPw)
+		return s.comopenuc2deviceadminopenuc2Interface.UpdatePSKDropInFile(ctx, VarlinkCall{call}, in.ConnProfile, in.NewPw)
+
+	case "RegenerateDropInConnProfile":
+		var in struct {
+			ConnProfile string `json:"connProfile"`
+		}
+		err := call.GetParameters(&in)
+		if err != nil {
+			return call.ReplyInvalidParameter(ctx, "parameters")
+		}
+		return s.comopenuc2deviceadminopenuc2Interface.RegenerateDropInConnProfile(ctx, VarlinkCall{call}, in.ConnProfile)
 
 	default:
 		return call.ReplyMethodNotFound(ctx, methodname)
@@ -177,15 +248,21 @@ func (s *VarlinkInterface) VarlinkGetDescription() string {
 	return `# com.openuc2.deviceadmin.openuc2 manages openUC2 OS-specific settings.
 interface com.openuc2.deviceadmin.openuc2
 
-# SetWifiHotspotPassword changes the password (declared in the password snippet file located at the
-# specified path) for the Wi-Fi hotspot defined by the specified connection profile and then updates
-# the NetworkManager connection profile for the hotspot. This operation does not start/restart the
-# hotspot unless 1) the Wi-Fi module is idle and able to make the hotspot, and 2) the hotspot is
-# allowed to be started automatically.
-method SetWifiHotspotPassword(connProfile: string, pwFile: string, newPw: string) -> ()
-
 # The service was unable to perform the requested operation for an unspecified reason.
 error Unknown (description: string)
+
+# NetworkManager
+
+# UpdatePSKDropInFile updates the specified connection profile (as specified via file-based name,
+# e.g. "wlan0-hotspot")'s Wi-Fi PSK drop-in snippet file (which is automatically determined)
+# with the specified cleartext password.
+# This operation does not try to regenerate the connection profile itself from the drop-in files.
+method UpdatePSKDropInFile(connProfile: string, newPw: string) -> ()
+
+# RegenerateConnProfile reassembles the file for the NetworkManager connection profile (specified by
+# its file-based name, e.g. "wlan0-hotspot") from its constituent drop-in snippet files.
+# This operation does not try to make NetworkManager reload the updated connection profile.
+method RegenerateDropInConnProfile(connProfile: string) -> ()
 `
 }
 

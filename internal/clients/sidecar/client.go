@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/sargassum-world/godest"
 	"github.com/varlink/go/varlink"
 )
 
@@ -25,4 +26,13 @@ func (c *Client) Open(ctx context.Context) (conn *varlink.Connection, err error)
 		return conn, errors.Wrap(err, "couldn't connect to the sidecar over varlink")
 	}
 	return conn, nil
+}
+
+func CloseConn(conn *varlink.Connection, l godest.Logger) {
+	if conn == nil {
+		return
+	}
+	if err := conn.Close(); err != nil {
+		l.Error(errors.New("couldn't close connection to sidecar"))
+	}
 }
