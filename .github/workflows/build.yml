@@ -43,7 +43,7 @@ jobs:
           path: dist
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5.5.2
+        uses: codecov/codecov-action@v6.0.0
         with:
           files: ./coverage.out
           flags: ${{ runner.os }}
@@ -61,7 +61,7 @@ jobs:
           go-version-file: go.mod
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Release test
         run: make buildall
