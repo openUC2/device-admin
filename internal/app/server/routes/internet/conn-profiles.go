@@ -359,6 +359,8 @@ func parseConnProfileSettingsConnField(
 			return nil, errors.Errorf("autoconnect priority %d out of range [-999, 999]", value)
 		}
 		return value, nil
+	case "zone":
+		return rawValue, nil
 	}
 }
 

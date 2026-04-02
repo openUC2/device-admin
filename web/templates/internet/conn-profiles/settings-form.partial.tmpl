@@ -42,123 +42,123 @@
   </div>
 
   <h3>Connection</h3>
-  <turbo-frame
-    id="internet_conn-profiles_{{$conn.UUID}}_connection.frame"
-    data-turbo-reload
-    refresh="morph"
-  >
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        ID
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          {{if $conn.ID}}
+            {{$conn.ID}}
+          {{else}}
+            <span class="tag is-error">none</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        UUID
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          {{if $conn.UUID.String}}
+            {{$conn.UUID.String}}
+          {{else}}
+            <span class="tag is-error">none</span>
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{if $conn.StableID}}
     <div class="field is-horizontal">
       <div class="field-label">
         <label class="label">
-          ID
+          Stable ID
         </label>
       </div>
       <div class="field-body">
         <div class="field">
           <div class="control">
-            {{if $conn.ID}}
-              {{$conn.ID}}
-            {{else}}
-              <span class="tag is-error">none</span>
-            {{end}}
+            {{$conn.StableID}}
           </div>
         </div>
       </div>
     </div>
+  {{end}}
 
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">
-          UUID
-        </label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            {{if $conn.UUID.String}}
-              {{$conn.UUID.String}}
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        Type
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          {{if $conn.Type}}
+            {{if eq $conn.Type.Info.Short $conn.Type}}
+              {{$conn.Type}}
             {{else}}
-              <span class="tag is-error">none</span>
+              <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
             {{end}}
-          </div>
+          {{else}}
+            <span class="tag is-error">none</span>
+          {{end}}
         </div>
       </div>
     </div>
+  </div>
 
-    {{if $conn.StableID}}
-      <div class="field is-horizontal">
-        <div class="field-label">
-          <label class="label">
-            Stable ID
-          </label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <div class="control">
-              {{$conn.StableID}}
-            </div>
-          </div>
-        </div>
-      </div>
-    {{end}}
-
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">
-          Type
-        </label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            {{if $conn.Type}}
-              {{if eq $conn.Type.Info.Short $conn.Type}}
-                {{$conn.Type}}
-              {{else}}
-                <abbr title="{{$conn.Type}}">{{$conn.Type.Info.Short}}</abbr>
-              {{end}}
-            {{else}}
-              <span class="tag is-error">none</span>
-            {{end}}
-          </div>
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="the network interface which this connection is allowed for">Device</abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          {{if $conn.InterfaceName}}
+            <a href="{{(urlJoin (dict
+              "path" (print $Meta.BasePath "internet")
+              "query" $Meta.Form.Encode
+              "fragment" (print "internet_devices_" $conn.InterfaceName ".card")
+            ))}}" target="_top">
+              {{$conn.InterfaceName}}
+            </a>
+          {{else}}
+            <span class="tag is-info">any appropriate interface</span>
+          {{end}}
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">
-          <abbr title="the network interface which this connection is allowed for">Device</abbr>
-        </label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            {{if $conn.InterfaceName}}
-              <a href="{{(urlJoin (dict
-                "path" (print $Meta.BasePath "internet")
-                "query" $Meta.Form.Encode
-                "fragment" (print "internet_devices_" $conn.InterfaceName ".card")
-              ))}}" target="_top">
-                {{$conn.InterfaceName}}
-              </a>
-            {{else}}
-              <span class="tag is-info">any appropriate interface</span>
-            {{end}}
-          </div>
-        </div>
-      </div>
+  <div class="field is-horizontal">
+    <div class="field-label">
+      <label class="label">
+        <abbr title="when the connection was last successfully fully activated">Last used</abbr>
+      </label>
     </div>
-
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">
-          <abbr title="when the connection was last successfully fully activated">Last used</abbr>
-        </label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <turbo-frame
+            id="internet_conn-profiles_{{$conn.UUID}}_connection_last-used.frame"
+            data-turbo-reload
+            refresh="morph"
+          >
             {{if $conn.Timestamp.IsZero}}
               <span class="tag is-info">never, or unknown</span>
             {{else}}
@@ -166,30 +166,34 @@
                 {{durationRound (ago $conn.Timestamp)}} ago
               </abbr>
             {{end}}
-          </div>
+          </turbo-frame>
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="field is-horizontal">
-      <div class="field-label">
-        <label class="label">
-          <abbr title="firewall trust level">Zone</abbr>
-        </label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            {{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}
-              {{$conn.Zone}}
-            {{else}}
-              <span class="tag is-info">the firewall's default zone</span>
-            {{end}}
-          </div>
+  <div class="field is-horizontal">
+    <div class="field-label is-normal">
+      <label class="label">
+        <abbr title="firewall trust level">
+          Zone
+        </abbr>
+      </label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input
+            class="input" type="text"
+            name="connection.zone"
+            value="{{if and ($conn.Zone) (not (eq $conn.Zone "NULL"))}}{{$conn.Zone}}{{end}}"
+            placeholder="the firewall's default zone"
+            size=40
+          >
         </div>
       </div>
     </div>
-  </turbo-frame>
+  </div>
 
   <h4>Autoconnect</h4>
   <p class="mb-3">
