@@ -4,7 +4,6 @@ package identity
 import (
 	"cmp"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -32,18 +31,13 @@ func (c *Client) GetMachineName() (name string, err error) {
 	p := cmp.Or(c.Config.MachineNamePath, "/run/machine-name")
 	lines, err := readFile(p)
 	if err != nil {
-		return "", errors.Wrap(err, "couldn't read machine name file %s")
+		return "", errors.Wrapf(err, "couldn't read machine name file %s", p)
 	}
 	return strings.Join(lines, ""), nil
 }
 
 func readFile(filePath string) (lines []string, err error) {
-	parent := path.Dir(filePath)
-	fsys, err := os.OpenRoot(parent)
-	if err != nil {
-		return nil, errors.Wrapf(err, "couldn't open directory %s", parent)
-	}
-	if lines, err = readLines(fsys, path.Base(filePath)); err != nil {
+	if lines, err = readLines(filePath); err != nil {
 		return nil, errors.Wrapf(err, "couldn't read file %s", filePath)
 	}
 	for i, l := range lines {
@@ -53,8 +47,8 @@ func readFile(filePath string) (lines []string, err error) {
 	return lines, nil
 }
 
-func readLines(fsys *os.Root, filePath string) ([]string, error) {
-	contents, err := fsys.ReadFile(filePath)
+func readLines(filePath string) ([]string, error) {
+	contents, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "couldn't read file %s", filePath)
 	}

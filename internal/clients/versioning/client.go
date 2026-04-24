@@ -2,11 +2,17 @@
 package versioning
 
 import (
+	"cmp"
+	"os"
+
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
+	"gopkg.in/yaml.v3"
 )
 
-type Config struct{}
+type Config struct {
+	ForkliftPath string
+}
 
 type Client struct {
 	Config Config
@@ -22,13 +28,28 @@ func NewClient(c Config, l godest.Logger) *Client {
 }
 
 type Forklift struct {
-	Factory       string
-	Current       string
-	Pallet        string
-	UpgradeSource string
-	Upgrade       string
+	Factory       string `yaml:"factory,omitempty"`
+	Current       string `yaml:"current,omitempty"`
+	Pallet        string `yaml:"pallet,omitempty"`
+	UpgradeSource string `yaml:"upgrade-source,omitempty"`
+	Upgrade       string `yaml:"upgrade,omitempty"`
 }
 
 func (c *Client) GetForklift() (f Forklift, err error) {
-	return Forklift{}, errors.New("unimplemented")
+	p := cmp.Or(c.Config.ForkliftPath, "/run/versioning/forklift.yml")
+	if f, err = readForklift(p); err != nil {
+		return f, errors.Wrapf(err, "couldn't read Forklift versioning file %s", p)
+	}
+	return f, nil
+}
+
+func readForklift(filePath string) (f Forklift, err error) {
+	bytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return f, errors.Wrapf(err, "couldn't read Forklift versioning report %s", filePath)
+	}
+	if err = yaml.Unmarshal(bytes, &f); err != nil {
+		return f, errors.Wrap(err, "couldn't parse Forklift versioning report")
+	}
+	return f, nil
 }

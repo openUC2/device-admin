@@ -68,7 +68,10 @@ type HomeViewData struct {
 func getHomeViewData(
 	ctx context.Context, vc *versioning.Client, ic *identity.Client, tsc *tailscale.Client,
 ) (vd HomeViewData, err error) {
-	vd.ForkliftVersioning, _ = vc.GetForklift()
+	vd.ForkliftVersioning, err = vc.GetForklift()
+	if err != nil {
+		return vd, err
+	}
 
 	vd.MachineName, _ = ic.GetMachineName()
 	vd.Hostname, _ = ic.GetHostname()

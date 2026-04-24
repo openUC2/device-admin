@@ -41,137 +41,132 @@
 
       <h2>About this machine</h2>
       <h3>Identity & access</h3>
-      <div class="table-container">
-        <table class="table is-hoverable">
-          <tbody>
+      <table class="table is-hoverable">
+        <tbody>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="a statistically unique name corresponding to the statistically unique serial number of your machine's embedded computer">
+                Machine name
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              <span class="tag zerotier-address">{{.Data.MachineName}}</span>
+            </td>
+          </tr>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="your machine's self-declared name for computer networking">
+                Hostname
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              <span class="tag zerotier-address">{{.Data.Hostname}}</span>
+            </td>
+          </tr>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="your machine's `.local` mDNS domain name, usable in most Local Area Networks">
+                mDNS
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              <span class="tag domain-name">{{.Data.Hostname}}.local</span>
+            </td>
+          </tr>
+          {{if not (eq .Data.TailscaleDNS "")}}
             <tr>
-              <th>
-                <abbr title="a statistically unique name corresponding to the statistically unique serial number of your machine's embedded computer">
-                  Machine name
+              <th class="is-narrow">
+                <abbr title="the domain name of your machine within the Tailscale remote-access network">
+                  Tailscale DNS
                   {{- /* make template ignore the line break */ -}}
                 </abbr>
               </th>
               <td>
-                <span class="tag scoped-name">{{.Data.MachineName}}</span>
+                <span class="tag domain-name">{{trimSuffix "." .Data.TailscaleDNS}}</span>
               </td>
             </tr>
-            <tr>
-              <th>
-                <abbr title="your machine's self-declared name for computer networking">
-                  Hostname
-                  {{- /* make template ignore the line break */ -}}
-                </abbr>
-              </th>
-              <td>
-                <span class="tag scoped-name">{{.Data.Hostname}}</span>
-              </td>
-            </tr>
-            <tr>
-              <th>
-                <abbr title="your machine's .local domain name in local area networks">
-                  mDNS domain name
-                  {{- /* make template ignore the line break */ -}}
-                </abbr>
-              </th>
-              <td>
-                <span class="tag domain-name">{{.Data.Hostname}}.local</span>
-              </td>
-            </tr>
-            {{if not (eq .Data.TailscaleDNS "")}}
-              <tr>
-                <th>
-                  <abbr title="the domain name of your machine within the Tailscale remote-access network">
-                    Remote-access domain name
-                    {{- /* make template ignore the line break */ -}}
-                  </abbr>
-                </th>
-                <td>
-                  <span class="tag domain-name">{{trimSuffix "." .Data.TailscaleDNS}}</span>
-                </td>
-              </tr>
-            {{end}}
-          </tbody>
-        </table>
-      </div>
+          {{end}}
+        </tbody>
+      </table>
       <h3>Version</h3>
-      <div class="table-container">
-        <table class="table is-hoverable">
-          <tbody>
-            <tr>
-              <th>
-                <abbr title="the originally installed (i.e. factory-reset) operating system">
-                  Originally installed
+      <table class="table is-hoverable">
+        <tbody>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="the originally installed (i.e. factory-reset) operating system">
+                Originally installed
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              {{if .Data.ForkliftVersioning.Factory}}
+                {{.Data.ForkliftVersioning.Factory}}
+              {{else}}
+                <span class="tag is-warning">unknown</span>
+              {{end}}
+            </td>
+          </tr>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="the currently running operating system">
+                Currently booted
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              {{if .Data.ForkliftVersioning.Current}}
+                {{.Data.ForkliftVersioning.Current}}
+              {{else}}
+                <span class="tag is-warning">unknown</span>
+              {{end}}
+            </td>
+          </tr>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="the current version-controlled configuration of the operating system">
+                Local pallet
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              {{if .Data.ForkliftVersioning.Pallet}}
+                {{.Data.ForkliftVersioning.Pallet}}
+              {{else}}
+                <span class="tag is-warning">unknown</span>
+              {{end}}
+            </td>
+          </tr>
+          <tr>
+            <th class="is-narrow">
+              <abbr title="where the operating system will check for system upgrades">
+                Update source
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              {{if .Data.ForkliftVersioning.UpgradeSource}}
+                {{.Data.ForkliftVersioning.UpgradeSource}}
+              {{else}}
+                <span class="tag is-warning">unknown</span>
+              {{end}}
+            </td>
+          </tr>
+          {{if .Data.ForkliftVersioning.Upgrade}}
+            <tr class="is-info">
+              <th class="is-narrow">
+                <abbr title="a new published version which the operating system can be upgraded to">
+                  Update available
                   {{- /* make template ignore the line break */ -}}
                 </abbr>
               </th>
-              <td>
-                {{if .Data.ForkliftVersioning.Factory}}
-                  {{.Data.ForkliftVersioning.Factory}}
-                {{else}}
-                  <span class="tag is-warning">unknown</span>
-                {{end}}
-              </td>
+              <td>{{.Data.ForkliftVersioning.Upgrade}}</td>
             </tr>
-            <tr>
-              <th>
-                <abbr title="the currently running operating system">
-                  Currently booted
-                  {{- /* make template ignore the line break */ -}}
-                </abbr>
-              </th>
-              <td>
-                {{if .Data.ForkliftVersioning.Current}}
-                  {{.Data.ForkliftVersioning.Current}}
-                {{else}}
-                  <span class="tag is-warning">unknown</span>
-                {{end}}
-              </td>
-            </tr>
-            <tr>
-              <th>
-                <abbr title="the current version-controlled configuration of the operating system">
-                  Local pallet
-                  {{- /* make template ignore the line break */ -}}
-                </abbr>
-              </th>
-              <td>
-                {{if .Data.ForkliftVersioning.Pallet}}
-                  {{.Data.ForkliftVersioning.Pallet}}
-                {{else}}
-                  <span class="tag is-warning">unknown</span>
-                {{end}}
-              </td>
-            </tr>
-            <tr>
-              <th>
-                <abbr title="where the operating system will check for system upgrades">
-                  Update source
-                  {{- /* make template ignore the line break */ -}}
-                </abbr>
-              </th>
-              <td>
-                {{if .Data.ForkliftVersioning.UpgradeSource}}
-                  {{.Data.ForkliftVersioning.UpgradeSource}}
-                {{else}}
-                  <span class="tag is-warning">unknown</span>
-                {{end}}
-              </td>
-            </tr>
-            {{if .Data.ForkliftVersioning.Upgrade}}
-              <tr class="is-info">
-                <th>Update available</th>
-                <th>
-                  <abbr title="a new published version which the operating system can be upgraded to">
-                    Update available
-                    {{- /* make template ignore the line break */ -}}
-                  </abbr>
-                </th>
-                <td>{{.Data.ForkliftVersioning.Upgrade}}</td>
-              </tr>
-            {{end}}
-          </tbody>
-        </table>
-      </div>
+          {{end}}
+        </tbody>
+      </table>
 
       <h2>Boot</h2>
       <p>
