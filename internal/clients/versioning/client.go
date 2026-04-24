@@ -44,7 +44,7 @@ func (c *Client) GetForklift() (f Forklift, err error) {
 }
 
 func readForklift(filePath string) (f Forklift, err error) {
-	bytes, err := os.ReadFile(filePath)
+	bytes, err := os.ReadFile(filePath) //nolint:gosec // We trust this file
 	if err != nil {
 		return f, errors.Wrapf(err, "couldn't read Forklift versioning report %s", filePath)
 	}

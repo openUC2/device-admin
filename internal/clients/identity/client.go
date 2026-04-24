@@ -48,7 +48,7 @@ func readFile(filePath string) (lines []string, err error) {
 }
 
 func readLines(filePath string) ([]string, error) {
-	contents, err := os.ReadFile(filePath)
+	contents, err := os.ReadFile(filePath) //nolint:gosec // We trust this file
 	if err != nil {
 		return nil, errors.Wrapf(err, "couldn't read file %s", filePath)
 	}
