@@ -315,6 +315,8 @@ func updateConnProfile(
 	if err := checkConnProfile(formValues); err != nil {
 		return err
 	}
+	// TODO: if the conn profile is generated from drop-in files and the updateType is safe, then also
+	// use the sidecar to modify the drop-in files appropriately
 	return nmc.UpdateConnProfileByUUID(ctx, uid, updateType, updateValues)
 }
 

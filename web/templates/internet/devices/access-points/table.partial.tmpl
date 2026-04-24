@@ -19,13 +19,13 @@
         <th>Freq (GHz)</th>
       {{end}}
       {{if hasKey $columns "mode"}}
-        <th><abbr title="802.11 mode">Mode</abbr></th>
+        <th class="is-narrow"><abbr title="802.11 mode">Mode</abbr></th>
       {{end}}
       {{if hasKey $columns "security"}}
-        <th><abbr title="security/authentication flags and requirements">Security</abbr></th>
+        <th class="is-narrow"><abbr title="security/authentication flags and requirements">Security</abbr></th>
       {{end}}
       {{if hasKey $columns "last-seen"}}
-        <th>
+        <th class="is-narrow">
           <abbr title="time (minutes since boot) that the access point was last found in scan results">
             Last Seen
           </abbr>
@@ -95,7 +95,7 @@
             </td>
           {{end}}
           {{if hasKey $columns "mode"}}
-            <td>
+            <td class="is-narrow">
               {{$modeInfo := $accessPoint.Mode.Info}}
               <span class="tag is-{{$modeInfo.Level}}">
                 {{if eq $modeInfo.Short "infrastructure"}}
@@ -109,7 +109,7 @@
             </td>
           {{end}}
           {{if hasKey $columns "security"}}
-            <td>
+            <td class="is-narrow">
               {{if $accessPoint.RSN.IsNone}}
                 <span class="tag is-warning">None</span>
               {{end}}
@@ -128,7 +128,7 @@
             </td>
           {{end}}
           {{if hasKey $columns "last-seen"}}
-            <td>
+            <td class="is-narrow">
               {{if eq $accessPoint.LastSeen -1}}
                 <span class="tag is-warning">
                   <abbr title="access point has never been found in scan results">never</abbr>
