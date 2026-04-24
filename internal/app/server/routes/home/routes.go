@@ -4,11 +4,15 @@ package home
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
+	"github.com/sargassum-world/godest/handling"
+	"github.com/sargassum-world/godest/turbostreams"
 
+	sh "github.com/openUC2/device-admin/internal/app/server/handling"
 	"github.com/openUC2/device-admin/internal/clients/identity"
 	"github.com/openUC2/device-admin/internal/clients/tailscale"
 	"github.com/openUC2/device-admin/internal/clients/versioning"
@@ -37,10 +41,18 @@ func New(
 	}
 }
 
-func (h *Handlers) Register(er godest.EchoRouter) {
+func (h *Handlers) Register(er godest.EchoRouter, tr turbostreams.Router) {
 	er.GET(h.r.BasePath, h.HandleHomeGet())
 	if h.r.BasePath != "/" {
 		er.GET(strings.TrimSuffix(h.r.BasePath, "/"), h.HandleHomeGet())
+	}
+	tr.SUB(h.r.BasePath, sh.AllowTSSub())
+	if h.r.BasePath != "/" {
+		tr.SUB(strings.TrimSuffix(h.r.BasePath, "/"), sh.AllowTSSub())
+	}
+	tr.PUB(h.r.BasePath, h.HandleHomePub())
+	if h.r.BasePath != "/" {
+		tr.PUB(strings.TrimSuffix(h.r.BasePath, "/"), h.HandleHomePub())
 	}
 }
 
@@ -63,6 +75,8 @@ type HomeViewData struct {
 	MachineName        string
 	Hostname           string
 	TailscaleDNS       string
+
+	IsStreamPage bool
 }
 
 func getHomeViewData(
@@ -90,4 +104,23 @@ func getTailscaleDNSName(ctx context.Context, tsc *tailscale.Client) (name strin
 		return "", nil
 	}
 	return selfStatus.DNSName, nil
+}
+
+func (h *Handlers) HandleHomePub() turbostreams.HandlerFunc {
+	t := "home/index.page.tmpl"
+	h.r.MustHave(t)
+	return func(c *turbostreams.Context) error {
+		// Publish periodically
+		const pubInterval = 10 * time.Second
+		return handling.RepeatImmediate(c.Context(), pubInterval, func() (done bool, err error) {
+			// Run queries
+			vd, err := getHomeViewData(c.Context(), h.vc, h.ic, h.tsc)
+			if err != nil {
+				return false, err
+			}
+			// Produce output
+			vd.IsStreamPage = true
+			return false, sh.PublishPageReload(c, h.r, t, vd)
+		})
+	}
 }

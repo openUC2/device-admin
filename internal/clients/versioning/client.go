@@ -34,6 +34,7 @@ type Forklift struct {
 	Previous      string `yaml:"previous,omitempty"`
 	Pending       string `yaml:"pending,omitempty"`
 	Pallet        string `yaml:"pallet,omitempty"`
+	Changes       string `yaml:"changes,omitempty"`
 	UpgradeSource string `yaml:"upgrade-source,omitempty"`
 	Upgrade       string `yaml:"upgrade,omitempty"`
 }

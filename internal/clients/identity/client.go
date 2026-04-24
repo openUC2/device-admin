@@ -12,6 +12,7 @@ import (
 
 type Config struct {
 	MachineNamePath string
+	HostnamePath    string
 }
 
 type Client struct {
@@ -57,5 +58,10 @@ func readLines(filePath string) ([]string, error) {
 }
 
 func (c *Client) GetHostname() (name string, err error) {
-	return os.Hostname()
+	p := cmp.Or(c.Config.MachineNamePath, "/etc/hostname")
+	lines, err := readFile(p)
+	if err != nil {
+		return "", errors.Wrapf(err, "couldn't read hostname file %s", p)
+	}
+	return strings.Join(lines, ""), nil
 }
