@@ -19,6 +19,7 @@ require (
 	github.com/urfave/cli/v3 v3.8.0
 	github.com/varlink/go v0.4.0
 	golang.org/x/sync v0.20.0
+	gopkg.in/yaml.v3 v3.0.1
 	tailscale.com v1.96.5
 )
 
@@ -526,7 +527,6 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
 	honnef.co/go/tools v0.7.0-0.dev.0.20251022135355-8273271481d0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
