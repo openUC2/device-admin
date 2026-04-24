@@ -9,11 +9,13 @@ import (
 	"github.com/sargassum-world/godest/turbostreams"
 
 	"github.com/openUC2/device-admin/internal/app/server/conf"
+	"github.com/openUC2/device-admin/internal/clients/identity"
 	"github.com/openUC2/device-admin/internal/clients/networkmanager"
 	"github.com/openUC2/device-admin/internal/clients/sidecar"
 	"github.com/openUC2/device-admin/internal/clients/tailscale"
 	"github.com/openUC2/device-admin/internal/clients/templates"
 	"github.com/openUC2/device-admin/internal/clients/udisks2"
+	"github.com/openUC2/device-admin/internal/clients/versioning"
 )
 
 // Server
@@ -32,10 +34,13 @@ type Globals struct {
 	Config conf.Config
 	Base   *BaseGlobals
 
-	Sidecar        *sidecar.Client
+	Sidecar *sidecar.Client
+
+	Identity       *identity.Client
 	NetworkManager *networkmanager.Client
 	Tailscale      *tailscale.Client
 	UDisks2        *udisks2.Client
+	Versioning     *versioning.Client
 }
 
 func NewBaseGlobals(config conf.Config, l godest.Logger) (g *BaseGlobals, err error) {
@@ -70,9 +75,12 @@ func NewGlobals(config conf.Config, l godest.Logger) (g *Globals, err error) {
 	}
 
 	g.Sidecar = sidecar.NewClient(config.Sidecar)
+
+	g.Identity = identity.NewClient(identity.Config{}, g.Base.Logger)
 	g.NetworkManager = networkmanager.NewClient(networkmanager.Config{}, g.Base.Logger)
 	g.Tailscale = tailscale.NewClient(tailscale.Config{}, g.Base.Logger)
 	g.UDisks2 = udisks2.NewClient(udisks2.Config{}, g.Base.Logger)
+	g.Versioning = versioning.NewClient(versioning.Config{}, g.Base.Logger)
 
 	return g, nil
 }

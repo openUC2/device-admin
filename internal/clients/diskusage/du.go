@@ -1,3 +1,4 @@
+// Package diskusage exposes information about the machine's filesystem disk usage
 package diskusage
 
 import (
