@@ -96,6 +96,20 @@
         <tbody>
           <tr>
             <th class="is-narrow">
+              <abbr title="the active version of Forklift">
+                Forklift
+                {{- /* make template ignore the line break */ -}}
+              </abbr>
+            </th>
+            <td>
+              {{if .Data.ForkliftVersioning.Forklift}}
+                {{.Data.ForkliftVersioning.Forklift}}
+              {{else}}
+                <span class="tag is-warning">unknown</span>
+              {{end}}
+            </td>
+          </tr>
+            <th class="is-narrow">
               <abbr title="the originally installed (i.e. factory-reset) operating system">
                 Originally installed
                 {{- /* make template ignore the line break */ -}}
@@ -109,6 +123,19 @@
               {{end}}
             </td>
           </tr>
+          {{if .Data.ForkliftVersioning.Previous}}
+            <tr>
+              <th class="is-narrow">
+                <abbr title="the previously running operating system">
+                  Previously booted
+                  {{- /* make template ignore the line break */ -}}
+                </abbr>
+              </th>
+              <td>
+                {{.Data.ForkliftVersioning.Previous}}
+              </td>
+            </tr>
+          {{end}}
           <tr>
             <th class="is-narrow">
               <abbr title="the currently running operating system">
@@ -124,6 +151,19 @@
               {{end}}
             </td>
           </tr>
+          {{if .Data.ForkliftVersioning.Pending}}
+            <tr>
+              <th class="is-narrow">
+                <abbr title="the operating system to try running on the next boot">
+                  Pending
+                  {{- /* make template ignore the line break */ -}}
+                </abbr>
+              </th>
+              <td>
+                {{.Data.ForkliftVersioning.Pending}}
+              </td>
+            </tr>
+          {{end}}
           <tr>
             <th class="is-narrow">
               <abbr title="the current version-controlled configuration of the operating system">

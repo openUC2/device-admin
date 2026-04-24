@@ -28,8 +28,11 @@ func NewClient(c Config, l godest.Logger) *Client {
 }
 
 type Forklift struct {
+	Forklift      string `yaml:"forklift,omitempty"`
 	Factory       string `yaml:"factory,omitempty"`
 	Current       string `yaml:"current,omitempty"`
+	Previous      string `yaml:"previous,omitempty"`
+	Pending       string `yaml:"pending,omitempty"`
 	Pallet        string `yaml:"pallet,omitempty"`
 	UpgradeSource string `yaml:"upgrade-source,omitempty"`
 	Upgrade       string `yaml:"upgrade,omitempty"`
