@@ -1,6 +1,6 @@
 module github.com/openUC2/device-admin
 
-go 1.26.1
+go 1.26.3
 
 require (
 	filippo.io/csrf v0.2.1
@@ -11,16 +11,16 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-	github.com/labstack/echo/v4 v4.15.1
+	github.com/labstack/echo/v4 v4.15.2
 	github.com/labstack/gommon v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/sargassum-world/godest v0.7.3
 	github.com/unrolled/secure v1.17.0
-	github.com/urfave/cli/v3 v3.8.0
+	github.com/urfave/cli/v3 v3.9.0
 	github.com/varlink/go v0.4.0
 	golang.org/x/sync v0.20.0
 	gopkg.in/yaml.v3 v3.0.1
-	tailscale.com v1.96.5
+	tailscale.com v1.98.5
 )
 
 require (
@@ -168,7 +168,7 @@ require (
 	github.com/coder/websocket v1.8.12 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
-	github.com/containerd/stargz-snapshotter/estargz v0.18.1 // indirect
+	github.com/containerd/stargz-snapshotter/estargz v0.18.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/curioswitch/go-reassign v0.3.0 // indirect
 	github.com/cyberphone/json-canonicalization v0.0.0-20241213102144-19d51d7fe467 // indirect
@@ -187,8 +187,7 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
-	github.com/docker/cli v29.0.3+incompatible // indirect
-	github.com/docker/distribution v2.8.3+incompatible // indirect
+	github.com/docker/cli v29.4.0+incompatible // indirect
 	github.com/docker/docker v28.5.2+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.9.3 // indirect
 	github.com/docker/go-connections v0.6.0 // indirect
@@ -214,8 +213,8 @@ require (
 	github.com/go-critic/go-critic v0.13.0 // indirect
 	github.com/go-fed/httpsig v1.1.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.6.2 // indirect
-	github.com/go-git/go-git/v5 v5.16.5 // indirect
+	github.com/go-git/go-billy/v5 v5.8.0 // indirect
+	github.com/go-git/go-git/v5 v5.17.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-json-experiment/json v0.0.0-20250813024750-ebf49471dced // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -262,7 +261,7 @@ require (
 	github.com/golangci/unconvert v0.0.0-20250410112200-a129a6e6413e // indirect
 	github.com/google/certificate-transparency-go v1.3.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/go-containerregistry v0.20.7 // indirect
+	github.com/google/go-containerregistry v0.21.5 // indirect
 	github.com/google/go-github/v74 v74.0.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/ko v0.18.0 // indirect
@@ -320,7 +319,7 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/kisielk/errcheck v1.9.0 // indirect
 	github.com/kkHAIKE/contextcheck v1.1.6 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
+	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/kulti/thelper v0.7.1 // indirect
@@ -344,7 +343,7 @@ require (
 	github.com/mark3labs/mcp-go v0.39.1 // indirect
 	github.com/matoous/godox v1.1.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.21 // indirect
+	github.com/mattn/go-isatty v0.0.22 // indirect
 	github.com/mattn/go-localereader v0.0.2-0.20220822084749-2491eb6c1c75 // indirect
 	github.com/mattn/go-mastodon v0.0.10 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -358,8 +357,8 @@ require (
 	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
-	github.com/moby/moby/api v1.54.0 // indirect
-	github.com/moby/moby/client v0.3.0 // indirect
+	github.com/moby/moby/api v1.54.1 // indirect
+	github.com/moby/moby/client v0.4.0 // indirect
 	github.com/moricho/tparallel v0.3.2 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
@@ -424,7 +423,7 @@ require (
 	github.com/sigstore/sigstore v1.9.5 // indirect
 	github.com/sigstore/sigstore-go v0.7.1 // indirect
 	github.com/sigstore/timestamp-authority v1.2.5 // indirect
-	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af // indirect
+	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/slack-go/slack v0.17.3 // indirect
@@ -505,17 +504,17 @@ require (
 	go4.org/mem v0.0.0-20240501181205-ae6ca9944745 // indirect
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba // indirect
 	gocloud.dev v0.42.0 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
 	golang.org/x/exp/typeparams v0.0.0-20250911091902-df9299821621 // indirect
-	golang.org/x/mod v0.30.0 // indirect
-	golang.org/x/net v0.48.0 // indirect
-	golang.org/x/oauth2 v0.33.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/term v0.38.0 // indirect
-	golang.org/x/text v0.32.0 // indirect
-	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.39.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/oauth2 v0.36.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/term v0.42.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
 	google.golang.org/api v0.246.0 // indirect
@@ -527,8 +526,7 @@ require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gotest.tools/v3 v3.5.2 // indirect
-	honnef.co/go/tools v0.7.0-0.dev.0.20251022135355-8273271481d0 // indirect
+	honnef.co/go/tools v0.7.0 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 	mvdan.cc/gofumpt v0.9.1 // indirect
