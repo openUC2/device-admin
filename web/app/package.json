@@ -12,20 +12,20 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^10.0.1",
-    "@rollup/plugin-commonjs": "^29.0.2",
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
     "@sargassum-world/styles": "^0.3.0",
     "bulma": "~0.9.4",
-    "eslint": "^10.2.1",
+    "eslint": "^10.4.1",
     "eslint-plugin-import": "^2.32.0",
-    "globals": "^17.5.0",
+    "globals": "^17.6.0",
     "prettier": "^3.8.3",
-    "rollup": "^4.60.2",
+    "rollup": "^4.61.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-css-only": "^4.5.5",
     "rollup-plugin-scss": "^4.0.1",
-    "sass": "^1.99.0"
+    "sass": "^1.100.0"
   },
   "dependencies": {
     "@anycable/msgpack-encoder": "^0.5.0",
@@ -34,9 +34,9 @@
     "@fontsource/oxygen-mono": "^5.2.8",
     "@hotwired/stimulus": "^3.2.2",
     "@hotwired/turbo": "^8.0.23",
-    "workbox-expiration": "^7.4.0",
-    "workbox-recipes": "^7.4.0",
-    "workbox-routing": "^7.3.0",
-    "workbox-strategies": "^7.3.0"
+    "workbox-expiration": "^7.4.1",
+    "workbox-recipes": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1"
   }
 }
