@@ -10,8 +10,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/urfave/cli/v3"
 
-	"github.com/openUC2/device-admin/internal/app/server"
-	"github.com/openUC2/device-admin/internal/app/server/conf"
+	"github.com/openUC2/machine-admin/internal/app/server"
+	"github.com/openUC2/machine-admin/internal/app/server/conf"
 )
 
 const (

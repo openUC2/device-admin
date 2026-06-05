@@ -5,8 +5,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sargassum-world/godest"
 
-	"github.com/openUC2/device-admin/internal/clients/networkmanager"
-	"github.com/openUC2/device-admin/internal/clients/systemd"
+	"github.com/openUC2/machine-admin/internal/clients/networkmanager"
+	"github.com/openUC2/machine-admin/internal/clients/systemd"
 )
 
 // Server

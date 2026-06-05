@@ -8,14 +8,14 @@ import (
 	"github.com/sargassum-world/godest/clientcache"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	"github.com/openUC2/device-admin/internal/app/server/conf"
-	"github.com/openUC2/device-admin/internal/clients/identity"
-	"github.com/openUC2/device-admin/internal/clients/networkmanager"
-	"github.com/openUC2/device-admin/internal/clients/sidecar"
-	"github.com/openUC2/device-admin/internal/clients/tailscale"
-	"github.com/openUC2/device-admin/internal/clients/templates"
-	"github.com/openUC2/device-admin/internal/clients/udisks2"
-	"github.com/openUC2/device-admin/internal/clients/versioning"
+	"github.com/openUC2/machine-admin/internal/app/server/conf"
+	"github.com/openUC2/machine-admin/internal/clients/identity"
+	"github.com/openUC2/machine-admin/internal/clients/networkmanager"
+	"github.com/openUC2/machine-admin/internal/clients/sidecar"
+	"github.com/openUC2/machine-admin/internal/clients/tailscale"
+	"github.com/openUC2/machine-admin/internal/clients/templates"
+	"github.com/openUC2/machine-admin/internal/clients/udisks2"
+	"github.com/openUC2/machine-admin/internal/clients/versioning"
 )
 
 // Server

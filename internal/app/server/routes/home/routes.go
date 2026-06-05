@@ -12,10 +12,10 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	sh "github.com/openUC2/device-admin/internal/app/server/handling"
-	"github.com/openUC2/device-admin/internal/clients/identity"
-	"github.com/openUC2/device-admin/internal/clients/tailscale"
-	"github.com/openUC2/device-admin/internal/clients/versioning"
+	sh "github.com/openUC2/machine-admin/internal/app/server/handling"
+	"github.com/openUC2/machine-admin/internal/clients/identity"
+	"github.com/openUC2/machine-admin/internal/clients/tailscale"
+	"github.com/openUC2/machine-admin/internal/clients/versioning"
 )
 
 type Handlers struct {

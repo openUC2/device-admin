@@ -15,8 +15,8 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	sh "github.com/openUC2/device-admin/internal/app/server/handling"
-	ts "github.com/openUC2/device-admin/internal/clients/tailscale"
+	sh "github.com/openUC2/machine-admin/internal/app/server/handling"
+	ts "github.com/openUC2/machine-admin/internal/clients/tailscale"
 )
 
 type Handlers struct {

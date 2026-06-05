@@ -1,4 +1,4 @@
-# device-admin
+# machine-admin
 A system settings panel for machine administration
 
 ## Introduction
@@ -21,33 +21,33 @@ TODO: include some screenshots of what this roughly looks like 🙂
 
 ## Usage
 
-The device-admin app is deployed as two separate processes:
+The machine-admin app is deployed as two separate processes:
 
-1. A web server (`device-admin server`), which runs as an unprivileged process.
-2. A privileged sidecar (`device-admin sidecar`), which can perform particular superuser operations on behalf of the web server.
+1. A web server (`machine-admin server`), which runs as an unprivileged process.
+2. A privileged sidecar (`machine-admin sidecar`), which can perform particular superuser operations on behalf of the web server.
 
 ### Local Deployment
 
-First, you will need to download device-admin, which is available as a single self-contained
+First, you will need to download machine-admin, which is available as a single self-contained
 executable file. You should visit this repository's
-[releases page](https://github.com/openUC2/device-admin/releases/latest) and download an archive
+[releases page](https://github.com/openUC2/machine-admin/releases/latest) and download an archive
 file for your platform and CPU architecture; for example, on a Raspberry Pi 5, you should download
-the archive named `device-admin_{version number}_linux_arm.tar.gz` (where the version number should
-be substituted). You can extract the device-admin binary from the archive using a command like:
+the archive named `machine-admin_{version number}_linux_arm.tar.gz` (where the version number should
+be substituted). You can extract the machine-admin binary from the archive using a command like:
 ```bash
-tar -xzf device-admin_{version number}_{os}_{cpu architecture}.tar.gz device-admin
+tar -xzf machine-admin_{version number}_{os}_{cpu architecture}.tar.gz machine-admin
 ```
 
-Then you may need to move the device-admin binary into a directory in your system path, or you can just run the device-admin binary in your current directory (in which case you should replace `device-admin` with `./device-admin` in the commands listed below).
+Then you may need to move the machine-admin binary into a directory in your system path, or you can just run the machine-admin binary in your current directory (in which case you should replace `machine-admin` with `./machine-admin` in the commands listed below).
 
-Once you have device-admin, you can launch the sidecar with root permissions on a Raspberry Pi:
+Once you have machine-admin, you can launch the sidecar with root permissions on a Raspberry Pi:
 ```bash
-sudo ./device-admin sidecar
+sudo ./machine-admin sidecar
 ```
 
 In a separate terminal, you can launch the server as the `pi` user on a Raspberry Pi:
 ```bash
-./device-admin server
+./machine-admin server
 ```
 
 Then you can view the server's landing page at <http://localhost:3001> . Note that if you are
@@ -64,7 +64,7 @@ Before you start the server for the first time, you'll need to generate the weba
 
 Because the build pipeline builds Docker images, you will need to either have Docker Desktop or (on Ubuntu) to have installed QEMU (either with qemu-user-static from apt or by running [tonistiigi/binfmt](https://hub.docker.com/r/tonistiigi/binfmt)). You will need a version of Docker with buildx support.
 
-To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/device-admin_linux_arm64/device-admin`)
+To execute the full build pipeline, run `make`; to build the docker images, run `make buildall`. Note that `make buildall` will also automatically regenerate the webapp build artifacts, which means you also need to have first installed Node.js as described in the "Development" section. The resulting built binaries can be found in directories within the dist directory corresponding to OS and CPU architecture (e.g. `./dist/machine-admin_linux_arm64/machine-admin`)
 
 ## Environment Variables
 
@@ -75,16 +75,16 @@ To execute the full build pipeline, run `make`; to build the docker images, run 
 By default the sidecar binds to TCP port `2312` of `127.0.0.1`. You can bind to a different address (e.g. to a different port, or to a port on `0.0.0.0`, or to a socket file) using the `SIDECAR_ADDRESS` variable. For example, you could bind to TCP port `2313` of `0.0.0.0` by running the following command:
 ```bash
 # For the sidecar:
-sudo SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./device-admin sidecar
+sudo SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./machine-admin sidecar
 # For the server:
-SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./device-admin server
+SIDECAR_ADDRESS="tcp:0.0.0.0:2313" ./machine-admin server
 ```
 
 ### Server-Specific
 
 #### Custom Templates
 
-You can override the default webpage templates embedded in the device-admin binary by providing a path to the templates directory with the `TEMPLATES_PATH` variable, relative to the current working directory in which you start the device-admin program. For example, you could provide a custom home page by creating a new file named `home.page.tmpl` with following contents in a new `custom-templates/home` subdirectory in the directory from which you will launch device-admin:
+You can override the default webpage templates embedded in the machine-admin binary by providing a path to the templates directory with the `TEMPLATES_PATH` variable, relative to the current working directory in which you start the machine-admin program. For example, you could provide a custom home page by creating a new file named `home.page.tmpl` with following contents in a new `custom-templates/home` subdirectory in the directory from which you will launch machine-admin:
 ```html
 {{template "shared/base.layout.tmpl" .}}
 
@@ -108,8 +108,8 @@ You can override the default webpage templates embedded in the device-admin bina
 
 and then running the following command:
 ```bash
-# If you downloaded a device-admin binary:
-TEMPLATES_PATH=custom-templates ./device-admin server
+# If you downloaded a machine-admin binary:
+TEMPLATES_PATH=custom-templates ./machine-admin server
 # If you are developing the project:
 TEMPLATES_PATH=custom-templates make run-server
 ```
@@ -118,8 +118,8 @@ TEMPLATES_PATH=custom-templates make run-server
 
 You can override the default port (`3001`) or base path (`/`) of the HTTP server with the `HTTP_PORT` and `HTTP_BASEPATH` environment variables, respectively. For example, you could run the web server on port 3002 with base path `/admin/panel/` by running the following command:
 ```bash
-# If you downloaded a device-admin binary:
-HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" ./device-admin server
+# If you downloaded a machine-admin binary:
+HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" ./machine-admin server
 # If you are developing the project:
 HTTP_PORT=3002 HTTP_BASEPATH="/admin/panel/" make run-server
 ```
@@ -127,12 +127,12 @@ Note that `HTTP_BASEPATH` should end with a trailing slash.
 
 #### Action Cable
 
-Action Cable is used to push live page updates to web browsers without the need for page refreshes. Action Cable subscriptions are signed with a hash key for security reasons; that hash key will need to be persisted in a keyfile in order for web browsers to maintain subscriptions across restarts of the device-admin server. You should override the default path of that keyfile (`/tmp/action-cable.key`) with the `ACTIONCABLE_HASH_KEYFILE` environment variable. For example, you could run the web server with a keyfile in the HOME directory by running the following command:
+Action Cable is used to push live page updates to web browsers without the need for page refreshes. Action Cable subscriptions are signed with a hash key for security reasons; that hash key will need to be persisted in a keyfile in order for web browsers to maintain subscriptions across restarts of the machine-admin server. You should override the default path of that keyfile (`/tmp/action-cable.key`) with the `ACTIONCABLE_HASH_KEYFILE` environment variable. For example, you could run the web server with a keyfile in the HOME directory by running the following command:
 ```bash
-# If you downloaded a device-admin binary:
-ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" ./device-admin server
+# If you downloaded a machine-admin binary:
+ACTIONCABLE_HASH_KEYFILE="~/.config/machine-admin/action-cable-hash.key" ./machine-admin server
 # If you are developing the project:
-ACTIONCABLE_HASH_KEYFILE="~/.config/device-admin/action-cable-hash.key" make run-server
+ACTIONCABLE_HASH_KEYFILE="~/.config/machine-admin/action-cable-hash.key" make run-server
 ```
 
 If the file doesn't exist, a new key will be randomly generated and saved to the file.

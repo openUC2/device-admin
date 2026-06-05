@@ -6,9 +6,9 @@ import (
 	"github.com/sargassum-world/godest"
 	"github.com/varlink/go/varlink"
 
-	ipc "github.com/openUC2/device-admin/internal/app/ipc/boot"
-	"github.com/openUC2/device-admin/internal/app/sidecar/handling"
-	sd "github.com/openUC2/device-admin/internal/clients/systemd"
+	ipc "github.com/openUC2/machine-admin/internal/app/ipc/boot"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/handling"
+	sd "github.com/openUC2/machine-admin/internal/clients/systemd"
 )
 
 type Handlers struct {

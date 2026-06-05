@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/gommon/log"
 	"github.com/urfave/cli/v3"
 
-	"github.com/openUC2/device-admin/internal/app/sidecar"
+	"github.com/openUC2/machine-admin/internal/app/sidecar"
 )
 
 var sidecarCmd = &cli.Command{
@@ -28,8 +28,8 @@ var sidecarCmd = &cli.Command{
 
 var config = sidecar.Config{
 	Vendor:  "OpenUC2",
-	Product: "device-admin sidecar",
-	URL:     "https://github.com/openUC2/device-admin",
+	Product: "machine-admin sidecar",
+	URL:     "https://github.com/openUC2/machine-admin",
 }
 
 func sidecarMain(ctx context.Context, cmd *cli.Command) error {

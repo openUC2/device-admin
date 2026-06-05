@@ -1,4 +1,4 @@
-// Package sidecar provides an interface for the device-admin sidecar's varlink service
+// Package sidecar provides an interface for the machine-admin sidecar's varlink service
 package sidecar
 
 import (

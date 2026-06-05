@@ -7,9 +7,9 @@ before:
     - go mod download
 
 builds:
-- id: device-admin
+- id: machine-admin
   main: .
-  binary: device-admin
+  binary: machine-admin
   mod_timestamp: "{{ .CommitTimestamp }}"
   flags:
     - -trimpath
@@ -34,9 +34,9 @@ builds:
     # - windows_amd64_v1
 
 archives:
-  - id: device-admin
-    ids: ["device-admin"]
-    name_template: "device-admin_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  - id: machine-admin
+    ids: ["machine-admin"]
+    name_template: "machine-admin_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
         formats: zip
@@ -80,10 +80,10 @@ release:
     {{- end }}
 
 dockers:
-  # device-admin
-  - id: device-admin-amd64
+  # machine-admin
+  - id: machine-admin-amd64
     ids:
-      - device-admin
+      - machine-admin
     dockerfile: "Dockerfile"
     use: buildx
     image_templates:
@@ -100,9 +100,9 @@ dockers:
       - "--label=org.opencontainers.image.licenses=(Apache-2.0 OR BlueOak-1.0.0)"
     extra_files:
       - "web/templates"
-  - id: device-admin-arm64v8
+  - id: machine-admin-arm64v8
     ids:
-      - device-admin
+      - machine-admin
     dockerfile: "Dockerfile"
     use: buildx
     goarch: arm64
@@ -122,7 +122,7 @@ dockers:
       - "web/templates"
 
 docker_manifests:
-  # device-admin
+  # machine-admin
   - name_template: "ghcr.io/openuc2/{{ .ProjectName }}:latest"
     image_templates:
       - "ghcr.io/openuc2/{{ .ProjectName }}:latest-amd64"

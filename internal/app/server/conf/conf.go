@@ -5,7 +5,7 @@ import (
 	"github.com/dgraph-io/ristretto"
 	"github.com/pkg/errors"
 
-	"github.com/openUC2/device-admin/internal/clients/sidecar"
+	"github.com/openUC2/machine-admin/internal/clients/sidecar"
 )
 
 type Config struct {

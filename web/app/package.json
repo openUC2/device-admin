@@ -1,6 +1,5 @@
 {
-  "name": "device-admin",
-  "version": "0.1.0",
+  "name": "machine-admin",
   "private": true,
   "scripts": {
     "build": "rollup -c",

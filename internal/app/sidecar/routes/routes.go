@@ -4,10 +4,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/varlink/go/varlink"
 
-	"github.com/openUC2/device-admin/internal/app/sidecar/client"
-	"github.com/openUC2/device-admin/internal/app/sidecar/routes/boot"
-	"github.com/openUC2/device-admin/internal/app/sidecar/routes/networkmanager"
-	"github.com/openUC2/device-admin/internal/app/sidecar/routes/openuc2"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/client"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/routes/boot"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/routes/networkmanager"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/routes/openuc2"
 )
 
 type Handlers struct {

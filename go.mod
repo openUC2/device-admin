@@ -1,4 +1,4 @@
-module github.com/openUC2/device-admin
+module github.com/openUC2/machine-admin
 
 go 1.26.3
 

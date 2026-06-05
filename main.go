@@ -17,7 +17,7 @@ func main() {
 }
 
 var cmd = &cli.Command{
-	Name:    "device-admin",
+	Name:    "machine-admin",
 	Version: toolVersion,
 	Usage:   "Provides a web browser interface for system administration",
 	Commands: []*cli.Command{

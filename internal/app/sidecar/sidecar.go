@@ -1,4 +1,4 @@
-// Package sidecar provides the privileged sidecar for the device-admin server
+// Package sidecar provides the privileged sidecar for the machine-admin server
 package sidecar
 
 import (
@@ -9,8 +9,8 @@ import (
 	"github.com/varlink/go/varlink"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/openUC2/device-admin/internal/app/sidecar/client"
-	"github.com/openUC2/device-admin/internal/app/sidecar/routes"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/client"
+	"github.com/openUC2/machine-admin/internal/app/sidecar/routes"
 )
 
 type Config struct {
@@ -50,7 +50,7 @@ func New(config Config, logger godest.Logger) (s *Sidecar, err error) {
 // Running
 
 func (s *Sidecar) Run(ctx context.Context) error {
-	s.Globals.Base.Logger.Info("starting device-admin sidecar")
+	s.Globals.Base.Logger.Info("starting machine-admin sidecar")
 
 	eg, egctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
@@ -75,7 +75,7 @@ func (s *Sidecar) runWorkersInContext(ctx context.Context) error {
 	eg.Go(func() error {
 		if err := s.Globals.Systemd.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open systemd client")
-			// Even if Systemd is unavailable, other parts of device-admin are still useful, so we
+			// Even if Systemd is unavailable, other parts of machine-admin are still useful, so we
 			// don't propagate the error from here
 		}
 		return nil
@@ -83,7 +83,7 @@ func (s *Sidecar) runWorkersInContext(ctx context.Context) error {
 	eg.Go(func() error {
 		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
-			// Even if NetworkManager is unavailable, other parts of device-admin are still useful, so we
+			// Even if NetworkManager is unavailable, other parts of machine-admin are still useful, so we
 			// don't propagate the error from here
 		}
 		return nil

@@ -15,8 +15,8 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	sh "github.com/openUC2/device-admin/internal/app/server/handling"
-	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
+	sh "github.com/openUC2/machine-admin/internal/app/server/handling"
+	nm "github.com/openUC2/machine-admin/internal/clients/networkmanager"
 )
 
 func (h *Handlers) HandleDeviceAPsGetByIface() echo.HandlerFunc {

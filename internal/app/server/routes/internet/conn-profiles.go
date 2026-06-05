@@ -18,11 +18,11 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	nmipc "github.com/openUC2/device-admin/internal/app/ipc/networkmanager"
-	uc2ipc "github.com/openUC2/device-admin/internal/app/ipc/openuc2"
-	sh "github.com/openUC2/device-admin/internal/app/server/handling"
-	nm "github.com/openUC2/device-admin/internal/clients/networkmanager"
-	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
+	nmipc "github.com/openUC2/machine-admin/internal/app/ipc/networkmanager"
+	uc2ipc "github.com/openUC2/machine-admin/internal/app/ipc/openuc2"
+	sh "github.com/openUC2/machine-admin/internal/app/server/handling"
+	nm "github.com/openUC2/machine-admin/internal/clients/networkmanager"
+	sc "github.com/openUC2/machine-admin/internal/clients/sidecar"
 )
 
 func (h *Handlers) HandleConnProfilesPost() echo.HandlerFunc {

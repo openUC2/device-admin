@@ -1,4 +1,4 @@
-// Package server provides the openUC2 OS device-admin server for system/machine administration.
+// Package server provides the openUC2 OS machine-admin server for system/machine administration.
 package server
 
 import (
@@ -18,12 +18,12 @@ import (
 	"github.com/unrolled/secure/cspbuilder"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/openUC2/device-admin/internal/app/server/client"
-	"github.com/openUC2/device-admin/internal/app/server/conf"
-	"github.com/openUC2/device-admin/internal/app/server/routes"
-	"github.com/openUC2/device-admin/internal/app/server/routes/assets"
-	"github.com/openUC2/device-admin/internal/app/server/tmplfunc"
-	"github.com/openUC2/device-admin/web"
+	"github.com/openUC2/machine-admin/internal/app/server/client"
+	"github.com/openUC2/machine-admin/internal/app/server/conf"
+	"github.com/openUC2/machine-admin/internal/app/server/routes"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/assets"
+	"github.com/openUC2/machine-admin/internal/app/server/tmplfunc"
+	"github.com/openUC2/machine-admin/web"
 )
 
 type Server struct {
@@ -195,7 +195,7 @@ func (s *Server) Register(e *echo.Echo) error {
 // Running
 
 func (s *Server) Run(e *echo.Echo) error {
-	s.Globals.Base.Logger.Info("starting device-admin server")
+	s.Globals.Base.Logger.Info("starting machine-admin server")
 
 	// The echo http server can't be canceled by context cancelation, so the API shouldn't promise to
 	// stop blocking execution on context cancelation - so we use the background context here. The
@@ -233,7 +233,7 @@ func (s *Server) runWorkersInContext(ctx context.Context) error {
 	eg.Go(func() error {
 		if err := s.Globals.NetworkManager.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open NetworkManager client")
-			// Even if NetworkManager is unavailable, other parts of device-admin are still useful, so we
+			// Even if NetworkManager is unavailable, other parts of machine-admin are still useful, so we
 			// don't propagate the error from here
 		}
 		return nil
@@ -241,7 +241,7 @@ func (s *Server) runWorkersInContext(ctx context.Context) error {
 	eg.Go(func() error {
 		if err := s.Globals.UDisks2.Open(ctx); err != nil {
 			s.Globals.Base.Logger.Error("couldn't open UDisks2 client")
-			// Even if UDisks2 is unavailable, other parts of device-admin are still useful, so we don't
+			// Even if UDisks2 is unavailable, other parts of machine-admin are still useful, so we don't
 			// propagate the error from here
 		}
 		return nil

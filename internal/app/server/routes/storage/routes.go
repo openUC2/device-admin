@@ -14,9 +14,9 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	sh "github.com/openUC2/device-admin/internal/app/server/handling"
-	du "github.com/openUC2/device-admin/internal/clients/diskusage"
-	ud "github.com/openUC2/device-admin/internal/clients/udisks2"
+	sh "github.com/openUC2/machine-admin/internal/app/server/handling"
+	du "github.com/openUC2/machine-admin/internal/clients/diskusage"
+	ud "github.com/openUC2/machine-admin/internal/clients/udisks2"
 )
 
 type Handlers struct {

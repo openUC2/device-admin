@@ -10,17 +10,17 @@ import (
 	"github.com/sargassum-world/godest/handling"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	"github.com/openUC2/device-admin/internal/app/server/client"
-	dah "github.com/openUC2/device-admin/internal/app/server/handling"
-	"github.com/openUC2/device-admin/internal/app/server/routes/assets"
-	"github.com/openUC2/device-admin/internal/app/server/routes/boot"
-	"github.com/openUC2/device-admin/internal/app/server/routes/cable"
-	"github.com/openUC2/device-admin/internal/app/server/routes/home"
-	"github.com/openUC2/device-admin/internal/app/server/routes/identity"
-	"github.com/openUC2/device-admin/internal/app/server/routes/internet"
-	"github.com/openUC2/device-admin/internal/app/server/routes/osconfig"
-	"github.com/openUC2/device-admin/internal/app/server/routes/remote"
-	"github.com/openUC2/device-admin/internal/app/server/routes/storage"
+	"github.com/openUC2/machine-admin/internal/app/server/client"
+	dah "github.com/openUC2/machine-admin/internal/app/server/handling"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/assets"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/boot"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/cable"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/home"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/identity"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/internet"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/osconfig"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/remote"
+	"github.com/openUC2/machine-admin/internal/app/server/routes/storage"
 )
 
 type Handlers struct {

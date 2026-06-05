@@ -55,10 +55,10 @@ formatters:
       sections:
         - standard
         - default
-        - prefix(github.com/openUC2/device-admin)
+        - prefix(github.com/openUC2/machine-admin)
     goimports:
       local-prefixes:
-        - github.com/openUC2/device-admin
+        - github.com/openUC2/machine-admin
   exclusions:
     generated: lax
     paths:

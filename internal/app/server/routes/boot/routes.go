@@ -11,9 +11,9 @@ import (
 	"github.com/sargassum-world/godest"
 	"github.com/sargassum-world/godest/turbostreams"
 
-	ipc "github.com/openUC2/device-admin/internal/app/ipc/boot"
-	sh "github.com/openUC2/device-admin/internal/app/server/handling"
-	sc "github.com/openUC2/device-admin/internal/clients/sidecar"
+	ipc "github.com/openUC2/machine-admin/internal/app/ipc/boot"
+	sh "github.com/openUC2/machine-admin/internal/app/server/handling"
+	sc "github.com/openUC2/machine-admin/internal/clients/sidecar"
 )
 
 type Handlers struct {
